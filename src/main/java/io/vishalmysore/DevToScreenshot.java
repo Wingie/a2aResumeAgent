@@ -18,7 +18,7 @@ public class DevToScreenshot {
             page.waitForLoadState(LoadState.NETWORKIDLE);
 
             // Take screenshot
-            String screenshotPath = "devto.png";
+            String screenshotPath = "static/devto.png";
             page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get(screenshotPath)));
 
             System.out.println("Screenshot saved to: " + screenshotPath);

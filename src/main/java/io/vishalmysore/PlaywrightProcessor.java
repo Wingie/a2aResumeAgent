@@ -19,16 +19,30 @@ public interface PlaywrightProcessor  {
         String act = actions.getTypeOfActionToTakeOnWebDriver().toUpperCase();
         Browser browser = getBrowser();
         BrowserContext context = getContext();
-        Page page = context.newPage();
+
+        Page page;
+        if (context.pages().isEmpty()) {
+            page = context.newPage();
+        } else {
+            page = context.pages().get(0);
+        }
 
         try {
             switch (act) {
                 case "GET":
                 case "NAVIGATE":
                     String url = getStringFromPrompt(prompt, "urlToClick");
-                    page.navigate(url);
-                    page.waitForLoadState(LoadState.NETWORKIDLE);
-                    break;
+                    if (url == null || url.isEmpty()) {
+                        break;
+                    } else {
+                        URLSafety safe = (URLSafety) getTransformer().transformIntoPojo("Is this URL safe to navigate? "+url, URLSafety.class);
+                        if (!safe.isItSafeAndValid()) {
+                            throw new AIProcessingException("The URL is not safe to navigate: {" + url+ "}");
+                        }
+                        page.navigate(url);
+                        page.waitForLoadState(LoadState.NETWORKIDLE);
+                        break;
+                    }
 
                 case "CLICK":
                     page.waitForLoadState(LoadState.NETWORKIDLE);

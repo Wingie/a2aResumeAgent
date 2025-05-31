@@ -38,18 +38,19 @@ public class PlaywrightOpenAIProcessor extends OpenAiActionProcessor implements 
         this.playwright = playwright;
         this.utils = new JsonUtils();
         this.transformer = new OpenAIPromptTransformer();
+        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+        context = browser.newContext();
     }
 
     public PlaywrightOpenAIProcessor(Browser browser) {
         this.browser = browser;
         this.utils = new JsonUtils();
         this.transformer = new OpenAIPromptTransformer();
+        context = browser.newContext();
     }
     @Override
     public boolean trueFalseQuery(String question) throws AIProcessingException {
-        Browser browser = getBrowser();
-        BrowserContext context = browser.newContext();
-        Page page = context.newPage();
+        Page page = context.pages().get(0);
         String htmlSource = page.content();
         String str =  query(" this is your html { "+htmlSource+"} now answer this question in true or false only "+question);
         return Boolean.valueOf(str.trim());

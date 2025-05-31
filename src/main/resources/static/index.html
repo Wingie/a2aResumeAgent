@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A2A MCP Playwright Web Automation Agent</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 text-blue-300">A2A MCP Playwright Web Automation Agent</h1>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                A powerful web automation agent that seamlessly integrates A2A and MCP protocols using the a2ajava framework and Playwright for web interactions.
+            </p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div class="card rounded-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-blue-300">Live Demo</h2>
+                <p class="mb-4">Experience the agent in action:</p>
+                <a href="https://vishalmysore-a2apw.hf.space/" class="text-blue-400 hover:text-blue-300 block mb-2">Live Demo</a>
+                <a href="https://vishalmysore-a2apw.hf.space/.well-known/agent.json" class="text-blue-400 hover:text-blue-300">View Agent Card</a>
+            </div>
+
+            <div class="card rounded-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-blue-300">Key Features</h2>
+                <ul class="list-disc list-inside space-y-2">
+                    <li>Web automation using Playwright</li>
+                    <li>Support for A2A and MCP protocols</li>
+                    <li>Tool calling capabilities</li>
+                    <li>Screenshot and text extraction</li>
+                    <li>Natural language command processing</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            <div class="card rounded-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-blue-300">Text Extraction Example</h2>
+                <pre class="rounded-lg"><code class="language-bash">curl -X POST \
+-H "Content-Type: application/json" \
+-d '{
+    "method": "tools/call",
+    "params": {
+        "name": "browseWebAndReturnText",
+        "arguments": {
+            "provideAllValuesInPlainEnglish": "Go to Google.com, search for \"a2ajava\"give me result"
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 17
+}' \
+http://localhost:7860</code></pre>
+            </div>
+
+            <div class="card rounded-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-blue-300">Screenshot Capture Example</h2>
+                <pre class="rounded-lg"><code class="language-bash">curl -X POST \
+-H "Content-Type: application/json" \
+-d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "browseWebAndReturnImage",
+        "arguments": {
+            "provideAllValuesInPlainEnglish": "Navigate to https://dev.to and take a screenshot of the homepage"
+        }
+    },
+    "id": 17
+}' \
+http://localhost:7860</code></pre>
+            </div>
+        </div>
+
+        <div class="mt-12">
+            <h2 class="text-3xl font-bold mb-6 text-blue-300">Protocol Support</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 text-blue-300">A2A Protocol</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li>Register agent using the a2ajava framework</li>
+                        <li>Tool calling capabilities via JSON-RPC</li>
+                        <li>Natural language command processing</li>
+                        <li>Response handling through callbacks</li>
+                    </ul>
+                </div>
+
+                <div class="card rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 text-blue-300">MCP Protocol</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li>Direct integration with MCP network</li>
+                        <li>Standardized message format</li>
+                        <li>Tool registration and discovery</li>
+                        <li>Asynchronous operation support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>

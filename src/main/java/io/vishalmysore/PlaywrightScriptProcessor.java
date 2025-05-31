@@ -62,10 +62,10 @@ public class PlaywrightScriptProcessor extends ScriptProcessor {
         return result;
     }
 
-    public ScriptResult process(StringBuffer content, PlaywrightCallback callback) {
+    public ScriptResult process(String context,StringBuffer steps, PlaywrightCallback callback) {
         ScriptResult result = new ScriptResult();
         try {
-            BufferedReader reader = new BufferedReader(new StringReader(content.toString()));
+            BufferedReader reader = new BufferedReader(new StringReader(steps.toString()));
             log.info("Processing content from StringBuffer");
             processCommands(reader, result, callback);
         } catch (IOException e) {
