@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
+    <title>Enterprise Supply Chain Agentic Mesh</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(ellipse at center, #0a0e1a 0%, #02040a 100%);
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow: auto;
+            min-height: 100vh;
+            color: #00d4ff;
+            position: relative;
+        }
+
+        .mesh-container {
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+            padding: 20px;
+        }
+
+        .grid-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridShift 20s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 30px;
+            z-index: 100;
+            position: relative;
+        }
+
+        .main-title {
+            font-size: 28px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+            margin-bottom: 10px;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #4a9eff;
+            opacity: 0.8;
+        }
+
+        @keyframes titleGlow {
+            from { text-shadow: 0 0 20px #00d4ff; }
+            to { text-shadow: 0 0 30px #00d4ff, 0 0 40px #4a9eff; }
+        }
+
+        .agent-node {
+            position: absolute;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 2px solid;
+            z-index: 10;
+            animation: nodeFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes nodeFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .agent-node:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+            z-index: 50;
+        }
+
+        .agent-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .agent-lang {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 8px;
+            margin-top: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: statusBlink 2s ease-in-out infinite;
+        }
+
+        @keyframes statusBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Supply Chain Agents */
+        .inventory-agent {
+            width: 140px;
+            height: 100px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border-color: #ff6b35;
+            top: 15%;
+            left: 8%;
+        }
+
+        .demand-forecasting {
+            width: 130px;
+            height: 90px;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            border-color: #4ecdc4;
+            top: 12%;
+            left: 25%;
+        }
+
+        .supplier-agent {
+            width: 120px;
+            height: 85px;
+            background: linear-gradient(135deg, #a8e6cf, #7fcdcd);
+            border-color: #a8e6cf;
+            top: 10%;
+            left: 45%;
+        }
+
+        .production-scheduler {
+            width: 150px;
+            height: 105px;
+            background: linear-gradient(135deg, #ff8a80, #ff5722);
+            border-color: #ff8a80;
+            top: 35%;
+            left: 5%;
+        }
+
+        .quality-control {
+            width: 125px;
+            height: 95px;
+            background: linear-gradient(135deg, #ba68c8, #9c27b0);
+            border-color: #ba68c8;
+            top: 38%;
+            left: 22%;
+        }
+
+        .logistics-optimizer {
+            width: 135px;
+            height: 100px;
+            background: linear-gradient(135deg, #64b5f6, #1976d2);
+            border-color: #64b5f6;
+            top: 35%;
+            left: 42%;
+        }
+
+        .warehouse-agent {
+            width: 130px;
+            height: 95px;
+            background: linear-gradient(135deg, #ffb74d, #f57c00);
+            border-color: #ffb74d;
+            top: 60%;
+            left: 8%;
+        }
+
+        .shipping-coordinator {
+            width: 140px;
+            height: 100px;
+            background: linear-gradient(135deg, #81c784, #388e3c);
+            border-color: #81c784;
+            top: 62%;
+            left: 25%;
+        }
+
+        .compliance-monitor {
+            width: 125px;
+            height: 90px;
+            background: linear-gradient(135deg, #e57373, #d32f2f);
+            border-color: #e57373;
+            top: 65%;
+            left: 45%;
+        }
+
+        .customer-service {
+            width: 135px;
+            height: 95px;
+            background: linear-gradient(135deg, #f06292, #e91e63);
+            border-color: #f06292;
+            top: 15%;
+            right: 8%;
+        }
+
+        .pricing-agent {
+            width: 130px;
+            height: 90px;
+            background: linear-gradient(135deg, #9575cd, #673ab7);
+            border-color: #9575cd;
+            top: 35%;
+            right: 5%;
+        }
+
+        .risk-assessment {
+            width: 140px;
+            height: 100px;
+            background: linear-gradient(135deg, #ffab91, #ff5722);
+            border-color: #ffab91;
+            top: 55%;
+            right: 8%;
+        }
+
+        /* Connection Lines */
+        .connection {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.8), rgba(255, 107, 53, 0.6), transparent);
+            transform-origin: left center;
+            z-index: 5;
+            animation: dataFlow 4s linear infinite;
+        }
+
+        @keyframes dataFlow {
+            0% { opacity: 0; transform: scaleX(0); }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: scaleX(1); }
+        }
+
+        .connection-1 {
+            top: 20%;
+            left: 17%;
+            width: 120px;
+            transform: rotate(15deg);
+            animation-delay: 0s;
+        }
+
+        .connection-2 {
+            top: 16%;
+            left: 37%;
+            width: 100px;
+            transform: rotate(25deg);
+            animation-delay: 0.5s;
+        }
+
+        .connection-3 {
+            top: 25%;
+            left: 30%;
+            width: 90px;
+            transform: rotate(-45deg);
+            animation-delay: 1s;
+        }
+
+        .connection-4 {
+            top: 45%;
+            left: 18%;
+            width: 110px;
+            transform: rotate(5deg);
+            animation-delay: 1.5s;
+        }
+
+        .connection-5 {
+            top: 42%;
+            left: 35%;
+            width: 95px;
+            transform: rotate(35deg);
+            animation-delay: 2s;
+        }
+
+        .connection-6 {
+            top: 65%;
+            left: 20%;
+            width: 130px;
+            transform: rotate(-10deg);
+            animation-delay: 2.5s;
+        }
+
+        .connection-7 {
+            top: 68%;
+            left: 38%;
+            width: 85px;
+            transform: rotate(20deg);
+            animation-delay: 3s;
+        }
+
+        .connection-8 {
+            top: 25%;
+            right: 20%;
+            width: 100px;
+            transform: rotate(155deg);
+            animation-delay: 0.8s;
+        }
+
+        .connection-9 {
+            top: 42%;
+            right: 18%;
+            width: 90px;
+            transform: rotate(125deg);
+            animation-delay: 1.8s;
+        }
+
+        .connection-10 {
+            top: 58%;
+            right: 22%;
+            width: 110px;
+            transform: rotate(145deg);
+            animation-delay: 2.8s;
+        }
+
+        /* Cross connections */
+        .connection-11 {
+            top: 50%;
+            left: 20%;
+            width: 400px;
+            transform: rotate(8deg);
+            animation-delay: 1.2s;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.4), rgba(0, 212, 255, 0.4), transparent);
+        }
+
+        .connection-12 {
+            top: 30%;
+            left: 15%;
+            width: 350px;
+            transform: rotate(-12deg);
+            animation-delay: 2.2s;
+            background: linear-gradient(90deg, transparent, rgba(116, 224, 192, 0.6), rgba(186, 104, 200, 0.4), transparent);
+        }
+
+        .data-streams {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .data-packet {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff88;
+            animation: packetMove 8s linear infinite;
+        }
+
+        @keyframes packetMove {
+            0% { opacity: 0; }
+            5% { opacity: 1; }
+            95% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #00d4ff;
+            z-index: 100;
+        }
+
+        .legend h4 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        .metrics-panel {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #00ff88;
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .metrics-panel h4 {
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .metric-value {
+            color: #4a9eff;
+            font-weight: bold;
+        }
+
+        .alert-panel {
+            position: absolute;
+            top: 280px;
+            right: 20px;
+            background: rgba(20, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ff4444;
+            min-width: 200px;
+            z-index: 100;
+            animation: alertBlink 2s ease-in-out infinite;
+        }
+
+        @keyframes alertBlink {
+            0%, 100% { border-color: #ff4444; }
+            50% { border-color: #ff8888; }
+        }
+
+        .alert-panel h4 {
+            color: #ff4444;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .alert-item {
+            font-size: 10px;
+            color: #ffaaaa;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="mesh-container">
+    <div class="grid-background"></div>
+
+    <div class="title-section">
+        <div class="main-title">Enterprise Supply Chain Agentic Mesh</div>
+        <div class="subtitle">Multi-Language A2A + MCP Protocol Architecture</div>
+    </div>
+
+    <!-- Supply Chain Agents -->
+    <div class="agent-node inventory-agent">
+        <div class="status-indicator" style="background: #00ff88;"></div>
+        <div class="agent-icon">📦</div>
+        <div>INVENTORY<br>MANAGER</div>
+        <div class="agent-lang">JAVA</div>
+    </div>
+
+    <div class="agent-node demand-forecasting">
+        <div class="status-indicator" style="background: #ffeb3b;"></div>
+        <div class="agent-icon">📈</div>
+        <div>DEMAND<br>FORECASTING</div>
+        <div class="agent-lang">SCALA</div>
+    </div>
+
+    <div class="agent-node supplier-agent">
+        <div class="status-indicator" style="background: #00ff88;"></div>
+        <div class="agent-icon">🏭</div>
+        <div>SUPPLIER<br>NETWORK</div>
+        <div class="agent-lang">KOTLIN</div>
+    </div>
+
+    <div class="agent-node production-scheduler">
+        <div class="status-indicator" style="background: #ff9800;"></div>
+        <div class="agent-icon">⚙️</div>
+        <div>PRODUCTION<br>SCHEDULER</div>
+        <div class="agent-lang">JAVA</div>
+    </div>
+
+    <div class="agent-node quality-control">
+        <div class="status-indicator" style="background: #00ff88;"></div>
+        <div class="agent-icon">✅</div>
+        <div>QUALITY<br>CONTROL</div>
+        <div class="agent-lang">GROOVY</div>
+    </div>
+
+    <div class="agent-node logistics-optimizer">
+        <div class="status-indicator" style="background: #2196f3;"></div>
+        <div class="agent-icon">🚛</div>
+        <div>LOGISTICS<br>OPTIMIZER</div>
+        <div class="agent-lang">KOTLIN</div>
+    </div>
+
+    <div class="agent-node warehouse-agent">
+        <div class="status-indicator" style="background: #00ff88;"></div>
+        <div class="agent-icon">🏪</div>
+        <div>WAREHOUSE<br>CONTROL</div>
+        <div class="agent-lang">JAVA</div>
+    </div>
+
+    <div class="agent-node shipping-coordinator">
+        <div class="status-indicator" style="background: #4caf50;"></div>
+        <div class="agent-icon">📮</div>
+        <div>SHIPPING<br>COORDINATOR</div>
+        <div class="agent-lang">KOTLIN</div>
+    </div>
+
+    <div class="agent-node compliance-monitor">
+        <div class="status-indicator" style="background: #ff5722;"></div>
+        <div class="agent-icon">⚖️</div>
+        <div>COMPLIANCE<br>MONITOR</div>
+        <div class="agent-lang">JAVA</div>
+    </div>
+
+    <div class="agent-node customer-service">
+        <div class="status-indicator" style="background: #e91e63;"></div>
+        <div class="agent-icon">👥</div>
+        <div>CUSTOMER<br>SERVICE</div>
+        <div class="agent-lang">GROOVY</div>
+    </div>
+
+    <div class="agent-node pricing-agent">
+        <div class="status-indicator" style="background: #9c27b0;"></div>
+        <div class="agent-icon">💰</div>
+        <div>DYNAMIC<br>PRICING</div>
+        <div class="agent-lang">SCALA</div>
+    </div>
+
+    <div class="agent-node risk-assessment">
+        <div class="status-indicator" style="background: #ff9800;"></div>
+        <div class="agent-icon">⚠️</div>
+        <div>RISK<br>ASSESSMENT</div>
+        <div class="agent-lang">SCALA</div>
+    </div>
+
+    <!-- Connection Lines -->
+    <div class="connection connection-1"></div>
+    <div class="connection connection-2"></div>
+    <div class="connection connection-3"></div>
+    <div class="connection connection-4"></div>
+    <div class="connection connection-5"></div>
+    <div class="connection connection-6"></div>
+    <div class="connection connection-7"></div>
+    <div class="connection connection-8"></div>
+    <div class="connection connection-9"></div>
+    <div class="connection connection-10"></div>
+    <div class="connection connection-11"></div>
+    <div class="connection connection-12"></div>
+
+    <!-- Data Streams -->
+    <div class="data-streams" id="dataStreams"></div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <h4>Agent Languages</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #ff6b35, #f7931e);"></div>
+            Java - Infrastructure & Core Systems
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #64b5f6, #1976d2);"></div>
+            Kotlin - Reactive & Real-time Processing
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);"></div>
+            Scala - Analytics & Data Processing
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #ba68c8, #9c27b0);"></div>
+            Groovy - Dynamic Rules & Scripting
+        </div>
+    </div>
+
+    <!-- Metrics Panel -->
+    <div class="metrics-panel">
+        <h4>Real-time Metrics</h4>
+        <div class="metric">
+            <span>Active Agents:</span>
+            <span class="metric-value" id="activeAgents">12</span>
+        </div>
+        <div class="metric">
+            <span>Messages/sec:</span>
+            <span class="metric-value" id="messagesPerSec">847</span>
+        </div>
+        <div class="metric">
+            <span>Inventory Items:</span>
+            <span class="metric-value" id="inventoryItems">15,432</span>
+        </div>
+        <div class="metric">
+            <span>Orders Processing:</span>
+            <span class="metric-value" id="ordersProcessing">234</span>
+        </div>
+        <div class="metric">
+            <span>Supply Chain Efficiency:</span>
+            <span class="metric-value" id="efficiency">94.7%</span>
+        </div>
+        <div class="metric">
+            <span>Cost Savings:</span>
+            <span class="metric-value" id="costSavings">$1.2M</span>
+        </div>
+    </div>
+
+    <!-- Alert Panel -->
+    <div class="alert-panel">
+        <h4>⚠️ Active Alerts</h4>
+        <div class="alert-item">Supplier delay detected - Agent AUTO resolving</div>
+        <div class="alert-item">Inventory threshold reached for SKU-4471</div>
+        <div class="alert-item">Quality check anomaly in Batch-7792</div>
+    </div>
+</div>
+
+<script>
+    // Create dynamic data packets
+    function createDataPackets() {
+        const container = document.getElementById('dataStreams');
+
+        setInterval(() => {
+            const packet = document.createElement('div');
+            packet.className = 'data-packet';
+
+            // Random start position
+            const startX = Math.random() * window.innerWidth;
+            const startY = Math.random() * window.innerHeight;
+            packet.style.left = startX + 'px';
+            packet.style.top = startY + 'px';
+
+            // Random end position
+            const endX = Math.random() * window.innerWidth;
+            const endY = Math.random() * window.innerHeight;
+
+            // Animate to end position
+            packet.style.transform = `translate(${endX - startX}px, ${endY - startY}px)`;
+
+            container.appendChild(packet);
+
+            // Remove after animation
+            setTimeout(() => {
+                if (container.contains(packet)) {
+                    container.removeChild(packet);
+                }
+            }, 8000);
+        }, 300);
+    }
+
+    // Update metrics dynamically
+    function updateMetrics() {
+        setInterval(() => {
+            document.getElementById('messagesPerSec').textContent = Math.floor(800 + Math.random() * 100);
+            document.getElementById('inventoryItems').textContent = (15000 + Math.floor(Math.random() * 1000)).toLocaleString();
+            document.getElementById('ordersProcessing').textContent = Math.floor(200 + Math.random() * 100);
+            document.getElementById('efficiency').textContent = (94 + Math.random() * 2).toFixed(1) + '%';
+        }, 2000);
+    }
+
+    // Add hover effects to agents
+    document.querySelectorAll('.agent-node').forEach(node => {
+        node.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.15) rotateY(5deg)';
+            this.style.zIndex = '60';
+        });
+
+        node.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1) rotateY(0deg)';
+            this.style.zIndex = '10';
+        });
+
+        node.addEventListener('click', function() {
+            const agentName = this.querySelector('div:nth-child(3)').textContent;
+            alert(`${agentName}\n\nProtocols: A2A + MCP\nStatus: Active\nConnections: ${Math.floor(3 + Math.random() * 5)}\nUptime: ${Math.floor(95 + Math.random() * 5)}%`);
+        });
+    });
+
+    // Initialize
+    createDataPackets();
+    updateMetrics();
+
+    // Add dynamic connection intensity
+    setInterval(() => {
+        const connections = document.querySelectorAll('.connection');
+        connections.forEach(conn => {
+            const intensity = Math.random();
+            if (intensity > 0.7) {
+                conn.style.background = 'linear-gradient(90deg, transparent, rgba(255, 107, 53, 1), rgba(0, 212, 255, 0.8), transparent)';
+                conn.style.height = '4px';
+            } else {
+                conn.style.background = 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.6), rgba(255, 107, 53, 0.4), transparent)';
+                conn.style.height = '3px';
+            }
+        });
+    }, 1000);
+</script>
+</body>
+</html>
