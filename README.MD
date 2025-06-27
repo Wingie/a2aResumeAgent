@@ -1,11 +1,28 @@
-# a2awebagent - Personal Resume & MCP Demo Project
+# a2aTravelAgent - AI-Powered Travel Research Agent & MCP Demo
 
+This repository contains **two interconnected projects** that demonstrate advanced AI integration and web automation capabilities:
+
+## 📁 Project Structure
+
+### 1. **a2aTravelAgent** (Main Project)
+- **Location**: Root directory (`/`)
+- **Purpose**: Main orchestration server with MCP protocol support
+- **Key Features**: Agent-to-agent communication, task coordination, API management
+
+### 2. **a2awebagent** (Web Automation Engine) 
+- **Location**: `a2awebagent/` subdirectory
+- **Purpose**: Selenium-based web automation and travel research
+- **Key Features**: Web browsing, screenshot capture, data extraction, travel planning
+
+## 🎯 Project Purpose
 
 This project serves as:
-- A technical portfolio demonstration
-- An educational example of MCP protocol implementation  
-- A showcase of web automation capabilities
-- A personal resume tool with interactive features 
+- A technical portfolio demonstration of **AI-powered travel research**
+- An educational example of **MCP protocol implementation**  
+- A showcase of **advanced web automation capabilities**
+- A **personal resume tool** with interactive AI features
+
+**⚠️ Important**: For the resume example and testing, make sure you're running the **a2awebagent** project (not the main directory). 
 
 ![Agent Interface](agent.png)
 
@@ -93,29 +110,42 @@ java -DopenAiKey=your-mistral-api-key \
      -jar target/a2awebagent-0.0.1.jar
 ```
 
-#### Method 3: Configuration Files
-Edit `src/main/resources/tools4ai.properties`:
+#### Method 3: Configuration Files (Recommended for Local Development)
+
+**📁 Project-Specific Configuration**: Both projects have their own `tools4ai.properties` files:
+
+- **Main Project**: `src/main/resources/tools4ai.properties`
+- **Web Agent**: `a2awebagent/src/main/resources/tools4ai.properties`
+
+Create or edit these files with your API keys:
+
 ```properties
-# OpenAI Configuration
-openAiKey=sk-your-actual-key-here
-openAiModelName=gpt-4o-mini
-
-# Anthropic Configuration  
-claudeKey=sk-ant-your-key-here
-anthropic.modelName=claude-3-haiku-20240307
-
-# Google Gemini Configuration
-geminiKey=your-gemini-key-here
+##Gemini related settings (Recommended - Better AI understanding)
 gemini.modelName=gemini-2.0-flash-001
 gemini.location=us-central1
-gemini.projectId=your-project-id
+gemini.projectId=your-google-project-id
+geminiKey=your-gemini-api-key-here
+agent.provider=gemini
 
-# Mistral AI Configuration (Free Alternative)
+##Anthropic related settings
+anthropic.modelName=claude-3-haiku-20240307
+claudeKey=sk-ant-your-claude-key-here
+
+##OpenAI Configuration
+openAiKey=sk-your-openai-key-here
+openAiModelName=gpt-4o-mini
+
+##Mistral AI Configuration (Free Alternative)
 openAiKey=your-mistral-api-key-here
 openAiBaseURL=https://api.mistral.ai/v1
 openAiModelName=mistral-large-latest
 agent.provider=openai
+
+##Serper Key for google search
+serperKey=your-serper-key-here
 ```
+
+**🔐 Security Note**: These files are automatically ignored by git to protect your API keys.
 
 ### 🎯 Why API Keys Are Required
 
@@ -134,6 +164,28 @@ This showcases **real AI integration** capabilities:
 - ✅ **Perfect for demonstration purposes**
 
 Get your free Mistral API key at: https://console.mistral.ai/
+
+### 🚀 Running the Projects
+
+#### For Resume Example & Web Automation Testing:
+```bash
+# Navigate to the web agent project
+cd a2awebagent
+
+# Ensure your API keys are configured in tools4ai.properties
+# Then build and run
+mvn clean compile
+mvn spring-boot:run
+```
+
+#### For Main Orchestration Server:
+```bash
+# In the root directory
+mvn clean compile  
+mvn spring-boot:run
+```
+
+**⚠️ Important for Resume Demo**: Always run the **`a2awebagent`** project (not the main directory) to access the interactive resume features and web automation capabilities.
 
 ### 🚀 Successful Startup Indicators
 
