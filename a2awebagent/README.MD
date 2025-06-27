@@ -1,9 +1,5 @@
 # a2awebagent - Personal Resume & MCP Demo Project
 
-## ⚠️ Important Notice
-
-**This is a personal demonstration project showcasing technical expertise and capabilities. It is NOT intended for production use as an MCP server.**
-
 This project serves as:
 - A technical portfolio demonstration
 - An educational example of MCP protocol implementation  

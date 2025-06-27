@@ -199,3 +199,7 @@ java -Dloader.path=/path/to/conf -jar a2aPlaywright-0.2.3.jar
   * Run `mvn clean package test` in `/Users/wingston/code/a2aTravelAgent/a2awebagent`
   * Execute the jar with `java -jar target/a2awebagent-0.0.1.jar`
   * This is the parent project for auth/SSO/SSE and webAgent for async job handling
+
+## Personal Development Preferences
+
+- I prefer to run the server externally
