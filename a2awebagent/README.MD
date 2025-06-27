@@ -154,6 +154,14 @@ When properly configured, you'll see:
 Server started on port 7860
 ```
 
+### 🌐 Access Points
+
+Once the server is running, you can access:
+
+- **Main Application**: http://localhost:7860 (or 7861 if using custom port)
+- **API Documentation**: http://localhost:7860/swagger-ui/index.html
+- **MCP Tools List**: `curl -X POST http://localhost:7860 -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1}'`
+
 ### 💡 "API Key Required" = Successful Technical Demonstration
 
 If you see this error when starting without API keys:
