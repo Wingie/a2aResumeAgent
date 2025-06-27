@@ -7,4 +7,9 @@ import lombok.Setter;
 @Setter
 public class URLSafety {
     boolean isItSafeAndValid;
+    
+    // Explicit getter method to match expected method name
+    public boolean isItSafeAndValid() {
+        return isItSafeAndValid;
+    }
 }

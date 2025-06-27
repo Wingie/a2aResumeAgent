@@ -51,13 +51,13 @@ public class PlaywrightScriptProcessor extends ScriptProcessor {
                 is = new FileInputStream(fileName);
             }
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-                log.info("Processing script file: " + fileName);
+                System.out.println("Processing script file: " + fileName);
                 processCommands(reader, result, callback);
             }
         } catch (IOException e) {
-            log.error("Error processing file: " + e.getMessage());
+            System.err.println("Error processing file: " + e.getMessage());
         } catch (AIProcessingException e) {
-            log.error("AI Processing error: " + e.getMessage());
+            System.err.println("AI Processing error: " + e.getMessage());
         }
         return result;
     }
@@ -66,12 +66,12 @@ public class PlaywrightScriptProcessor extends ScriptProcessor {
         ScriptResult result = new ScriptResult();
         try {
             BufferedReader reader = new BufferedReader(new StringReader(steps.toString()));
-            log.info("Processing content from StringBuffer");
+            System.out.println("Processing content from StringBuffer");
             processCommands(reader, result, callback);
         } catch (IOException e) {
-            log.error("Error processing content: " + e.getMessage());
+            System.err.println("Error processing content: " + e.getMessage());
         } catch (AIProcessingException e) {
-            log.error("AI Processing error: " + e.getMessage());
+            System.err.println("AI Processing error: " + e.getMessage());
         }
         return result;
     }
@@ -80,12 +80,12 @@ public class PlaywrightScriptProcessor extends ScriptProcessor {
         ScriptResult result = new ScriptResult();
         try {
             BufferedReader reader = new BufferedReader(new StringReader(content));
-            log.debug("Processing content string");
+            System.out.println("Processing content string");
             processCommands(reader, result, callback);
         } catch (IOException e) {
-            log.error("Error processing content: " + e.getMessage());
+            System.err.println("Error processing content: " + e.getMessage());
         } catch (AIProcessingException e) {
-            log.error("AI Processing error: " + e.getMessage());
+            System.err.println("AI Processing error: " + e.getMessage());
         }
         return result;
     }
@@ -96,22 +96,22 @@ public class PlaywrightScriptProcessor extends ScriptProcessor {
 
 
         while ((line = reader.readLine()) != null) {
-            boolean process= callback.beforeWebAction(line,getPlaywrightProcessor().getBrowser(),getPlaywrightProcessor().getContext());
+            boolean process= callback.beforeWebAction(line,playwrightProcessor.getBrowser(),playwrightProcessor.getContext());
             if(process) {
                 processWebAction(line,callback, 0);
-                callback.afterWebAction(line,getPlaywrightProcessor().getBrowser(),getPlaywrightProcessor().getContext());
+                callback.afterWebAction(line,playwrightProcessor.getBrowser(),playwrightProcessor.getContext());
             }
-            log.debug("{}",result);
+            System.out.println("Result: " + result);
         }
     }
 
 
     public void processWebAction(String line,PlaywrightCallback callback, int retryCount) {
         try {
-            getPlaywrightProcessor().processWebAction(line);
+            playwrightProcessor.processWebAction(line);
         } catch (Exception e) {
-            log.warn(e.getMessage());
-            String newLine = callback.handleError(line, e.getMessage(), getPlaywrightProcessor().getBrowser(), getPlaywrightProcessor().getContext(), retryCount);
+            System.err.println("Warning: " + e.getMessage());
+            String newLine = callback.handleError(line, e.getMessage(), playwrightProcessor.getBrowser(), playwrightProcessor.getContext(), retryCount);
             if(newLine !=null) {
                 retryCount = retryCount+1;
                 processWebAction(newLine, callback, retryCount);
@@ -120,15 +120,14 @@ public class PlaywrightScriptProcessor extends ScriptProcessor {
     }
 
     public void processCommands( BufferedReader reader, ScriptResult result, ActionCallback callback) throws IOException, AIProcessingException {
-        PlaywrightProcessor processor = getPlaywrightProcessor();
         String line;
 
 
         while ((line = reader.readLine()) != null) {
             callback.sendtStatus("processing "+line, ActionState.WORKING);
-            processor.processWebAction(line);
+            playwrightProcessor.processWebAction(line);
             callback.sendtStatus("processed "+line, ActionState.WORKING);
-            log.debug("{}",result);
+            System.out.println("Result: " + result);
         }
     }
 }

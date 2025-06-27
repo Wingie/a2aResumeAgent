@@ -17,4 +17,9 @@ public class PlaywrightActions {
     @Prompt(describe = "What action should be performed using Playwright page. Choose one of: " +
             "{navigate, click, type, fill, check, uncheck, screenshot, getText, getAttribute, waitForSelector}")
     private String typeOfActionToTakeOnWebDriver;
+    
+    // Explicit getter method to match expected method name
+    public String getTypeOfActionToTakeOnWebDriver() {
+        return typeOfActionToTakeOnWebDriver;
+    }
 }

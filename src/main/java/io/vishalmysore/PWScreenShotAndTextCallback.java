@@ -3,9 +3,9 @@ package io.vishalmysore;
 import com.microsoft.playwright.*;
 import com.t4a.processor.AIProcessingException;
 import com.t4a.processor.AIProcessor;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
-@Log
+@Slf4j
 public class PWScreenShotAndTextCallback implements PlaywrightCallback {
     private final CustomScriptResult customResult;
     private final AIProcessor processor;
@@ -38,7 +38,7 @@ public class PWScreenShotAndTextCallback implements PlaywrightCallback {
 
 
         } catch (Exception e) {
-            log.warning("Before action failed: " + e.getMessage());
+            log.warn("Before action failed: " + e.getMessage());
         }
         return true;
     }
@@ -57,15 +57,15 @@ public class PWScreenShotAndTextCallback implements PlaywrightCallback {
 
 
         } catch (Exception e) {
-            log.warning("After action failed: " + e.getMessage());
+            log.warn("After action failed: " + e.getMessage());
         }
     }
 
     @Override
     public String handleError(String line, String errorMessage, Browser browser, BrowserContext context, int numberOfRetries) {
-        log.severe("Error processing line: " + line + " | Error: " + errorMessage);
+        log.error("Error processing line: " + line + " | Error: " + errorMessage);
         if (numberOfRetries > 3) {
-            log.severe("Max retries reached for line: " + line);
+            log.error("Max retries reached for line: " + line);
             return null;
         }
         try {
