@@ -167,14 +167,6 @@ OpenAiHttpException: You have exceeded your daily limit of free tokens for demon
 If you wish to continue, please use your own OpenAI API key.
 ```
 
-**This is actually perfect!** It confirms:
-- ✅ **The technical implementation is sound**
-- ✅ **The AI integration is properly configured** 
-- ✅ **The MCP protocol implementation is working**
-- ✅ **The application would run perfectly with proper API keys**
-
-This demonstrates sophisticated **enterprise-level AI integration** that requires proper authentication and configuration.
-
 ## Usage
 
 ### Local Task Execution
@@ -228,30 +220,3 @@ Here are sample test execution results:
 ![Test Result 2](the-internet.herokuapp.com_2.png)
 
 
-
-
-## Tool Calling MCP
-
-```json
-{"method":"tools/call","params":{"name":"browseWebAndReturnImage","arguments":{"provideAllValuesInPlainEnglish":"Go to Google.com, search for \"a2ajava\", wait for results to load, click on the first search result link, wait for the page to load completely, then take a screenshot of the page"}},"jsonrpc":"2.0","id":17}
-```
-
-
-```json
-{"method":"tools/call","params":{"name":"browseWebAndReturnText","arguments":{"provideAllValuesInPlainEnglish":"Go to Google.com, search for \"a2ajava\"give me result"}},"jsonrpc":"2.0","id":17}
-```
-
-
-![Capture Screenshot](captureScreenshot.png)
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For questions and support, please open an issue in the repository.
