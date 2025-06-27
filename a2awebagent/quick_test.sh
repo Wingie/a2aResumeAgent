@@ -20,7 +20,7 @@ curl -X POST "$MCP_SERVER_URL" \
         "params": {
             "name": "browseWebAndReturnImage",
             "arguments": {
-                "provideAllValuesInPlainEnglish": "Navigate to https://example.com and take a screenshot"
+                "provideAllValuesInPlainEnglish": "Navigate to https://google.com/flights and take a screenshot"
             }
         },
         "id": 1
@@ -39,7 +39,7 @@ curl -X POST "$MCP_SERVER_URL" \
         "params": {
             "name": "browseWebAndReturnText",
             "arguments": {
-                "provideAllValuesInPlainEnglish": "Navigate to https://httpbin.org/html and extract the page title and main heading"
+                "provideAllValuesInPlainEnglish": "Navigate to https://booking.com/flights and extract the page title and main heading"
             }
         },
         "id": 2

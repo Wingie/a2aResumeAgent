@@ -35,5 +35,6 @@ build/
 .vscode/
 
 ### Mac OS ###
+a2awebagent/src/main/resources/tools4ai.properties
 src/main/resources/tools4ai.properties
 .DS_Store

@@ -38,13 +38,20 @@ public class WebBrowsingAction {
 
     private ActionCallback callback;
     private AIProcessor processor;
+    
+    private AIProcessor getProcessor() {
+        if (processor == null) {
+            processor = new GeminiV2ActionProcessor();
+        }
+        return processor;
+    }
     @Action(description = "perform actions on the web with selenium and return text")
     public String browseWebAndReturnText(String webBrowsingSteps) throws IOException {
         CustomScriptResult result = new CustomScriptResult();
-        A2ASeleniumCallBack seleniumCallBack = new A2ASeleniumCallBack(result,processor);
-        if(processor != null) {
+        A2ASeleniumCallBack seleniumCallBack = new A2ASeleniumCallBack(result,getProcessor());
+        if(getProcessor() != null) {
             try {
-                StringBuffer seperatedWebBrowsingSteps = new StringBuffer(processor.query("Separate the web browsing steps into individual steps  just give me steps without any additional text or bracket. MOST IMP - make sure each step can be processed by selenium webdriver, urls should always start with http or https {"+ webBrowsingSteps+"}"));
+                StringBuffer seperatedWebBrowsingSteps = new StringBuffer(getProcessor().query("Separate the web browsing steps into individual steps  just give me steps without any additional text or bracket. MOST IMP - make sure each step can be processed by selenium webdriver, urls should always start with http or https {"+ webBrowsingSteps+"}"));
                 //you can create your own selenium processor which implements SeleniumProcessor
                 //SeleniumScriptProcessor script = new SeleniumScriptProcessor(new MyOwnSeleniumScriptProcessor());
 
@@ -63,10 +70,10 @@ public class WebBrowsingAction {
     @Action(description = "perform actions on the web with selenium and return image")
     public String browseWebAndReturnImage(String webBrowsingSteps) throws IOException {
         CustomScriptResult result = new CustomScriptResult();
-        A2ASeleniumCallBack seleniumCallBack = new A2ASeleniumCallBack(result,processor);
-        if(processor != null) {
+        A2ASeleniumCallBack seleniumCallBack = new A2ASeleniumCallBack(result,getProcessor());
+        if(getProcessor() != null) {
             try {
-                StringBuffer seperatedWebBrowsingSteps = new StringBuffer(processor.query("Separate the web browsing steps into individual steps  just give me steps without any additional text or brackets {"+ webBrowsingSteps+"}"));
+                StringBuffer seperatedWebBrowsingSteps = new StringBuffer(getProcessor().query("Separate the web browsing steps into individual steps  just give me steps without any additional text or brackets {"+ webBrowsingSteps+"}"));
 
                 script.process(seperatedWebBrowsingSteps,seleniumCallBack);
                 return result.getLastScreenshotAsBase64();
