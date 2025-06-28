@@ -82,7 +82,7 @@ export CLAUDE_KEY=sk-ant-your-key-here
 export GEMINI_KEY=your-gemini-key-here
 java -jar target/a2awebagent-0.0.1.jar
 
-# Mistral AI (Free Alternative)
+# Mistral AI (Free Alternative) # But it cannot use a browser via Selenium
 export OPENAI_API_KEY=your-mistral-api-key
 export OPENAI_BASE_URL=https://api.mistral.ai/v1
 export OPENAI_MODEL_NAME=mistral-large-latest
@@ -150,7 +150,7 @@ This showcases **real AI integration** capabilities:
 - **Intelligent command interpretation** and execution
 - **Context-aware automation** decision making
 
-### 🆓 Recommended: Mistral AI (Free Alternative)
+### 🆓 Recommended: Mistral AI (Free Alternative) # But it cannot use a browser via Selenium
 
 **Best option for testing**: Use Mistral AI via Le Chat platform:
 - ✅ **Free tier available** through Le Chat foundation
