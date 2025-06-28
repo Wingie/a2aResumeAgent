@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Wingston Travel Agent MCP Runner Script
-# Runs the travel agent with proper configuration
+# Wingston MCP Agent Runner Script
+# Runs the MCP agent with proper configuration
 
 set -e
 
 PROJECT_DIR="/Users/wingston/code/a2aTravelAgent/a2awebagent"
 JAR_FILE="$PROJECT_DIR/target/a2awebagent-0.0.1.jar"
 
-echo "🚀 Starting Wingston Travel Agent MCP Server..."
+echo "🚀 Starting Wingston MCP Agent Server..."
 echo "============================================="
 
 # Check if JAR exists

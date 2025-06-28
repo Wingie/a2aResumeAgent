@@ -1,0 +1,121 @@
+🚀 Starting Wingston Travel Agent MCP Server...
+=============================================
+⚠️  OpenAI API key found but Gemini is preferred provider
+🔌 Using default port: 7860
+
+🎯 Configuration:
+   Java application: /Users/wingston/code/a2aTravelAgent/a2awebagent/target/a2awebagent-0.0.1.jar
+   Java options: 
+   MCP server: /Users/wingston/code/a2aTravelAgent/a2awebagent/src/main/resources/mcpserver.js
+
+▶️  Starting application...
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.4)
+
+2025-06-28T10:06:00.616+02:00  INFO 12785 --- [           main] io.wingie.Application                    : Starting Application v0.0.1 using Java 21.0.2 with PID 12785 (/Users/wingston/code/a2aTravelAgent/a2awebagent/target/a2awebagent-0.0.1.jar started by wingston in /Users/wingston/code/a2aTravelAgent/a2awebagent)
+2025-06-28T10:06:00.617+02:00  INFO 12785 --- [           main] io.wingie.Application                    : No active profile set, falling back to 1 default profile: "default"
+2025-06-28T10:06:01.529+02:00  INFO 12785 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 7860 (http)
+2025-06-28T10:06:01.538+02:00  INFO 12785 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-06-28T10:06:01.538+02:00  INFO 12785 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-06-28T10:06:01.559+02:00  INFO 12785 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-06-28T10:06:01.559+02:00  INFO 12785 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 743 ms
+2025-06-28T10:06:01.594+02:00  INFO 12785 --- [           main] com.t4a.predict.PredictionLoader         : tools4ai.properties.path not defined in Spring environment; will load default tools4ai.properties
+2025-06-28T10:06:01.595+02:00  WARN 12785 --- [           main] com.t4a.predict.ConfigManager            : prompt.properties properties not found will use default values
+2025-06-28T10:06:01.595+02:00  INFO 12785 --- [           main] com.t4a.predict.PredictionLoader         : Loading properties from path: tools4ai.properties
+2025-06-28T10:06:01.595+02:00  INFO 12785 --- [           main] com.t4a.predict.PredictionLoader         :  will scan all packages for actions 
+2025-06-28T10:06:01.595+02:00  INFO 12785 --- [           main] com.t4a.predict.PredictionLoader         : will scan for actions in packages: 
+2025-06-28T10:06:05.995+02:00  INFO 12785 --- [           main] com.t4a.JsonUtils                        : {
+    "methodName": "browseWebAndReturnText",
+    "parameters": [{
+        "name": "arg0",
+        "type": "String",
+        "fieldValue": ""
+    }],
+    "returnType": "String"
+}
+2025-06-28T10:06:07.170+02:00  WARN 12785 --- [           main] o.o.selenium.devtools.CdpVersionFinder   : Unable to find an exact match for CDP version 137, returning the closest version; found: 136; Please update to a Selenium version that supports CDP version 137
+2025-06-28T10:06:07.187+02:00  INFO 12785 --- [           main] com.t4a.JsonUtils                        : {
+    "methodName": "browseWebAndReturnImage",
+    "parameters": [{
+        "name": "arg0",
+        "type": "String",
+        "fieldValue": ""
+    }],
+    "returnType": "String"
+}
+2025-06-28T10:06:07.188+02:00  INFO 12785 --- [           main] com.t4a.JsonUtils                        : {
+    "methodName": "webPageAction",
+    "parameters": [{
+        "name": "webDriverActions",
+        "fields": [{
+            "fieldName": "typeOfActionToTakeOnWebDriver",
+            "fieldDescription": "What method should i invoke on org.openqa.selenium.WebDriver {navigate, get,click, takescreenshot, sendKeys,clear,submit,getText,isDisplayed,isEnabled,isSelected,getAttribute,switchTo,selectByVisibleText,selectByValue,selectByIndex}",
+            "fieldType": "String",
+            "fieldValue": ""
+        }],
+        "type": "com.t4a.processor.selenium.DriverActions"
+    }],
+    "returnType": "DriverActions"
+}
+2025-06-28T10:06:07.190+02:00  INFO 12785 --- [           main] com.t4a.predict.ShellPredictionLoader    : File not found: shell_actions.yaml
+2025-06-28T10:06:07.190+02:00  WARN 12785 --- [           main] c.t4a.predict.HttpRestPredictionLoader   : File not found: http_actions.json
+2025-06-28T10:06:07.191+02:00  INFO 12785 --- [           main] c.t4a.predict.SwaggerPredictionLoader    : File not found: swagger_actions.json
+2025-06-28T10:06:07.194+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : Processing action: webPageAction
+2025-06-28T10:06:09.296+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : {
+  "webDriverActions": {
+    "typeOfActionToTakeOnWebDriver": ""
+  }
+}
+2025-06-28T10:06:09.297+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Key type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:09.297+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Value type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:10.304+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : Processing action: browseWebAndReturnText
+2025-06-28T10:06:10.776+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : {
+  "arg0": ""
+}
+2025-06-28T10:06:10.777+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Key type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:10.777+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Value type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:11.919+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : Processing action: browseWebAndReturnImage
+2025-06-28T10:06:12.371+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : {
+  "arg0": ""
+}
+2025-06-28T10:06:12.372+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Key type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:12.372+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Value type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:14.186+02:00  WARN 12785 --- [           main] o.o.selenium.devtools.CdpVersionFinder   : Unable to find an exact match for CDP version 137, returning the closest version; found: 136; Please update to a Selenium version that supports CDP version 137
+2025-06-28T10:06:14.189+02:00  INFO 12785 --- [           main] com.t4a.predict.PredictionLoader         : tools4ai.properties.path not defined in Spring environment; will load default tools4ai.properties
+2025-06-28T10:06:14.191+02:00  INFO 12785 --- [           main] i.g.v.a.s.RealTimeAgentCardController    : webPageAction
+2025-06-28T10:06:14.191+02:00  INFO 12785 --- [           main] i.g.v.a.s.RealTimeAgentCardController    : browseWebAndReturnText
+2025-06-28T10:06:14.191+02:00  INFO 12785 --- [           main] i.g.v.a.s.RealTimeAgentCardController    : browseWebAndReturnImage
+2025-06-28T10:06:23.722+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : Processing action: webPageAction
+2025-06-28T10:06:24.308+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : {
+  "webDriverActions": {
+    "typeOfActionToTakeOnWebDriver": ""
+  }
+}
+2025-06-28T10:06:24.308+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Key type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:24.308+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Value type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:25.390+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : Processing action: browseWebAndReturnText
+2025-06-28T10:06:26.035+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : {
+  "arg0": ""
+}
+2025-06-28T10:06:26.035+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Key type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:26.035+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Value type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:27.091+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : Processing action: browseWebAndReturnImage
+2025-06-28T10:06:27.640+02:00  INFO 12785 --- [           main] i.g.v.mcp.server.MCPToolsController      : {
+  "arg0": ""
+}
+2025-06-28T10:06:27.641+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Key type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:27.641+02:00  WARN 12785 --- [           main] com.t4a.JsonUtils                        : Not able to derive the map Value type for private java.util.Map io.github.vishalmysore.mcp.domain.ToolAnnotations.properties
+2025-06-28T10:06:28.905+02:00  INFO 12785 --- [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2025-06-28T10:06:29.340+02:00  INFO 12785 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 7860 (http) with context path ''
+2025-06-28T10:06:29.351+02:00  INFO 12785 --- [           main] io.wingie.Application                    : Started Application in 29.069 seconds (process running for 29.458)
+2025-06-28T10:06:42.049+02:00  INFO 12785 --- [nio-7860-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-06-28T10:06:42.050+02:00  INFO 12785 --- [nio-7860-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-06-28T10:06:42.050+02:00  INFO 12785 --- [nio-7860-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2025-06-28T10:06:42.469+02:00  INFO 12785 --- [nio-7860-exec-9] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 210 ms
+2025-06-28T10:06:55.283+02:00  INFO 12785 --- [io-7860-exec-10] io.wingie.MCPController                  : MCP listTools endpoint called

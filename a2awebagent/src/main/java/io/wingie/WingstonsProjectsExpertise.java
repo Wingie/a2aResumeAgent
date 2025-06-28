@@ -1,14 +1,16 @@
 package io.wingie;
 
 import com.t4a.annotations.Action;
-import org.springframework.stereotype.Component;
+import com.t4a.annotations.Agent;
+import org.springframework.stereotype.Service;
 
 /**
  * Comprehensive expertise and project portfolio tool for Wingston Sharon.
  * This tool provides detailed information about Wingston's technical background,
  * project portfolio, and professional experience for potential employers and collaborators.
  */
-@Component
+@Service
+@Agent(groupName = "resume", groupDescription = "Professional expertise and resume tools")
 public class WingstonsProjectsExpertise {
 
     @Action(description = "Get comprehensive information about Wingston Sharon's technical expertise, project portfolio, and professional background")

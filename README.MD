@@ -223,7 +223,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "wingston-travel-agent": {
+    "wingston-demo-agent": {
       "command": "node",
       "args": [
         "/Users/your-username/code/a2aTravelAgent/a2awebagent/src/main/resources/mcpserver.js"
@@ -255,7 +255,7 @@ Once configured, Claude Desktop will have access to these tools:
 
 2. **Test in Claude Desktop**:
    - Open Claude Desktop
-   - Look for "wingston-travel-agent" in MCP settings
+   - Look for "wingston-demo-agent" in MCP settings
    - Try asking: "Can you help me research travel options from New York to Paris?"
 
 ### 🔧 Troubleshooting MCP Setup

@@ -1,6 +1,6 @@
-# Wingston Travel Agent MCP Setup
+# Wingston MCP Agent Setup
 
-This project provides a complete MCP (Model Context Protocol) server for travel research and web automation using the a2ajava framework.
+This project provides a complete MCP (Model Context Protocol) server for web automation and multi-purpose AI agent capabilities using the a2ajava framework.
 
 ## 🚀 Quick Start
 
@@ -26,7 +26,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "wingston-travel-agent": {
+    "wingston-mcp-agent": {
       "command": "node",
       "args": [
         "/Users/wingston/code/a2aTravelAgent/a2awebagent/src/main/resources/mcpserver.js"

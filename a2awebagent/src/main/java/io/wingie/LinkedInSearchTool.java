@@ -1,18 +1,22 @@
 package io.wingie;
 
 import com.t4a.annotations.Action;
+import com.t4a.annotations.Agent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 /**
  * LinkedIn search and profile demonstration tool.
  * Searches for LinkedIn profiles and showcases Wingston Sharon's profile as a reference.
  * Includes screenshot capabilities for visual profile demonstration.
  */
-@Component
+@Service
+@Agent(groupName = "linkedin", groupDescription = "LinkedIn search and profile tools")
 public class LinkedInSearchTool {
 
     @Autowired
+    @Lazy
     private WebBrowsingAction webBrowsingAction;
 
     @Action(description = "Search LinkedIn for profiles and demonstrate Wingston Sharon's profile with screenshot capabilities")

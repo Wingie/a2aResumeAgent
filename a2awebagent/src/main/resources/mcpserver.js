@@ -9,7 +9,7 @@ const SERVER_BASE_URL = process.env.SERVER_BASE_URL || "http://localhost:7860";
 
 // Create server
 const server = new Server({
-  name: "wingston-travel-agent",
+  name: "wingston-mcp-agent",
   version: "1.0.0",
 }, {
   capabilities: {

@@ -1,18 +1,22 @@
 package io.wingie;
 
 import com.t4a.annotations.Action;
+import com.t4a.annotations.Agent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 /**
  * Taste Before You Waste - Food Safety and Consumption Guidance Tool
  * This tool searches tastebeforeyouwaste.org for information about food safety,
  * expiration dates, and whether food is still safe to consume.
  */
-@Component
+@Service
+@Agent(groupName = "food-safety", groupDescription = "Food safety and consumption guidance tools")
 public class TasteBeforeYouWasteTool {
 
     @Autowired
+    @Lazy
     private WebBrowsingAction webBrowsingAction;
 
     @Action(description = "Search tastebeforeyouwaste.org for food safety information and consumption guidance")

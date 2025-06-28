@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Wingston Travel Agent MCP Build Script
+# Wingston MCP Agent Build Script
 # Builds Java application and Node.js MCP server
 
 set -e  # Exit on any error
@@ -9,7 +9,7 @@ PROJECT_DIR="/Users/wingston/code/a2aTravelAgent/a2awebagent"
 RESOURCES_DIR="$PROJECT_DIR/src/main/resources"
 TARGET_DIR="$PROJECT_DIR/target"
 
-echo "🚀 Building Wingston Travel Agent MCP Server..."
+echo "🚀 Building Wingston MCP Agent Server..."
 echo "================================================"
 
 # Check if we're in the right directory
@@ -79,7 +79,7 @@ echo "2. Or with Gemini key:"
 echo "   java -DgeminiKey=your_key -jar $TARGET_DIR/a2awebagent-0.0.1.jar"
 echo ""
 echo "3. Claude Desktop Configuration:"
-echo '   "wingston-travel-agent": {'
+echo '   "wingston-mcp-agent": {'
 echo '     "command": "node",'
 echo '     "args": ['
 echo "       \"$RESOURCES_DIR/mcpserver.js\""
