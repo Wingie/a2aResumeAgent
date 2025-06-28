@@ -67,7 +67,7 @@ public class WebBrowsingAction {
 
     }
 
-    @Action(description = "perform actions on the web with selenium and return image")
+    @Action(description = "perform actions on the web with selenium and return image file path")
     public String browseWebAndReturnImage(String webBrowsingSteps) throws IOException {
         CustomScriptResult result = new CustomScriptResult();
         A2ASeleniumCallBack seleniumCallBack = new A2ASeleniumCallBack(result,getProcessor());
@@ -76,7 +76,7 @@ public class WebBrowsingAction {
                 StringBuffer seperatedWebBrowsingSteps = new StringBuffer(getProcessor().query("Separate the web browsing steps into individual steps  just give me steps without any additional text or brackets {"+ webBrowsingSteps+"}"));
 
                 script.process(seperatedWebBrowsingSteps,seleniumCallBack);
-                return result.getLastScreenshotAsBase64();
+                return "Screenshot saved to: " + result.getLastScreenshotAsFile();
             } catch (AIProcessingException e) {
                 throw new RuntimeException(e);
             }
