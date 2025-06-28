@@ -3,547 +3,1117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A2A Selenium Agent</title>    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Wingston Sharon - AI & Audio Technology Expert</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2d3436;
-            --secondary-color: #0984e3;
-            --accent-color: #00b894;
-            --text-color: #2d3436;
-            --background-color: #f5f6fa;
+            --primary-color: #0a0e27;
+            --secondary-color: #1a1f3a;
+            --accent-color: #64ffda;
+            --accent-purple: #7c3aed;
+            --accent-pink: #f472b6;
+            --text-light: #ccd6f6;
+            --text-white: #ffffff;
+            --gradient-main: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --gradient-accent: linear-gradient(135deg, var(--accent-color), var(--accent-purple));
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--background-color);
-            padding-bottom: 60px;
-        }
-        .hero {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 4rem 0;
-            margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .hero::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 100px;
-            background: linear-gradient(to bottom right, transparent 49.5%, var(--background-color) 50%);
-        }
-        .card {
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-            margin-bottom: 1.5rem;
-            border-radius: 12px;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-        }
-        pre {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--primary-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 1rem 0;
+            color: var(--text-light);
+            overflow-x: hidden;
+            line-height: 1.6;
         }
-        .feature-icon {
-            font-size: 2rem;
-            color: var(--accent-color);
-        }
-        .accordion-button:not(.collapsed) {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-        .accordion-button:focus {
-            box-shadow: none;
-            border-color: var(--secondary-color);
-        }
-        code {
-            font-size: 0.9em;
-            border-radius: 4px;
-        }
-        .nav-tabs .nav-link {
-            color: var(--text-color);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            transition: all 0.3s ease;
-        }        .nav-tabs .nav-link.active {
-            color: var(--secondary-color);
-            border-bottom: 3px solid var(--secondary-color);
-            background: transparent;
-        }
-        /* Interactive Image Styles */
-        .interactive-image-container {
-            position: relative;
-            overflow: hidden;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        }
-        .hotspot {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            background: var(--accent-color);
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            animation: pulse 2s infinite;
-            z-index: 2;
-        }
-        .hotspot:hover {
-            transform: scale(1.2);
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0,184,148,0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(0,184,148,0); }
-            100% { box-shadow: 0 0 0 0 rgba(0,184,148,0); }
-        }
-        .image-carousel {
-            position: relative;
-            height: 400px;
-            margin: 2rem 0;
-        }
-        .carousel-image {
+
+        /* 3D Particles Background */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            border-radius: 12px;
+            z-index: -1;
+            pointer-events: none;
         }
-        .carousel-nav {
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(10, 14, 39, 0.98);
+            box-shadow: 0 4px 20px rgba(100, 255, 218, 0.1);
+        }
+
+        .nav-link {
+            color: var(--text-light) !important;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color) !important;
+        }
+
+        .nav-link::after {
+            content: '';
             position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
-            background: var(--secondary-color);
-            color: white;
-            border-radius: 50%;
+            bottom: -5px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 3rem;
+            line-height: 1.8;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .btn-primary-custom {
+            background: var(--gradient-accent);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
             transition: all 0.3s ease;
-            z-index: 3;
+            position: relative;
+            overflow: hidden;
         }
-        .carousel-nav:hover {
+
+        .btn-primary-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(100, 255, 218, 0.3);
+            color: var(--primary-color);
+        }
+
+        .btn-secondary-custom {
+            border: 2px solid var(--accent-color);
+            background: transparent;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            color: var(--accent-color);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary-custom:hover {
             background: var(--accent-color);
+            color: var(--primary-color);
+            transform: translateY(-3px);
         }
-        .carousel-prev { left: 10px; }
-        .carousel-next { right: 10px; }
-        .hotspot-tooltip {
-            position: absolute;
-            background: rgba(45,52,54,0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            max-width: 200px;
-            z-index: 4;
+
+        /* Floating Action Buttons */
+        .floating-contact {
+            position: fixed;
+            right: 2rem;
+            bottom: 2rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
-        .workflow-steps {
-            background: white;
-            border-radius: 12px;
-            padding: 1rem;
+
+        .float-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient-accent);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(100, 255, 218, 0.3);
+        }
+
+        .float-btn:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 30px rgba(100, 255, 218, 0.5);
+            color: var(--primary-color);
+        }
+
+        /* Sections */
+        .section {
+            padding: 6rem 0;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Skills Grid */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .skill-category {
+            background: rgba(26, 31, 58, 0.6);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .skill-category:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-color);
+            box-shadow: 0 20px 40px rgba(100, 255, 218, 0.1);
+        }
+
+        .skill-category h3 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
             margin-top: 1rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .skill-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: var(--accent-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .project-card {
+            background: rgba(26, 31, 58, 0.6);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-accent);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-color);
+            box-shadow: 0 20px 40px rgba(100, 255, 218, 0.1);
+        }
+
+        .project-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .project-title {
+            color: var(--text-white);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .project-description {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tech-tag {
+            background: rgba(124, 58, 237, 0.2);
+            color: var(--accent-purple);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .project-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .project-link:hover {
+            color: var(--text-white);
+        }
+
+        /* Experience Timeline */
+        .timeline {
+            position: relative;
+            margin: 3rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 2rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gradient-accent);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-left: 4rem;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(26, 31, 58, 0.6);
+            border-radius: 15px;
+            border-left: 3px solid var(--accent-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -3.5rem;
+            top: 2rem;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            border: 3px solid var(--primary-color);
+        }
+
+        .timeline-title {
+            color: var(--text-white);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-meta {
+            color: var(--accent-color);
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-description {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Contact Section */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .contact-card {
+            background: rgba(26, 31, 58, 0.6);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 15px 30px rgba(100, 255, 218, 0.1);
+        }
+
+        .contact-icon {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .contact-title {
+            color: var(--text-white);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-link {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: var(--accent-color);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 1rem;
+            }
+            
+            .timeline-item {
+                margin-left: 2.5rem;
+            }
+            
+            .timeline-item::before {
+                left: -2rem;
+            }
+            
+            .floating-contact {
+                right: 1rem;
+                bottom: 1rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
-    <div class="hero">
+    <!-- 3D Particles Canvas -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <h1 class="display-4 fw-bold">A2A and MCP Compliant Selenium Agent</h1>
-            <p class="lead">Build powerful web automation agents using Java and Selenium with A2A protocol and MCP Protocol</p>
-            <div class="mt-4 p-3 bg-light bg-opacity-10 rounded">
-                <p class="mb-2"><i class="fas fa-user-tie"></i> <strong>Hi, I'm Wingie!</strong></p>
-                <p class="mb-0">I'm looking for exciting opportunities in tech! 
-                <a href="https://www.linkedin.com/in/wingstonsharon/" class="text-white" target="_blank">
-                    <i class="fab fa-linkedin"></i> Connect with me on LinkedIn
-                </a></p>
+            <a class="navbar-brand text-white fw-bold" href="#home">
+                <i class="fas fa-code text-accent me-2"></i>Wingston
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#skills">Skills</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#experience">Experience</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                </ul>
             </div>
         </div>
-    </div>    <div class="container">
-        <!-- Interactive Workflow Section -->
-        <div class="row mb-5">
-            <div class="col-12">
-                <div class="card p-4">
-                    <h2 class="mb-4">Interactive A2A MCP Workflow</h2>
-                    <div class="interactive-image-container">
-                        <div class="image-carousel" id="workflowCarousel">
-                            <img src="agent.png" alt="Agent Interface" class="carousel-image" data-image="agent" style="display: block;">
-                            <img src="event.png" alt="Event Flow" class="carousel-image" data-image="event" style="display: none;">
-                            <img src="multiple.png" alt="Multi-Agent Architecture" class="carousel-image" data-image="architecture" style="display: none;">
-                            <img src="LocalTask.png" alt="Local Task Execution" class="carousel-image" data-image="task" style="display: none;">
-                            <img src="img.png" alt="Claude Integration" class="carousel-image" data-image="task" style="display: none;">
-                            <!-- Hotspots for agent.png -->
-                            <div class="hotspot" id="agentSpot1" style="left: 20%; top: 30%;" data-tooltip="Agent Interface Entry Point"></div>
-                            <div class="hotspot" id="agentSpot2" style="right: 25%; top: 45%;" data-tooltip="A2A Protocol Communication"></div>
-                            
-                            <!-- Navigation buttons -->
-                            <div class="carousel-nav carousel-prev"><i class="fas fa-chevron-left"></i></div>
-                            <div class="carousel-nav carousel-next"><i class="fas fa-chevron-right"></i></div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Wingston Sharon</h1>
+            <h2 class="hero-subtitle">AI & Audio Technology Expert</h2>
+            <p class="hero-description">
+                Pioneering the intersection of artificial intelligence and creative technology. 
+                Building cutting-edge audio synthesis systems, AI agents, and real-time interactive experiences 
+                that push the boundaries of what's possible.
+            </p>
+            <div class="cta-buttons">
+                <a href="#projects" class="btn-primary-custom">
+                    <i class="fas fa-rocket me-2"></i>View My Work
+                </a>
+                <a href="#contact" class="btn-secondary-custom">
+                    <i class="fas fa-envelope me-2"></i>Get In Touch
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">About Me</h2>
+            <div class="row align-items-center">
+                <div class="col-lg-6 fade-in">
+                    <h3 class="text-white mb-3">Bridging AI Research & Creative Applications</h3>
+                    <p class="text-light mb-4">
+                        I'm a technology leader with deep expertise in artificial intelligence, audio synthesis, 
+                        and creative coding. My work spans from implementing cutting-edge research papers 
+                        to building production-ready applications that serve artists and creators worldwide.
+                    </p>
+                    <p class="text-light mb-4">
+                        Currently focused on neural audio generation, real-time AI systems, and developing 
+                        tools that democratize access to advanced AI technologies for creative professionals.
+                    </p>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-accent">50+</h4>
+                            <p class="text-light">Projects</p>
                         </div>
-                        <div class="workflow-steps">
-                            <h5>Current View: <span id="currentStep">Agent Interface</span></h5>
-                            <p id="stepDescription">Click on the hotspots to learn more about each component.</p>
+                        <div class="col-4">
+                            <h4 class="text-accent">8+</h4>
+                            <p class="text-light">Languages</p>
                         </div>
+                        <div class="col-4">
+                            <h4 class="text-accent">∞</h4>
+                            <p class="text-light">Curiosity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 fade-in">
+                    <div class="text-center floating">
+                        <i class="fas fa-brain" style="font-size: 8rem; color: var(--accent-color); opacity: 0.8;"></i>
                     </div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card p-4">
-                    <h2>Project Overview</h2>
-                    <p>This project demonstrates how to build A2A and MCP Compliant agents in Java and Selenium. You can run this project locally or connect to our demo server at <a href="https://vishalmysore-a2amcpselenium.hf.space/" class="text-decoration-none">vishalmysore-a2amcpselenium.hf.space</a></p>
-                    
-                    <h3 class="mt-4">Powered by a2ajava</h3>
-                    <p><a href="https://github.com/vishalmysore/a2ajava" class="text-decoration-none">a2ajava</a> is a Swiss Army knife for building agentic applications.                    <div class="row mt-4">
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Multi-Protocol</h5>
-                                    <p class="card-text">Seamless integration with A2A (Agent-to-Agent) and MCP (Model Context Protocol)</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Multi-Language</h5>
-                                    <p class="card-text">Support for Java, Kotlin, and Groovy</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Multi-Platform</h5>
-                                    <p class="card-text">Compatible with Gemini, OpenAI, Claude, and Grok</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Multi-Integration</h5>
-                                    <p class="card-text">Out-of-the-box support for Selenium, human-in-the-loop workflows, and multi-LLM voting</p>
-                                </div>
-                            </div>
-                        </div>
+    <!-- Skills Section -->
+    <section id="skills" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">Technical Expertise</h2>
+            <div class="skills-grid">
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-robot me-2"></i>AI & Machine Learning</h3>
+                    <p class="text-light mb-3">Expert-level implementation of cutting-edge AI models and systems</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">PyTorch</span>
+                        <span class="skill-tag">TensorFlow</span>
+                        <span class="skill-tag">Diffusion Models</span>
+                        <span class="skill-tag">Neural Networks</span>
+                        <span class="skill-tag">Real-time Inference</span>
+                        <span class="skill-tag">Model Optimization</span>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card p-4">
-                    <h3>Quick Links</h3>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <strong>A2A Agent Card:</strong><br>
-                            <a href="https://vishalmysore-a2amcpselenium.hf.space/.well-known/agent.json" class="text-decoration-none">
-                                View Agent Card
-
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <strong>MCP Connector Guide:</strong><br>
-                            <a href="https://medium.com/@visrow/mcp-server-connector-quick-build-guide-with-multi-language-support-db95c8842dc3" class="text-decoration-none">
-                                Read the Guide
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card p-4">
-                    <h3>Configuration</h3>
-                    <p>Add the following configuration to your Claude JSON:</p>
-                    <pre><code class="language-json">
-
-{
-    "webbrowsingagent": {
-        "command": "java",
-        "args": [
-            "-jar",
-            "/work/a2a-mcp-bridge/target/mcp-connector-full.jar",
-            "http://localhost:7860/"
-        ],
-        "timeout": 30000
-    }
-}</code></pre>
-
-                    <p class="mt-3">For connecting to the remote server:</p>
-                    <pre><code class="language-json">{
-    "webbrowsingagent": {
-        "command": "java",
-        "args": [
-            "-jar",
-            "/work/a2a-mcp-bridge/target/mcp-connector-full.jar",
-            "https://vishalmysore-a2amcpselenium.hf.space"
-        ],
-        "timeout": 30000
-    }
-}</code></pre>
-                    <p class="mt-3">You can also use the Node client to connect to the server as mentioned in the article.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card p-4">
-                    <h3>Available Actions</h3>
-                    <p>Once connected, you will have access to the following actions:</p>
-
-
-
-                    <div class="accordion" id="actionsAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#actionOne">
-                                    Browse Web and Return Text
-                                </button>
-                            </h2>
-                            <div id="actionOne" class="accordion-collapse collapse show" data-bs-parent="#actionsAccordion">
-                                <div class="accordion-body">
-                                    <pre><code class="language-java">@Action(description = "perform actions on the web with selenium and return text")
-public String browseWebAndReturnText(String webBrowsingSteps) throws IOException {
-    CustomScriptResult result = new CustomScriptResult();
-    A2ASeleniumCallBack seleniumCallBack = new A2ASeleniumCallBack(result);
-    if(processor != null) {
-        try {
-            StringBuffer seperatedWebBrowsingSteps = new StringBuffer(processor.query(
-                "Separate the web browsing steps into individual steps just give me steps without any additional text or brackets {"
-                + webBrowsingSteps + "}"
-            ));
-            //you can create your own selenium processor which implements SeleniumProcessor
-            //SeleniumScriptProcessor script = new SeleniumScriptProcessor(new MyOwnSeleniumScriptProcessor());
-            SeleniumScriptProcessor script = new SeleniumScriptProcessor();
-            script.process(seperatedWebBrowsingSteps,seleniumCallBack);
-            return result.getLastData();
-        } catch (AIProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    return "processing issues";
-}</code></pre>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#actionTwo">
-                                    Browse Web and Return Image
-                                </button>
-                            </h2>
-                            <div id="actionTwo" class="accordion-collapse collapse" data-bs-parent="#actionsAccordion">
-                                <div class="accordion-body">
-                                    <pre><code class="language-java">@Action(description = "perform actions on the web with selenium and return image")
-public String browseWebAndReturnImage(String webBrowsingSteps) throws IOException {
-    CustomScriptResult result = new CustomScriptResult();
-    A2ASeleniumCallBack seleniumCallBack = new A2ASeleniumCallBack(result);
-    if(processor != null) {
-        try {
-            StringBuffer seperatedWebBrowsingSteps = new StringBuffer(processor.query(
-                "Separate the web browsing steps into individual steps just give me steps without any additional text or brackets {"
-                + webBrowsingSteps + "}"
-            ));
-            SeleniumScriptProcessor script = new SeleniumScriptProcessor();
-            script.process(seperatedWebBrowsingSteps,seleniumCallBack);
-            return result.getLastScreenshotAsBase64();
-        } catch (AIProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    return "processing issues";
-}</code></pre>
-                                </div>
-                            </div>
-                        </div>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-music me-2"></i>Audio Technology</h3>
+                    <p class="text-light mb-3">Professional-grade real-time audio processing and synthesis</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">SuperCollider</span>
+                        <span class="skill-tag">Max/MSP</span>
+                        <span class="skill-tag">RAVE</span>
+                        <span class="skill-tag">Neural Audio</span>
+                        <span class="skill-tag">DSP</span>
+                        <span class="skill-tag">Live Coding</span>
                     </div>
-
-
                 </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card p-4">
-                    <h3>Customization</h3>
-                    <div class="mb-4">
-                        <h4>Custom Selenium Processor</h4>
-                        <p>You can customize the Selenium processor by implementing your own SeleniumProcessor interface. While MyOwnSeleniumScriptProcessor is mentioned as an example, the base processor is used in this implementation.</p>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fab fa-apple me-2"></i>Apple Ecosystem</h3>
+                    <p class="text-light mb-3">Native development with performance optimization</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Swift</span>
+                        <span class="skill-tag">SwiftUI</span>
+                        <span class="skill-tag">Core ML</span>
+                        <span class="skill-tag">Apple Silicon</span>
+                        <span class="skill-tag">iOS/macOS</span>
+                        <span class="skill-tag">App Store</span>
                     </div>
-
-                    <div class="mb-4">
-                        <h4>Selenium Callback</h4>
-                        <p>The callback is invoked before and after each task execution. You can customize the behavior by:</p>
-                        <ul>
-                            <li>Returning false from beforeWebAction to skip processing</li>
-                            <li>Implementing custom process logic in your SeleniumProcessor</li>
-                        </ul>
+                </div>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-globe me-2"></i>Web & Backend</h3>
+                    <p class="text-light mb-3">Full-stack development and web automation systems</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">JavaScript/TypeScript</span>
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">Java/Spring</span>
+                        <span class="skill-tag">Playwright</span>
+                        <span class="skill-tag">Docker</span>
+                        <span class="skill-tag">APIs</span>
                     </div>
-
-
-                    <div class="mb-4">
-                        <h4>Example Callback Implementation</h4>
-                        <pre><code class="language-java">@Log
-public class A2ASeleniumCallBack implements SeleniumCallback {
-    private CustomScriptResult customResult;
-
-    public A2ASeleniumCallBack(CustomScriptResult customResult) {
-        this.customResult = customResult;
-    }
-
-    @Override
-    public boolean beforeWebAction(String lineToBeProessed, WebDriver driver) {
-        log.info("Processing line: " + lineToBeProessed);
-        try {
-            String html = driver.getPageSource();
-            customResult.addBeforeHtml(html);
-            byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
-            customResult.addScreenshot(screenshot);
-        } catch (WebDriverException e) {
-            log.info(e.getMessage());
-        }
-        return true;
-    }
-
-    @Override
-    public void afterWebAction(String lineProcessed, WebDriver driver) {
-        log.info("Processed line: " + lineProcessed);
-        try {
-            String html = driver.getPageSource();
-            customResult.addAfterHtml(html);
-            byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
-            customResult.addScreenshot(screenshot);
-        } catch (WebDriverException e) {
-            log.info(e.getMessage());
-        }
-    }    @Override
-    public void handleError(String line, String errorMessage, WebDriver driver) {
-        // Log the error message you can take any action here like reprocessing the line
-        log.severe("Error processing line: " + line + " Error: " + errorMessage);
-    }
-}</code></pre>
+                </div>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-palette me-2"></i>Creative Coding</h3>
+                    <p class="text-light mb-3">Innovative intersection of art, music, and technology</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Generative Art</span>
+                        <span class="skill-tag">Algorithmic Music</span>
+                        <span class="skill-tag">Interactive Systems</span>
+                        <span class="skill-tag">Real-time Graphics</span>
+                        <span class="skill-tag">Orca</span>
+                        <span class="skill-tag">Visuals</span>
+                    </div>
+                </div>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-cogs me-2"></i>Systems & Tools</h3>
+                    <p class="text-light mb-3">Low-level optimization and platform development</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">C/C++</span>
+                        <span class="skill-tag">Go</span>
+                        <span class="skill-tag">Rust</span>
+                        <span class="skill-tag">Git</span>
+                        <span class="skill-tag">CI/CD</span>
+                        <span class="skill-tag">Performance</span>
                     </div>
                 </div>
             </div>
         </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">Featured Projects</h2>
+            <div class="projects-grid">
+                <div class="project-card fade-in">
+                    <h3 class="project-title">AFTER - Neural Audio Synthesis</h3>
+                    <p class="project-description">
+                        Real-time diffusion-based audio generation system integrated with MaxMSP and Ableton Live. 
+                        Used in professional art installations at Serpentine Gallery and Centre Pompidou.
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">PyTorch</span>
+                        <span class="tech-tag">RAVE</span>
+                        <span class="tech-tag">Max/MSP</span>
+                        <span class="tech-tag">Real-time Audio</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="#" class="project-link"><i class="fab fa-github me-1"></i>Code</a>
+                        <a href="#" class="project-link"><i class="fas fa-external-link-alt me-1"></i>Demo</a>
+                    </div>
+                </div>
+                
+                <div class="project-card fade-in">
+                    <h3 class="project-title">Ableton-MCP Integration</h3>
+                    <p class="project-description">
+                        First-of-its-kind integration between AI assistants and Ableton Live, enabling natural 
+                        language control of professional music production workflows.
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">TypeScript</span>
+                        <span class="tech-tag">MCP Protocol</span>
+                        <span class="tech-tag">WebSockets</span>
+                        <span class="tech-tag">Ableton Live</span>
+                        <span class="tech-tag">Music Production</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="#" class="project-link"><i class="fab fa-github me-1"></i>Code</a>
+                        <a href="#" class="project-link"><i class="fas fa-external-link-alt me-1"></i>Smithery</a>
+                    </div>
+                </div>
+                
+                <div class="project-card fade-in">
+                    <h3 class="project-title">Swift Core ML Diffusers</h3>
+                    <p class="project-description">
+                        Native Swift implementation of Stable Diffusion optimized for Apple Silicon. Published on 
+                        App Store with performance optimizations for M-series chips.
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Swift</span>
+                        <span class="tech-tag">Core ML</span>
+                        <span class="tech-tag">Apple Silicon</span>
+                        <span class="tech-tag">Stable Diffusion</span>
+                        <span class="tech-tag">iOS/macOS</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="#" class="project-link"><i class="fab fa-app-store me-1"></i>App Store</a>
+                        <a href="#" class="project-link"><i class="fab fa-github me-1"></i>Code</a>
+                    </div>
+                </div>
+                
+                <div class="project-card fade-in">
+                    <h3 class="project-title">AI Travel Research Agent</h3>
+                    <p class="project-description">
+                        Sophisticated web automation system that translates natural language queries into complex 
+                        multi-step research workflows with screenshot compilation.
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Java</span>
+                        <span class="tech-tag">Spring Boot</span>
+                        <span class="tech-tag">Playwright</span>
+                        <span class="tech-tag">Web Automation</span>
+                        <span class="tech-tag">AI Agents</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="#" class="project-link"><i class="fas fa-play me-1"></i>Live Demo</a>
+                        <a href="#" class="project-link"><i class="fab fa-github me-1"></i>Code</a>
+                    </div>
+                </div>
+                
+                <div class="project-card fade-in">
+                    <h3 class="project-title">Orca Live Coding Environment</h3>
+                    <p class="project-description">
+                        Esoteric programming language for music composition with real-time sequencing and 
+                        pattern generation capabilities. Cross-platform implementation.
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">Web Audio</span>
+                        <span class="tech-tag">Live Coding</span>
+                        <span class="tech-tag">Music Sequencing</span>
+                        <span class="tech-tag">Creative Coding</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="#" class="project-link"><i class="fas fa-music me-1"></i>Try Online</a>
+                        <a href="#" class="project-link"><i class="fab fa-github me-1"></i>Code</a>
+                    </div>
+                </div>
+                
+                <div class="project-card fade-in">
+                    <h3 class="project-title">LLM Pokemon AI Controller</h3>
+                    <p class="project-description">
+                        AI agents that play Pokemon games using computer vision and game state analysis. 
+                        Multi-emulator support with advanced decision-making algorithms.
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">Computer Vision</span>
+                        <span class="tech-tag">Game AI</span>
+                        <span class="tech-tag">Emulation</span>
+                        <span class="tech-tag">LLM Integration</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="#" class="project-link"><i class="fas fa-gamepad me-1"></i>Watch Demo</a>
+                        <a href="#" class="project-link"><i class="fab fa-github me-1"></i>Code</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">Experience & Achievements</h2>
+            <div class="timeline">
+                <div class="timeline-item fade-in">
+                    <h3 class="timeline-title">Senior AI & Audio Technology Consultant</h3>
+                    <div class="timeline-meta">2023 - Present | Independent</div>
+                    <p class="timeline-description">
+                        Leading development of cutting-edge AI audio synthesis systems. Published research implementations 
+                        used in professional art installations at major galleries including Serpentine Gallery and Centre Pompidou. 
+                        Pioneering real-time neural audio generation for live performance contexts.
+                    </p>
+                </div>
+                
+                <div class="timeline-item fade-in">
+                    <h3 class="timeline-title">AI Integration Specialist</h3>
+                    <div class="timeline-meta">2022 - 2023 | Creative Technology</div>
+                    <p class="timeline-description">
+                        Developed first-of-its-kind integrations between AI assistants and professional creative tools. 
+                        Created MCP protocol implementations for music production workflows. Published open-source tools 
+                        adopted by the creative coding community.
+                    </p>
+                </div>
+                
+                <div class="timeline-item fade-in">
+                    <h3 class="timeline-title">Apple Ecosystem Developer</h3>
+                    <div class="timeline-meta">2021 - 2022 | iOS/macOS Applications</div>
+                    <p class="timeline-description">
+                        Built and published iOS/macOS applications featuring advanced Core ML integrations. Achieved 
+                        significant performance optimizations for Apple Silicon. Specialized in real-time inference 
+                        and native AI model deployment.
+                    </p>
+                </div>
+                
+                <div class="timeline-item fade-in">
+                    <h3 class="timeline-title">Research & Development</h3>
+                    <div class="timeline-meta">2020 - 2021 | Academic & Industry Collaboration</div>
+                    <p class="timeline-description">
+                        Collaborated on research projects bridging academic AI research and practical applications. 
+                        Implemented and optimized state-of-the-art models for real-world deployment. Contributed to 
+                        open-source frameworks used by researchers worldwide.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">Let's Connect</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center fade-in">
+                    <p class="text-light mb-4 fs-5">
+                        Interested in collaborating on cutting-edge AI and audio technology projects? 
+                        Let's discuss how we can push the boundaries of what's possible together.
+                    </p>
+                </div>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-card fade-in">
+                    <div class="contact-icon">
+                        <i class="fab fa-linkedin"></i>
+                    </div>
+                    <h4 class="contact-title">LinkedIn</h4>
+                    <a href="https://www.linkedin.com/in/wingstonsharon/" class="contact-link" target="_blank">
+                        Connect professionally
+                    </a>
+                </div>
+                
+                <div class="contact-card fade-in">
+                    <div class="contact-icon">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <h4 class="contact-title">GitHub</h4>
+                    <a href="#" class="contact-link" target="_blank">
+                        View my repositories
+                    </a>
+                </div>
+                
+                <div class="contact-card fade-in">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h4 class="contact-title">Email</h4>
+                    <a href="mailto:contact@wingston.dev" class="contact-link">
+                        contact@wingston.dev
+                    </a>
+                </div>
+                
+                <div class="contact-card fade-in">
+                    <div class="contact-icon">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <h4 class="contact-title">Schedule</h4>
+                    <a href="#" class="contact-link">
+                        Book a consultation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Contact Buttons -->
+    <div class="floating-contact">
+        <a href="https://www.linkedin.com/in/wingstonsharon/" class="float-btn" target="_blank" title="LinkedIn">
+            <i class="fab fa-linkedin"></i>
+        </a>
+        <a href="mailto:contact@wingston.dev" class="float-btn" title="Email">
+            <i class="fas fa-envelope"></i>
+        </a>
+        <a href="#" class="float-btn" title="Resume">
+            <i class="fas fa-file-pdf"></i>
+        </a>
     </div>
 
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>A2A Web Agent</h5>
-                    <p>A powerful integration of A2A protocol with Selenium for web automation - source code <a href="https://github.com/vishalmysore/a2awebagent">here</a> </p>
-
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p>Powered by <a href="https://github.com/vishalmysore/a2ajava" class="text-light">a2ajava</a></p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            Prism.highlightAll();
-
-            // Interactive Image Carousel functionality
-            const carousel = document.getElementById('workflowCarousel');
-            const images = carousel.querySelectorAll('.carousel-image');
-            const prevBtn = carousel.querySelector('.carousel-prev');
-            const nextBtn = carousel.querySelector('.carousel-next');
-            const currentStep = document.getElementById('currentStep');
-            const stepDescription = document.getElementById('stepDescription');
-            let currentIndex = 0;
-
-            const descriptions = {
-                'agent': 'The Agent Interface provides the entry point for web automation tasks.',
-                'event': 'The Event Flow demonstrates how actions are processed through the A2A protocol.',
-                'architecture': 'Multi-Agent Architecture shows how different components interact.',
-                'task': 'Local Task Execution illustrates how tasks are processed locally.'
-            };
-
-            function updateCarousel(index) {
-                images.forEach(img => img.style.display = 'none');
-                images[index].style.display = 'block';
-                currentStep.textContent = images[index].alt;
-                stepDescription.textContent = descriptions[images[index].dataset.image];
+    <script>
+        // 3D Particles System
+        class ParticleSystem {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.mouse = { x: 0, y: 0 };
+                this.connections = [];
                 
-                // Update hotspots
-                const hotspots = document.querySelectorAll('.hotspot');
-                hotspots.forEach(spot => spot.style.display = 'none');
+                this.resize();
+                this.createParticles();
+                this.animate();
                 
-                if (images[index].dataset.image === 'agent') {
-                    document.getElementById('agentSpot1').style.display = 'block';
-                    document.getElementById('agentSpot2').style.display = 'block';
+                window.addEventListener('resize', () => this.resize());
+                document.addEventListener('mousemove', (e) => {
+                    this.mouse.x = e.clientX;
+                    this.mouse.y = e.clientY;
+                });
+            }
+            
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            createParticles() {
+                const particleCount = Math.min(100, Math.floor(window.innerWidth * window.innerHeight / 15000));
+                
+                for (let i = 0; i < particleCount; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        z: Math.random() * 1000,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        vz: (Math.random() - 0.5) * 2,
+                        size: Math.random() * 2 + 1,
+                        hue: Math.random() * 60 + 180, // Blue-cyan range
+                        opacity: Math.random() * 0.8 + 0.2
+                    });
                 }
             }
-
-            prevBtn.addEventListener('click', () => {
-                currentIndex = (currentIndex - 1 + images.length) % images.length;
-                updateCarousel(currentIndex);
-            });
-
-            nextBtn.addEventListener('click', () => {
-                currentIndex = (currentIndex + 1) % images.length;
-                updateCarousel(currentIndex);
-            });
-
-            // Hotspot tooltips
-            const hotspots = document.querySelectorAll('.hotspot');
-            hotspots.forEach(hotspot => {
-                let tooltip = document.createElement('div');
-                tooltip.className = 'hotspot-tooltip';
-                tooltip.textContent = hotspot.dataset.tooltip;
-                hotspot.appendChild(tooltip);
-
-                hotspot.addEventListener('mouseover', () => {
-                    tooltip.style.opacity = '1';
+            
+            updateParticles() {
+                this.particles.forEach(particle => {
+                    // Update position
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.z += particle.vz;
+                    
+                    // Mouse interaction
+                    const dx = this.mouse.x - particle.x;
+                    const dy = this.mouse.y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 100) {
+                        const force = (100 - distance) / 100;
+                        particle.vx += dx * force * 0.001;
+                        particle.vy += dy * force * 0.001;
+                    }
+                    
+                    // Boundary wrapping
+                    if (particle.x < 0) particle.x = this.canvas.width;
+                    if (particle.x > this.canvas.width) particle.x = 0;
+                    if (particle.y < 0) particle.y = this.canvas.height;
+                    if (particle.y > this.canvas.height) particle.y = 0;
+                    if (particle.z < 0) particle.z = 1000;
+                    if (particle.z > 1000) particle.z = 0;
+                    
+                    // Apply friction
+                    particle.vx *= 0.99;
+                    particle.vy *= 0.99;
                 });
-
-                hotspot.addEventListener('mouseout', () => {
-                    tooltip.style.opacity = '0';
+            }
+            
+            drawParticles() {
+                this.particles.forEach(particle => {
+                    const scale = 1000 / (1000 - particle.z);
+                    const x = particle.x;
+                    const y = particle.y;
+                    const size = particle.size * scale;
+                    const opacity = particle.opacity * (scale / 2);
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `hsla(${particle.hue}, 70%, 60%, ${opacity})`;
+                    this.ctx.fill();
+                    
+                    // Glow effect
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = `hsla(${particle.hue}, 70%, 60%, ${opacity * 0.5})`;
+                    this.ctx.fill();
+                    this.ctx.shadowBlur = 0;
                 });
-
-                hotspot.addEventListener('click', () => {
-                    stepDescription.textContent = hotspot.dataset.tooltip;
+            }
+            
+            drawConnections() {
+                for (let i = 0; i < this.particles.length; i++) {
+                    for (let j = i + 1; j < this.particles.length; j++) {
+                        const p1 = this.particles[i];
+                        const p2 = this.particles[j];
+                        
+                        const dx = p1.x - p2.x;
+                        const dy = p1.y - p2.y;
+                        const dz = p1.z - p2.z;
+                        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                        
+                        if (distance < 120) {
+                            const opacity = (120 - distance) / 120 * 0.3;
+                            
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(p1.x, p1.y);
+                            this.ctx.lineTo(p2.x, p2.y);
+                            this.ctx.strokeStyle = `rgba(100, 255, 218, ${opacity})`;
+                            this.ctx.lineWidth = 1;
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.updateParticles();
+                this.drawConnections();
+                this.drawParticles();
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        // Initialize particles
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('particles-canvas');
+            new ParticleSystem(canvas);
+            
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
                 });
             });
-
-            // Initialize carousel
-            updateCarousel(currentIndex);
+            
+            // Navbar scroll effect
+            const navbar = document.querySelector('.navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            
+            // Fade in animation on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
         });
     </script>
 </body>
 </html>
-
-
-
