@@ -1,0 +1,137 @@
+spring:
+  
+  # PostgreSQL Configuration
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://postgres:5432/a2awebagent}
+    username: ${DB_USER:agent}
+    password: ${DB_PASSWORD:agent123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 10
+      minimum-idle: 5
+  
+  # JPA/Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  
+  # Redis Configuration
+  data:
+    redis:
+      url: ${REDIS_URL:redis://redis:6379}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+  
+  # Neo4j Configuration (for future use)
+  neo4j:
+    uri: ${NEO4J_URI:bolt://neo4j:7687}
+    authentication:
+      username: neo4j
+      password: password123
+    connection-timeout: 30s
+    max-transaction-retry-time: 15s
+  
+  # Task Configuration
+  task:
+    execution:
+      pool:
+        core-size: 4
+        max-size: 10
+        queue-capacity: 100
+        thread-name-prefix: "async-task-"
+        keep-alive: 60s
+      timeout: 300s  # 5 minutes
+      cleanup-interval: 3600s  # 1 hour
+  
+  # File Upload Configuration
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+      file-size-threshold: 1MB
+
+# Server Configuration
+server:
+  port: 7860
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: text/html,text/css,application/javascript,application/json
+  tomcat:
+    max-threads: 200
+    min-spare-threads: 10
+
+# Management Endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    io.wingie: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.springframework.data.redis: DEBUG
+    org.mongodb.driver.cluster: ERROR
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: /app/logs/a2awebagent.log
+    max-size: 100MB
+    max-history: 30
+
+# Application Specific Configuration
+app:
+  storage:
+    screenshots: /app/screenshots
+    uploads: /app/uploads
+    cleanup-older-than: 7d
+  
+  selenium:
+    timeout: 30s
+    headless: true
+    window-size: "1920,1080"
+    cache-dir: /app/seleniumCache
+  
+  async:
+    enabled: true
+    max-concurrent-tasks: 5
+    progress-update-interval: 5s
+  
+  security:
+    allowed-origins: "*"
+    cors:
+      enabled: true
+
+# Disable specific auto-configurations that conflict
+spring.autoconfigure.exclude:
+  - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration

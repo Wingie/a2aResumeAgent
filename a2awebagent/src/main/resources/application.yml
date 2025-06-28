@@ -1,26 +1,57 @@
 spring:
+  profiles:
+    active: default
+  
+  # Default configuration (for local development)
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  # Redis configuration (will be overridden in docker profile)
   data:
-    mongodb:
-      uri: mongodb+srv://${DB_USER}:${DB_PASSWORD}@cookgpt.nfaj3.mongodb.net/?retryWrites=true&w=majority&appName=cookgpt
-      database: cookgpt
-  ai:
-    openai:
-      api-key: ${OPENAI_API_KEY}
-    vectorstore:
-      mongodb:
-        initialize-schema: true
-        collection-name: cookgpt_vectorstore
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000ms
 
-
-
-
-# Disable specific Spring Boot auto-configurations
+# Disable MongoDB auto-configurations
 spring.autoconfigure.exclude:
   - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
   - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
 
-logging:
-  level:
-    org.mongodb.driver.cluster: ERROR
 server:
   port: 7860
+
+logging:
+  level:
+    root: INFO
+    io.wingie: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+
+# Application configuration
+app:
+  storage:
+    screenshots: ./screenshots
+    uploads: ./uploads
+  
+  selenium:
+    timeout: 30s
+    headless: true
+    
+  async:
+    enabled: true
+    max-concurrent-tasks: 3

@@ -1,8 +1,9 @@
-FROM node:16.16.0
+# syntax=docker/dockerfile:1
+FROM openjdk:18-jdk-slim
 
-# Install dependencies
+# Install system dependencies for Chrome and build tools
 RUN apt-get update && apt-get install -y \
-    curl unzip gnupg wget tar \
+    curl unzip gnupg wget tar maven \
     fonts-liberation \
     libasound2 \
     libatk-bridge2.0-0 \
@@ -23,41 +24,55 @@ RUN apt-get update && apt-get install -y \
     libxrandr2 \
     xdg-utils \
     libu2f-udev \
-    libvulkan1
+    libvulkan1 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install OpenJDK 18 manually from Adoptium
-RUN curl -L -o /tmp/openjdk18.tar.gz https://github.com/adoptium/temurin18-binaries/releases/download/jdk-18.0.2.1%2B1/OpenJDK18U-jdk_x64_linux_hotspot_18.0.2.1_1.tar.gz && \
-    mkdir -p /opt/java/openjdk && \
-    tar -xzf /tmp/openjdk18.tar.gz -C /opt/java/openjdk --strip-components=1 && \
-    rm /tmp/openjdk18.tar.gz
-
-# Set JAVA_HOME
-ENV JAVA_HOME=/opt/java/openjdk
-ENV PATH="$JAVA_HOME/bin:$PATH"
-
-# Verify Java
-RUN java -version
-
-# Install Chrome
-RUN curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    apt-get install -y ./google-chrome-stable_current_amd64.deb && \
-    rm google-chrome-stable_current_amd64.deb
+# Install Chromium instead of Chrome for better multi-arch support
+RUN apt-get update && \
+    apt-get install -y chromium chromium-driver && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
-WORKDIR /ai
+WORKDIR /app
 
-# Download your Spring Boot JAR
-ARG VERSION=0.0.1
-RUN curl -L -o /ai/mcpdemo.jar https://github.com/vishalmysore/a2awebagent/releases/download/release/a2awebagent-${VERSION}.jar
+# Copy Maven configuration first (for better layer caching)
+COPY pom.xml .
+
+# Download dependencies with BuildKit cache mount for faster builds
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn dependency:go-offline -B
+
+# Copy source code
+COPY src/ ./src/
+
+# Build the application with BuildKit cache mount
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn clean package -DskipTests -B
 
 # Create required directories
-RUN mkdir -p /ai/seleniumCache /ai/resolutionCache && chmod -R 777 /ai
+RUN mkdir -p /app/screenshots /app/logs /app/seleniumCache /app/resolutionCache /app/uploads && \
+    chmod -R 777 /app
 
-# Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Verify the JAR was built
+RUN ls -la target/ && \
+    test -f target/a2awebagent-0.0.1.jar
 
+# Create a non-root user for security
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
 EXPOSE 7860
 
-# Start your app
-ENTRYPOINT ["/entrypoint.sh"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:7860/actuator/health || exit 1
+
+# Set JVM options for container environment
+ENV JAVA_OPTS="-Xmx1g -Xms512m -XX:+UseG1GC -XX:+UseContainerSupport"
+
+# Start the application
+CMD ["sh", "-c", "java $JAVA_OPTS -jar target/a2awebagent-0.0.1.jar"]

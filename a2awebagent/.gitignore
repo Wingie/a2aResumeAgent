@@ -36,3 +36,17 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Security & Credentials ###
+application_default_credentials.json
+*_credentials.json
+service-account*.json
+.env.local
+.env.production
+
+### Application Data ###
+logs/
+data/
+screenshots/
+uploads/
+seleniumCache/
