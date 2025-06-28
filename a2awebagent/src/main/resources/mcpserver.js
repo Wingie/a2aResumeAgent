@@ -3,7 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ListResourcesRequestSchema, ListToolsRequestSchema, ReadResourceRequestSchema, } from "@modelcontextprotocol/sdk/types.js";
 import fs from 'node:fs/promises';
 
-const logFilePath = '/temp/proxy_server.log';
+const logFilePath = '/Users/wingston/code/a2aTravelAgent/a2awebagent/logs/proxy_server.log';
 
 const SERVER_BASE_URL = process.env.SERVER_BASE_URL || "http://localhost:7860";
 
