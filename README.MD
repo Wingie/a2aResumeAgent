@@ -1,13 +1,8 @@
-# a2aTravelAgent - AI-Powered Travel Research Agent & MCP Demo
+# a2aTravelAgent - JAVA  enterprise based AI-Powered Travel Research Agent & MCP Demo
 
-This repository contains **two interconnected projects** that demonstrate advanced AI integration and web automation capabilities:
+This repository contains A SAMPLE MCP that demonstrate advanced AI integration and web automation capabilities:
 
 ## 📁 Project Structure
-
-### 1. **a2aTravelAgent** (Main Project)
-- **Location**: Root directory (`/`)
-- **Purpose**: Main orchestration server with MCP protocol support
-- **Key Features**: Agent-to-agent communication, task coordination, API management
 
 ### 2. **a2awebagent** (Web Automation Engine) 
 - **Location**: `a2awebagent/` subdirectory
@@ -164,6 +159,117 @@ This showcases **real AI integration** capabilities:
 - ✅ **Perfect for demonstration purposes**
 
 Get your free Mistral API key at: https://console.mistral.ai/
+
+## 🤖 MCP (Model Context Protocol) Setup with Gemini
+
+This project provides a complete **MCP server implementation** that integrates with Claude Desktop for advanced AI-powered travel automation.
+
+### Prerequisites for MCP Setup
+
+1. **Google Cloud CLI** (for Gemini Vertex AI):
+   ```bash
+   # Install on macOS
+   brew install --cask google-cloud-sdk
+   ```
+
+2. **Node.js** (for MCP proxy server):
+   ```bash
+   # Install via Homebrew
+   brew install node
+   ```
+
+### Step-by-Step MCP Setup
+
+#### 1. Google Cloud Authentication
+```bash
+# Authenticate with Google Cloud
+gcloud auth application-default login
+
+# Set your project (if needed)
+gcloud config set project your-google-project-id
+```
+
+#### 2. Build the Complete MCP System
+```bash
+# Navigate to the web agent project
+cd a2awebagent
+
+# Run the automated build script
+./build-mcp.sh
+```
+
+#### 3. Configure Vertex AI Gemini
+The `tools4ai.properties` file should be configured for Vertex AI:
+```properties
+##Gemini related settings (Vertex AI)
+gemini.modelName=gemini-2.0-flash-001
+gemini.location=us-central1
+gemini.projectId=your-google-project-id
+geminiKey=
+agent.provider=gemini
+```
+
+#### 4. Start the Travel Agent Server
+```bash
+# Start the Java application
+java -jar target/a2awebagent-0.0.1.jar
+
+# OR use the run script
+./run-mcp.sh
+```
+
+#### 5. Configure Claude Desktop
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "wingston-travel-agent": {
+      "command": "node",
+      "args": [
+        "/Users/your-username/code/a2aTravelAgent/a2awebagent/src/main/resources/mcpserver.js"
+      ]
+    }
+  }
+}
+```
+
+#### 6. Restart Claude Desktop
+Close and reopen Claude Desktop to load the MCP server.
+
+### 🎯 Available MCP Tools
+
+Once configured, Claude Desktop will have access to these tools:
+
+- **`browseWebAndReturnText`** - Web automation with text extraction
+- **`browseWebAndReturnImage`** - Web automation with screenshot capture  
+- **`searchLinkedInProfile`** - LinkedIn profile search
+- **`getWingstonsProjectsExpertiseResume`** - Personal expertise and resume showcase
+- **`askTasteBeforeYouWaste`** - Food research and recommendations
+
+### 🧪 Testing Your MCP Setup
+
+1. **Verify server is running**:
+   ```bash
+   curl http://localhost:7860/v1/tools
+   ```
+
+2. **Test in Claude Desktop**:
+   - Open Claude Desktop
+   - Look for "wingston-travel-agent" in MCP settings
+   - Try asking: "Can you help me research travel options from New York to Paris?"
+
+### 🔧 Troubleshooting MCP Setup
+
+**Common Issues:**
+
+1. **Authentication errors**: Ensure `gcloud auth application-default login` was successful
+2. **Port conflicts**: Check that port 7860 is available
+3. **Node.js errors**: Verify Node.js dependencies with `npm install` in resources directory
+4. **Claude Desktop not detecting**: Restart Claude Desktop after config changes
+
+### 📖 Complete MCP Documentation
+
+For detailed setup instructions and troubleshooting, see: `a2awebagent/MCP-SETUP.md`
 
 ### 🚀 Running the Projects
 

@@ -1,0 +1,3 @@
+[submodule "a2ajava"]
+	path = a2ajava
+	url = git@github.com:vishalmysore/a2ajava.git
