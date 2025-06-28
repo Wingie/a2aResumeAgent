@@ -20,7 +20,8 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/application_default_credentials.json
       - DB_USER=${DB_USER:-agent}
       - DB_PASSWORD=${DB_PASSWORD:-agent123}
-      - JAVA_OPTS=-Xms512m -Xmx1g
+      - JAVA_OPTS=-Xms512m -Xmx1g -DgeminiKey=${GEMINI_API_KEY}
+      - ENABLE_XVFB=true
     volumes:
       - "./screenshots:/app/screenshots"
       - "./logs:/app/logs"

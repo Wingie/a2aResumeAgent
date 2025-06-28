@@ -1,0 +1,94 @@
+# Comprehensive Booking.com Travel Research Program
+# This program searches for flights, hotels, and attractions to create a complete travel itinerary
+
+# Step 1: Search for outbound flights
+- go to website https://www.booking.com/flights/
+- wait for page to load
+- click on "One-way" radio button if available
+- click on the "From" input field
+- type "{origin_city}" into the "From" input field
+- wait for dropdown suggestions to appear
+- click on first matching result from dropdown
+- click on the "To" input field
+- type "{destination_city}" into the "To" input field
+- wait for dropdown suggestions to appear
+- click on first matching result from dropdown
+- click on the departure date calendar field
+- navigate to {travel_month} {travel_year} in the calendar
+- click on "{travel_date}" for the departure date
+- click on "Search flights" button
+- wait for search results to load
+- save screenshot as "outbound_flights_results.png"
+- extract text containing top 5 flight options with times and prices
+
+# Step 2: Search for return flights (if needed)
+- go to website https://www.booking.com/flights/
+- wait for page to load
+- click on "One-way" radio button if available
+- click on the "From" input field
+- type "{destination_city}" into the "From" input field
+- wait for dropdown suggestions to appear
+- click on first matching result from dropdown
+- click on the "To" input field
+- type "{return_city}" into the "To" input field
+- wait for dropdown suggestions to appear
+- click on first matching result from dropdown
+- click on the departure date calendar field
+- navigate to {return_month} {return_year} in the calendar
+- click on "{return_date}" for the return date
+- click on "Search flights" button
+- wait for search results to load
+- save screenshot as "return_flights_results.png"
+- extract text containing top 5 flight options with times and prices
+
+# Step 3: Search for hotels at destination
+- go to website https://www.booking.com/
+- wait for page to load
+- click on "Stays" tab if not already selected
+- click on the destination search box
+- clear any existing text
+- type "{destination_city}" into the destination field
+- wait for dropdown suggestions to appear
+- click on first matching result from dropdown
+- click on the check-in date field
+- navigate to {travel_month} {travel_year} in the calendar
+- click on "{travel_date}" for check-in date
+- click on "{checkout_date}" for check-out date
+- click on the guests/rooms selector
+- ensure "2 adults, 1 room" is selected
+- click on "Search" button
+- wait for search results to load
+- click on "Sort by: Top reviewed" if available
+- save screenshot as "hotel_results_top_rated.png"
+- extract text containing top 10 hotels with names, ratings, locations, and prices
+- click on "Sort by: Price (lowest first)"
+- save screenshot as "hotel_results_by_price.png"
+- extract text containing top 5 budget hotels
+
+# Step 4: Search for attractions and things to do
+- go to website https://www.booking.com/attractions/
+- wait for page to load
+- click on the destination search box
+- type "{destination_city}" into the search field
+- wait for dropdown suggestions to appear
+- click on first matching result from dropdown
+- click on the date selector if available
+- navigate to {travel_month} {travel_year} in the calendar
+- click on "{travel_date}" for the activity date
+- click on "Search" button
+- wait for search results to load
+- save screenshot as "attractions_overview.png"
+- extract text containing top 15 attractions with names, ratings, and prices
+- click on "See all" for Museums & exhibitions category if available
+- save screenshot as "museums_exhibitions.png"
+- extract text from museums section
+- go back to main attractions page
+- click on "See all" for Tours category if available
+- save screenshot as "tours_activities.png"
+- extract text from tours section
+
+# Step 5: Compile research summary
+- create summary table with all extracted information
+- organize by: Flights (outbound/return), Hotels (by rating/price), Attractions (must-see/optional)
+- include total estimated costs for different budget levels
+- save final summary as "complete_travel_research.txt"

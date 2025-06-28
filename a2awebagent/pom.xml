@@ -85,11 +85,7 @@
             <version>4.32.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-devtools-v135 -->
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-devtools-v135</artifactId>
-            <version>4.32.0</version>
-        </dependency>
+        
 
         <!-- PostgreSQL Database Driver -->
         <dependency>

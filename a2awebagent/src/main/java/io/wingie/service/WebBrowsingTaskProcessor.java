@@ -4,7 +4,9 @@ import io.wingie.entity.TaskExecution;
 import io.wingie.WebBrowsingAction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -12,12 +14,15 @@ import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class WebBrowsingTaskProcessor {
 
-    private final WebBrowsingAction webBrowsingAction;
-    private final TaskProgressService progressService;
+    @Autowired(required = false)
+    @Lazy
+    private WebBrowsingAction webBrowsingAction;
+    
+    @Autowired
+    private TaskProgressService progressService;
     
     @Value("${app.storage.screenshots:/app/screenshots}")
     private String screenshotPath;
@@ -27,6 +32,13 @@ public class WebBrowsingTaskProcessor {
         String query = task.getOriginalQuery();
         
         log.info("Processing travel search for task {}: {}", taskId, query);
+        
+        // Check if WebBrowsingAction is available
+        if (webBrowsingAction == null) {
+            log.error("WebBrowsingAction not available for task {}", taskId);
+            progressService.updateProgress(task, 100, "Web automation service unavailable");
+            return generateServiceUnavailableResponse(query);
+        }
         
         try {
             // Step 1: Initialize search
@@ -72,6 +84,13 @@ public class WebBrowsingTaskProcessor {
         
         log.info("Processing LinkedIn search for task {}: {}", taskId, query);
         
+        // Check if WebBrowsingAction is available
+        if (webBrowsingAction == null) {
+            log.error("WebBrowsingAction not available for task {}", taskId);
+            progressService.updateProgress(task, 100, "Web automation service unavailable");
+            return generateServiceUnavailableResponse(query);
+        }
+        
         try {
             progressService.updateProgress(task, 10, "Initializing LinkedIn search...");
             
@@ -105,6 +124,13 @@ public class WebBrowsingTaskProcessor {
         String query = task.getOriginalQuery();
         
         log.info("Processing general web browsing for task {}: {}", taskId, query);
+        
+        // Check if WebBrowsingAction is available
+        if (webBrowsingAction == null) {
+            log.error("WebBrowsingAction not available for task {}", taskId);
+            progressService.updateProgress(task, 100, "Web automation service unavailable");
+            return generateServiceUnavailableResponse(query);
+        }
         
         try {
             progressService.updateProgress(task, 10, "Initializing web browsing...");
@@ -302,5 +328,32 @@ public class WebBrowsingTaskProcessor {
     @FunctionalInterface
     public interface ProgressCallback {
         void updateProgress(double progress, String message);
+    }
+    
+    private String generateServiceUnavailableResponse(String query) {
+        return String.format("""
+            # Web Automation Service Unavailable
+            
+            ## Request: "%s"
+            
+            The web automation service is temporarily unavailable. This may be due to:
+            
+            1. **Chrome/Chromium not installed**: The browser engine required for automation is missing
+            2. **Container environment**: Running in Docker without proper browser setup
+            3. **Initialization failure**: WebDriver could not start properly
+            
+            ### What You Can Do:
+            - Try again in a few moments
+            - Contact system administrator to check service status
+            - Use alternative methods for your search
+            
+            ### Technical Details:
+            - Service: WebBrowsingAction
+            - Status: Not initialized
+            - Environment: %s
+            
+            ---
+            *This is an automated response due to service unavailability*
+            """, query, System.getProperty("os.name", "Unknown"));
     }
 }

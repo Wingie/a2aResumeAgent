@@ -2,6 +2,7 @@ package io.wingie;
 
 import com.t4a.annotations.Action;
 import com.t4a.annotations.Agent;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
  * expiration dates, and whether food is still safe to consume.
  */
 @Service
+@Slf4j
 @Agent(groupName = "food-safety", groupDescription = "Food safety and consumption guidance tools")
 public class TasteBeforeYouWasteTool {
 
@@ -21,6 +23,14 @@ public class TasteBeforeYouWasteTool {
 
     @Action(description = "Search tastebeforeyouwaste.org for food safety information and consumption guidance")
     public String askTasteBeforeYouWaste(String foodQuestion) throws java.io.IOException {
+        log.info("Food safety question received: {}", foodQuestion);
+        
+        // Check if WebBrowsingAction is available
+        if (webBrowsingAction == null) {
+            log.warn("WebBrowsingAction not available, returning general food safety guidelines");
+            return generateStaticFoodSafetyResponse(foodQuestion);
+        }
+        
         try {
             // First, try to search the site for the specific food item or question
             String searchResult = performFoodSafetySearch(foodQuestion);
@@ -29,6 +39,7 @@ public class TasteBeforeYouWasteTool {
             return formatFoodSafetyResponse(foodQuestion, searchResult);
             
         } catch (Exception e) {
+            log.error("Error during food safety search: {}", e.getMessage(), e);
             return generateFoodSafetyError(foodQuestion, e.getMessage());
         }
     }
@@ -265,5 +276,67 @@ Since we couldn't access specific information from tastebeforeyouwaste.org, here
 *Screenshot attempt performed by a2aTravelAgent web automation system*
 """, e.getMessage());
         }
+    }
+    
+    private String generateStaticFoodSafetyResponse(String foodQuestion) {
+        String foodItem = extractFoodItemFromQuestion(foodQuestion);
+        return String.format("""
+# Food Safety Information - General Guidelines
+
+## Your Question: "%s"
+
+**Note**: Web automation service is temporarily unavailable. Here are general food safety guidelines.
+
+## General Food Safety Principles
+
+### 1. Use Your Senses
+- **Look**: Check for visible mold, discoloration, or unusual spots
+- **Smell**: Fresh food should smell normal; sour or off odors indicate spoilage
+- **Touch**: Check texture - slimy or sticky surfaces often mean spoilage
+- **Taste**: If unsure after other checks, taste a tiny amount
+
+### 2. Common Food Categories
+
+#### Fresh Produce
+- Most vegetables: 3-7 days in fridge
+- Leafy greens: Best within 3-5 days
+- Root vegetables: Can last weeks if stored properly
+- Fruits: Varies widely (berries 2-3 days, apples weeks)
+
+#### Dairy Products
+- Milk: Usually good 5-7 days past sell-by if unopened
+- Hard cheese: Can cut off mold and use rest
+- Yogurt: Often good 1-2 weeks past date if unopened
+- Eggs: Float test - fresh eggs sink, old eggs float
+
+#### Proteins
+- Raw meat: 1-2 days in fridge, months in freezer
+- Cooked meat: 3-4 days in fridge
+- Fish: Use within 1-2 days or freeze
+- Tofu: Check expiration, usually 3-5 days after opening
+
+### 3. Storage Tips
+- Keep fridge at 40°F (4°C) or below
+- Store in airtight containers
+- First in, first out principle
+- Label leftovers with dates
+
+### 4. When in Doubt
+- "When in doubt, throw it out" - but often food is still good!
+- Best-by dates are about quality, not safety
+- Use-by dates are more important for safety
+- Trust your senses over dates
+
+### 5. Reduce Food Waste
+- Plan meals to use ingredients
+- Store food properly to extend life
+- Use wilting vegetables in soups/smoothies
+- Freeze items before they spoil
+
+---
+**For specific information about %s, visit**: https://tastebeforeyouwaste.org
+
+*General guidelines provided due to temporary web service limitations*
+""", foodQuestion, foodItem);
     }
 }

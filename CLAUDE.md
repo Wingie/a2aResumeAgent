@@ -25,6 +25,59 @@ This is a Spring Boot-based web automation agent that provides A2A (Agent-to-Age
 - **tools4ai 1.1.6.1**: AI tool integration framework with prompt annotations
 - **Lombok**: Code generation for POJOs
 
+## Serena Code Intelligence Integration
+
+### Overview
+This project includes comprehensive **Serena tools integration** for enhanced code navigation and development productivity. Serena provides intelligent symbol analysis across the entire Spring Boot MCP architecture.
+
+### Quick Reference
+📖 **Complete Documentation**: See `serena.md` for comprehensive Serena usage guide  
+🔧 **Installation**: `uvx --from git+https://github.com/oraios/serena index-project .`  
+📊 **Status**: Successfully indexed 13 Java files with Eclipse JDT Language Server  
+
+### Mandatory Serena Sub-Agent Pattern
+**ALWAYS** create Serena sub-agents using the `Task()` tool for:
+- Implementing new MCP tools and web automation features
+- Debugging Spring Boot integration issues  
+- Analyzing callback patterns and AI provider integrations
+- Refactoring complex async task processing logic
+
+### Required Fallback Strategy
+When Serena tools fail or provide incomplete results, **IMMEDIATELY** use web-based debugging:
+1. **WebSearch**: Research Spring Boot patterns and best practices
+2. **WebFetch**: Access official documentation (Spring, Selenium, MCP protocols)
+3. **Stack Overflow Research**: Find solutions for specific error patterns
+
+### Example Sub-Agent Creation
+```bash
+# Primary approach with Serena
+Task(
+  description="Debug MCP integration",
+  prompt="Use Serena find_symbol 'MCPController', read_file to analyze implementation, find_referencing_symbols for @Action annotations. Identify integration issues and provide fixes."
+)
+
+# Web fallback when needed
+Task(
+  description="Research MCP solutions", 
+  prompt="Use WebSearch for 'Spring Boot MCP protocol debugging' and WebFetch MCP documentation. Compile troubleshooting steps and implementation best practices."
+)
+```
+
+### Available Serena Tools (30 Active)
+- **Symbol Navigation**: `find_symbol`, `find_referencing_symbols`, `get_symbols_overview`
+- **Code Modification**: `replace_symbol_body`, `insert_after_symbol`, `replace_regex`  
+- **File Operations**: `read_file`, `create_text_file`, `list_dir`, `find_file`
+- **Analysis Tools**: `think_about_collected_information`, `search_for_pattern`
+- **Memory Management**: `write_memory`, `read_memory`, `list_memories`
+
+### Development Best Practices
+1. **Start with Serena**: Use code intelligence as primary analysis tool
+2. **Web Research Fallback**: Don't struggle with incomplete Serena results  
+3. **User Collaboration**: Keep user informed of analysis approach and reasoning
+4. **Hybrid Solutions**: Combine Serena insights with external documentation research
+
+For complete Serena usage patterns, debugging workflows, and integration examples, refer to the comprehensive `serena.md` documentation.
+
 ## Development Commands
 
 ### Build and Run
@@ -119,7 +172,7 @@ mvn test
 
 ### Testing Web Automation with Custom Actions
 
-The system consists of two components working together:
+The system consists of two components:
 - **a2awebagent**: Executes the web.action program (a comprehensive travel research script)
 - **a2aTravelAgent**: Receives natural language queries from external tools and orchestrates the research
 
@@ -203,3 +256,11 @@ java -Dloader.path=/path/to/conf -jar a2aPlaywright-0.2.3.jar
 ## Personal Development Preferences
 
 - I prefer to run the server externally
+
+## Code Editing and Task Execution Guidelines
+
+- Always use a Task() agent to:
+  * Read and think through code changes
+  * Make precise edits
+  * Verify that the code change has the desired effect
+  * Ensure no unintended negative consequences occur

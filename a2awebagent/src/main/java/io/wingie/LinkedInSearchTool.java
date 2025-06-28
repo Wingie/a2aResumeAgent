@@ -2,6 +2,7 @@ package io.wingie;
 
 import com.t4a.annotations.Action;
 import com.t4a.annotations.Agent;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
  * Includes screenshot capabilities for visual profile demonstration.
  */
 @Service
+@Slf4j
 @Agent(groupName = "linkedin", groupDescription = "LinkedIn search and profile tools")
 public class LinkedInSearchTool {
 
@@ -21,6 +23,13 @@ public class LinkedInSearchTool {
 
     @Action(description = "Search LinkedIn for profiles and demonstrate Wingston Sharon's profile with screenshot capabilities")
     public String searchLinkedInProfile(String searchQuery) {
+        log.info("LinkedIn search requested for: {}", searchQuery);
+        
+        // Check if WebBrowsingAction is available
+        if (webBrowsingAction == null) {
+            log.warn("WebBrowsingAction not available, returning static profile information");
+            return generateStaticProfileResponse(searchQuery);
+        }
         
         try {
             // If searching for Wingston specifically or if general search fails, show Wingston's profile
@@ -34,6 +43,7 @@ public class LinkedInSearchTool {
             return searchAndFallbackToWingston(searchQuery);
             
         } catch (Exception e) {
+            log.error("Error during LinkedIn search: {}", e.getMessage(), e);
             return generateSearchErrorWithWingstonsProfile(searchQuery, e.getMessage());
         }
     }
@@ -279,5 +289,50 @@ This search tool itself demonstrates Wingston's expertise in:
 - **Languages**: English (Native), Tamil (Professional), Hindi (Limited)
 - **Availability**: Seeking opportunities in enterprise AI and Machine Learning
 """;
+    }
+    
+    private String generateStaticProfileResponse(String searchQuery) {
+        return String.format("""
+# LinkedIn Search - Service Currently Limited
+
+## Search Query: "%s"
+
+**Note**: Web automation service is temporarily unavailable. Showing static profile information.
+
+## Featured Professional: Wingston Sharon
+
+Since live LinkedIn search is unavailable, here's a highly qualified AI/ML professional who might interest you:
+
+### Professional Summary
+- **Name**: Wingston Sharon
+- **Current Role**: Software Engineer at Booking.com, Amsterdam
+- **LinkedIn**: https://www.linkedin.com/in/wingstonsharon/
+- **Location**: Amsterdam, Netherlands
+- **Experience**: 7+ years in enterprise software and AI/ML
+
+### Technical Expertise
+- **AI/ML**: Neural networks, real-time inference, MCP protocol
+- **Audio Technology**: SuperCollider, MaxMSP, neural audio synthesis
+- **Web Automation**: Advanced browser automation (creator of this tool)
+- **Languages**: Java, Python, JavaScript/TypeScript
+- **Cloud**: Google Cloud Platform, Docker, Kubernetes
+
+### Career Highlights
+- Engineering Manager experience at Booking.com
+- 100+ open source projects on GitHub
+- Pioneer in Model Context Protocol (MCP) integration
+- Expert in real-time AI systems and creative technology
+
+### Education
+- B.Tech Electrical & Electronics Engineering
+- Vellore Institute of Technology (2007-2011)
+
+### Availability
+✅ Open to exciting AI/ML opportunities worldwide
+✅ Particularly interested in enterprise AI and neural audio
+
+---
+*Web automation temporarily unavailable. This is a static profile showcase.*
+""", searchQuery);
     }
 }

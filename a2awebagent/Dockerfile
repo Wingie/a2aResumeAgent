@@ -27,10 +27,16 @@ RUN apt-get update && apt-get install -y \
     libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Chromium instead of Chrome for better multi-arch support
+# Install Chromium and xvfb for headless display (ARM64 compatible)
 RUN apt-get update && \
-    apt-get install -y chromium chromium-driver && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y chromium chromium-driver xvfb x11-utils \
+    # Add additional browser dependencies
+    ca-certificates \
+    fontconfig \
+    libappindicator3-1 \
+    libgconf-2-4 \
+    libxss1 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -74,5 +80,18 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Set JVM options for container environment
 ENV JAVA_OPTS="-Xmx1g -Xms512m -XX:+UseG1GC -XX:+UseContainerSupport"
 
+# Copy entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+
+# Make entrypoint executable
+USER root
+RUN chmod +x /app/entrypoint.sh && \
+    mkdir -p /tmp/.X11-unix && \
+    chmod 1777 /tmp/.X11-unix && \
+    chown -R appuser:appuser /app
+
+# Switch back to non-root user
+USER appuser
+
 # Start the application
-CMD ["sh", "-c", "java $JAVA_OPTS -jar target/a2awebagent-0.0.1.jar"]
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wingston Sharon - Creative & Technology Leadership</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0a0e27;
+            --secondary-color: #1a1f3a;
+            --accent-color: #64ffda;
+            --accent-purple: #7c3aed;
+            --accent-pink: #f472b6;
+            --text-light: #ccd6f6;
+            --text-white: #ffffff;
+            --gradient-main: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --gradient-accent: linear-gradient(135deg, var(--accent-color), var(--accent-purple));
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--primary-color);
+            color: var(--text-light);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* 3D Particles Background */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(10, 14, 39, 0.98);
+            box-shadow: 0 4px 20px rgba(100, 255, 218, 0.1);
+        }
+
+        .nav-link {
+            color: var(--text-light) !important;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color) !important;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 3rem;
+            line-height: 1.8;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .btn-primary-custom {
+            background: var(--gradient-accent);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(100, 255, 218, 0.3);
+            color: var(--primary-color);
+        }
+
+        .btn-secondary-custom {
+            border: 2px solid var(--accent-color);
+            background: transparent;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            color: var(--accent-color);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary-custom:hover {
+            background: var(--accent-color);
+            color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        /* Quick Stats Sidebar */
+        .quick-stats {
+            position: fixed;
+            left: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 999;
+            background: rgba(26, 31, 58, 0.9);
+            border: 1px solid var(--accent-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            width: 200px;
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
+        }
+        
+        .quick-stats:hover {
+            opacity: 1;
+        }
+        
+        .quick-stats h4 {
+            color: var(--accent-color);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .stat-item {
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.8rem;
+            margin-bottom: 0.2rem;
+        }
+        
+        .stat-value {
+            color: var(--text-white);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .quick-stats {
+                display: none;
+            }
+        }
+        
+        @media (min-width: 1400px) {
+            .container, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+                max-width: 1222px;
+            }
+        }
+
+        /* Floating Action Buttons */
+        .floating-contact {
+            position: fixed;
+            right: 2rem;
+            bottom: 2rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .float-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient-accent);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(100, 255, 218, 0.3);
+        }
+
+        .float-btn:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 30px rgba(100, 255, 218, 0.5);
+            color: var(--primary-color);
+        }
+
+        /* Sections */
+        .section {
+            padding: 6rem 0;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Skills Grid */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .skill-category {
+            background: rgba(26, 31, 58, 0.6);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .skill-category:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-color);
+            box-shadow: 0 20px 40px rgba(100, 255, 218, 0.1);
+        }
+
+        .skill-category h3 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .skill-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: var(--accent-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .project-card {
+            background: rgba(26, 31, 58, 0.6);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-accent);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-color);
+            box-shadow: 0 20px 40px rgba(100, 255, 218, 0.1);
+        }
+
+        .project-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .project-title {
+            color: var(--text-white);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .project-description {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tech-tag {
+            background: rgba(124, 58, 237, 0.2);
+            color: var(--accent-purple);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .project-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .project-link:hover {
+            color: var(--text-white);
+        }
+
+        /* Experience Timeline */
+        .timeline {
+            position: relative;
+            margin: 3rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 2rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gradient-accent);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-left: 4rem;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(26, 31, 58, 0.6);
+            border-radius: 15px;
+            border-left: 3px solid var(--accent-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -3.5rem;
+            top: 2rem;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            border: 3px solid var(--primary-color);
+        }
+
+        .timeline-title {
+            color: var(--text-white);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-meta {
+            color: var(--accent-color);
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-description {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Contact Section */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .contact-card {
+            background: rgba(26, 31, 58, 0.6);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 15px 30px rgba(100, 255, 218, 0.1);
+        }
+
+        .contact-icon {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .contact-title {
+            color: var(--text-white);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-link {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: var(--accent-color);
+        }
+
+        /* Achievement Cards */
+        .achievement-card {
+            background: rgba(26, 31, 58, 0.6);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 15px 30px rgba(100, 255, 218, 0.1);
+        }
+
+        .achievement-icon {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .achievement-title {
+            color: var(--text-white);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .achievement-description {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .achievement-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .achievement-link {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+
+        .achievement-link:hover {
+            color: var(--accent-color);
+            background: rgba(100, 255, 218, 0.2);
+            transform: translateX(5px);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 1rem;
+            }
+            
+            .timeline-item {
+                margin-left: 2.5rem;
+            }
+            
+            .timeline-item::before {
+                left: -2rem;
+            }
+            
+            .floating-contact {
+                right: 1rem;
+                bottom: 1rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Particles Canvas -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Quick Stats Sidebar -->
+    <div class="quick-stats">
+        <h4>Quick Facts</h4>
+        <div class="stat-item">
+            <div class="stat-label">Current Role</div>
+            <div class="stat-value">Engineering Manager</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Company</div>
+            <div class="stat-value">Booking.com</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Experience</div>
+            <div class="stat-value">7+ Years</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Teams Led</div>
+            <div class="stat-value">4 Teams</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Scale</div>
+            <div class="stat-value">Millions Daily</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">GitHub</div>
+            <div class="stat-value">100 Repos</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="#home">
+                <i class="fas fa-code text-accent me-2"></i>Wingston
+            </a>
+            <a href="https://www.linkedin.com/in/wingstonsharon/" target="_blank" class="ms-2 text-light" style="text-decoration: none; font-size: 1.2rem;" title="LinkedIn Profile">
+                <i class="fab fa-linkedin"></i>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#skills">Skills</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#experience">Experience</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Wingston Sharon</h1>
+            <h2 class="hero-subtitle">Engineering Manager • AI Systems Architect • Sustainabile Leadership </h2>
+            <p class="hero-description">
+                Leading Customer Acquisition at Booking.com, serving 28M+ listings to millions daily.
+                Specializing in AI-powered automation, real-time systems, and technical team leadership.
+                Currently building a2aTravelAgent - transforming 4-hour research into 90-second AI workflows.
+            </p>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">About Me</h2>
+            <div class="row align-items-center">
+                <div class="col-lg-6 fade-in">
+                    <h3 class="text-white mb-3">Engineering Leader Building AI-Powered Systems at Scale</h3>
+                    <p class="text-light mb-4">
+                        Engineering Manager at Booking.com with 7+ years driving technical innovation at massive scale. 
+                        I've led teams through critical migrations (Perl to Java), built ML systems serving millions daily, 
+                        and now lead the Customer Acquisition team engineering for Booking.com/flights.
+                    </p>
+                    <p class="text-light mb-4">
+                        My technical journey: Started building 200GB+ asset pipelines → NLP search for enterprise systems → 
+                        Now architecting AI solutions handling TB-scale real time data. I combine deep technical expertise with 
+                        proven leadership across distributed teams.
+                    </p>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-accent">100</h4>
+                            <p class="text-light">GitHub Repos</p>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-accent">7+</h4>
+                            <p class="text-light">Years at Scale</p>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-accent">6+</h4>
+                            <p class="text-light">Teams Led</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 fade-in">
+                    <div class="text-center floating">
+                        <i class="fas fa-brain" style="font-size: 8rem; color: var(--accent-color); opacity: 0.8;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">Technical Expertise</h2>
+            <h3 class="text-center text-light mb-4">Seeking Senior AI Leadership Opportunities</h3>
+            <div class="skills-grid">
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-star me-2"></i>Expert (8+ Years)</h3>
+                    <p class="text-light mb-3">Core technologies I've mastered at scale</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Java</span>
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">Distributed Systems</span>
+                        <span class="skill-tag">System Architecture</span>
+                        <span class="skill-tag">Team Leadership</span>
+                        <span class="skill-tag">Agile/Scrum</span>
+                    </div>
+                </div>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-rocket me-2"></i>Advanced (3-7 Years)</h3>
+                    <p class="text-light mb-3">Technologies driving current innovation</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">PyTorch</span>
+                        <span class="skill-tag">Machine Learning</span>
+                        <span class="skill-tag">JavaScript/TypeScript</span>
+                        <span class="skill-tag">Spring Boot</span>
+                        <span class="skill-tag">Docker/K8s</span>
+                        <span class="skill-tag">Real-time Systems</span>
+                    </div>
+                </div>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-seedling me-2"></i>Growing Expertise</h3>
+                    <p class="text-light mb-3">Emerging technologies I'm actively researching</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">MCP Protocol</span>
+                        <span class="skill-tag">Neural Audio</span>
+                        <span class="skill-tag">Swift/Metal</span>
+                        <span class="skill-tag">Rust</span>
+                        <span class="skill-tag">Reinforcement Learning via Pokemon playing LLMs</span>
+                        <span class="skill-tag">Training LoRas of Diffusion Models</span>
+                    </div>
+                </div>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-database me-2"></i>Infrastructure & Scale</h3>
+                    <p class="text-light mb-3">Building systems that handle millions of users</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">MySQL/PostgreSQL</span>
+                        <span class="skill-tag">Redis</span>
+                        <span class="skill-tag">Kafka</span>
+                        <span class="skill-tag">AWS/GCP</span>
+                        <span class="skill-tag">Monitoring</span>
+                        <span class="skill-tag">Model Training end2end on Sagemaker</span>
+                    </div>
+                </div>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-users me-2"></i>Leadership & Process</h3>
+                    <p class="text-light mb-3">Proven experience leading distributed teams</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Team Building</span>
+                        <span class="skill-tag">Mentoring</span>
+                        <span class="skill-tag">Code Reviews</span>
+                        <span class="skill-tag">Architecture Reviews</span>
+                        <span class="skill-tag">Incident Management</span>
+                        <span class="skill-tag">Stakeholder Comms</span>
+                    </div>
+                </div>
+                
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-trophy me-2"></i>Domain Expertise</h3>
+                    <p class="text-light mb-3">Deep knowledge in specialized areas</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">E-commerce Scale</span>
+                        <span class="skill-tag">Travel Industry</span>
+                        <span class="skill-tag">AI Integration</span>
+                        <span class="skill-tag">Audio Processing</span>
+                        <span class="skill-tag">Web Automation</span>
+                        <span class="skill-tag">Creative Tech</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <section id="projects" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">Recent Projects</h2>
+            <div class="projects-grid">
+                <div class="project-card fade-in">
+                    <h3 class="project-title">AFTER - Real-time Neural Audio Synthesis</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> Powers installations at Serpentine Gallery & Centre Pompidou (10,000+ visitors)<br>
+                        <strong>Tech:</strong> Implemented research paper into production system with <100ms latency<br>
+                        <strong>Scale:</strong> Real-time audio generation for professional music production workflows
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">PyTorch</span>
+                        <span class="tech-tag">RAVE Models</span>
+                        <span class="tech-tag">Max/MSP</span>
+                        <span class="tech-tag">Real-time DSP</span>
+                    </div>
+                </div>
+                
+                <div class="project-card fade-in">
+                    <h3 class="project-title">Ableton-MCP AI Integration</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> First production MCP server for learning AI control of prgrams - 10x faster music creation workflows<br>
+                        <strong>Tech:</strong> TypeScript server enabling AI control of professional DAW software<br>
+                        <strong>Adoption:</strong> Featured on Smithery.ai, actively used by music producers globally
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">TypeScript</span>
+                        <span class="tech-tag">MCP Protocol</span>
+                        <span class="tech-tag">WebSockets</span>
+                        <span class="tech-tag">Ableton Live</span>
+                        <span class="tech-tag">UV Package Manager</span>
+                    </div>
+                </div>
+                
+                <div class="project-card fade-in">
+                    <h3 class="project-title">a2aTravelAgent - AI Research Automation</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> 97% reduction in research time for personal travel research (4 hours → 90 seconds)<br>
+                        <strong>Tech:</strong> Spring Boot + Playwright with parallel web automation<br>
+                        <strong>Demo:</strong> Live at localhost:7860 - ask me for a demonstration
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">TypeScript</span>
+                        <span class="tech-tag">Node.js</span>
+                        <span class="tech-tag">MCP Protocol</span>
+                        <span class="tech-tag">Web Scraping</span>
+                        <span class="tech-tag">Parallel Processing</span>
+                    </div>
+                </div>
+                
+                <div class="project-card fade-in">
+                    <h3 class="project-title">Apple Silicon ML Optimization</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> 30% faster Stable Diffusion inference on consumer hardware<br>
+                        <strong>Tech:</strong> Swift + Metal shaders optimized for M-series chips<br>
+                        <strong>Result:</strong> Enabled professional AI art generation on laptops vs. server farms
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Swift</span>
+                        <span class="tech-tag">Core ML</span>
+                        <span class="tech-tag">Metal Shaders</span>
+                        <span class="tech-tag">Apple Silicon</span>
+                        <span class="tech-tag">Performance Optimization</span>
+                    </div>
+                </div>
+
+                
+                <div class="project-card fade-in">
+                    <h3 class="project-title">LLM Game AI Controller</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> Achieved expert-level performance in complex strategy games<br>
+                        <strong>Tech:</strong> Computer vision + LLM integration for real-time decision making<br>
+                        <strong>Innovation:</strong> Novel approach to game state analysis and action planning
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">Computer Vision</span>
+                        <span class="tech-tag">LLM Integration</span>
+                        <span class="tech-tag">Game AI</span>
+                        <span class="tech-tag">Emulation</span>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <h3 class="project-title">LLM-WebToGraph Knowledge Extraction</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> Automated knowledge base creation from unstructured web data<br>
+                        <strong>Tech:</strong> OpenAI LLMs + Neo4j for entity/relationship extraction at scale<br>
+                        <strong>Business Value:</strong> Transforms any website into queryable knowledge graphs
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">Neo4j</span>
+                        <span class="tech-tag">OpenAI API</span>
+                        <span class="tech-tag">Knowledge Graphs</span>
+                        <span class="tech-tag">NLP</span>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <h3 class="project-title">Stable Audio Tools - AI Music Generation</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> Text-to-music generation with professional audio quality<br>
+                        <strong>Tech:</strong> VAE-GAN + Diffusion Transformers with multi-GPU training<br>
+                        <strong>Scale:</strong> Powers automated content creation for media production
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">PyTorch</span>
+                        <span class="tech-tag">Audio Synthesis</span>
+                        <span class="tech-tag">Diffusion Models</span>
+                        <span class="tech-tag">CLAP</span>
+                        <span class="tech-tag">Distributed Training</span>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <h3 class="project-title">SuperCollider Real-time Audio Platform</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> Professional audio synthesis with <10ms latency<br>
+                        <strong>Tech:</strong> Multi-core parallel DSP with 1000+ unit generators<br>
+                        <strong>Application:</strong> Powers live performances and interactive installations
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">C++</span>
+                        <span class="tech-tag">Real-time DSP</span>
+                        <span class="tech-tag">Audio Programming</span>
+                        <span class="tech-tag">Live Coding</span>
+                        <span class="tech-tag">OSC Protocol</span>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <h3 class="project-title">Knowledge Graph Celebrity Analysis</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> Automated biography analysis with relationship mapping<br>
+                        <strong>Tech:</strong> spaCy NER + neuralcoref for entity extraction from Wikipedia<br>
+                        <strong>Use Case:</strong> Enhanced search and trend analysis for media companies
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">spaCy</span>
+                        <span class="tech-tag">Neo4j</span>
+                        <span class="tech-tag">NER</span>
+                        <span class="tech-tag">Graph Analytics</span>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <h3 class="project-title">Voice-Controlled AI Assistant</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> Hands-free AI interaction with local LLM models<br>
+                        <strong>Tech:</strong> Whisper STT + LM Studio + ElevenLabs TTS pipeline<br>
+                        <strong>Privacy:</strong> Fully local processing for enterprise security compliance
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">Whisper</span>
+                        <span class="tech-tag">LM Studio</span>
+                        <span class="tech-tag">Voice AI</span>
+                        <span class="tech-tag">Real-time Processing</span>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <h3 class="project-title">YouTube to PDF Knowledge Extractor</h3>
+                    <p class="project-description">
+                        <strong>Impact:</strong> Automated transcript extraction and formatting for education<br>
+                        <strong>Tech:</strong> YouTube API + PDF generation with intelligent formatting<br>
+                        <strong>Scale:</strong> Processes hours of video content into searchable documents
+                    </p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">YouTube API</span>
+                        <span class="tech-tag">PDF Generation</span>
+                        <span class="tech-tag">NLP</span>
+                        <span class="tech-tag">Automation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">Experience & Achievements</h2>
+            <div class="timeline">
+                <div class="timeline-item fade-in">
+                    <h3 class="timeline-title">Engineering Manager - Booking.com</h3>
+                    <div class="timeline-meta">2017 - Present | Amsterdam, Netherlands</div>
+                    <p class="timeline-description">
+                        <strong>Current:</strong> Customer Acquisition Team (Flights) - Optimizing conversion funnels serving millions daily<br>
+                        <strong>Previous Teams:</strong><br>
+                        • Machine Learning - Built recommendation systems at TB scale<br>
+                        • Cross Sell (Flights) - Integrated flight booking into core platform<br>
+                        • Cancellation Experience - Reduced support tickets by 40%<br>
+                        • unblockAV - Led critical Perl to Java migration<br>
+                        <strong>Key Achievement:</strong> Successfully migrated legacy systems while maintaining 99.9% uptime
+                    </p>
+                </div>
+                
+                
+                <div class="timeline-item fade-in">
+                    <h3 class="timeline-title">Software Engineer</h3>
+                    <div class="timeline-meta">Jul 2015 - May 2017 | Industry Networks FZC, Dubai</div>
+                    <p class="timeline-description">
+                        Successfully participated in the migration of a legacy .NET application to a modern Python/Django framework 
+                        with robust server/client architecture. Enabled the company to offer extensive data collection to clients 
+                        through user-friendly frontend and flexible app integration.
+                    </p>
+                </div>
+                
+                <div class="timeline-item fade-in">
+                    <h3 class="timeline-title">Software Developer</h3>
+                    <div class="timeline-meta">Jul 2013 - Jul 2015 | Premiere Digital Services, Bangalore</div>
+                    <p class="timeline-description">
+                        Took charge of the product development lifecycle from ideation to deployment. Built scalable applications 
+                        to transfer and manage over 200 GB of assets across various stakeholders and locations. Leveraged 
+                        Python stack for end-to-end product development.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Public Achievements & Open Source Contributions -->
+            <div class="mt-5">
+                <h3 class="text-white mb-4 fade-in">Public Achievements & Open Source Contributions</h3>
+                <div class="row">
+                    <div class="col-lg-4 fade-in">
+                        <div class="achievement-card">
+                            <div class="achievement-icon">
+                                <i class="fab fa-github"></i>
+                            </div>
+                            <h4 class="achievement-title">Open Source Leader</h4>
+                            <p class="achievement-description">
+                                <strong>77+ GitHub Repositories</strong><br>
+                                Active contributor to open source community with diverse projects spanning AI, audio synthesis, 
+                                and web automation. 12+ years on Stack Overflow with 1,050+ reputation.
+                            </p>
+                            <div class="achievement-links">
+                                <a href="https://github.com/wingie" target="_blank" class="achievement-link">
+                                    <i class="fab fa-github me-1"></i>GitHub Profile
+                                </a>
+                                <a href="https://stackoverflow.com/users/1124344/wingston-sharon" target="_blank" class="achievement-link">
+                                    <i class="fab fa-stack-overflow me-1"></i>Stack Overflow
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 fade-in">
+                        <div class="achievement-card">
+                            <div class="achievement-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4 class="achievement-title">Technical Leadership Impact</h4>
+                            <p class="achievement-description">
+                                <strong>Booking.com Scale</strong><br>
+                                • Led 4 high-impact engineering teams<br>
+                                • Managed Perl→Java migration at scale<br>
+                                • Built systems serving millions daily<br>
+                                • 99.9% uptime maintained<br><br>
+                                <em>Also: Chairperson at Taste Before You Waste</em>
+                            </p>
+                            <div class="achievement-links">
+                                <a href="https://www.linkedin.com/in/wingstonsharon/" target="_blank" class="achievement-link">
+                                    <i class="fab fa-linkedin me-1"></i>Full Career History
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 fade-in">
+                        <div class="achievement-card">
+                            <div class="achievement-icon">
+                                <i class="fas fa-music"></i>
+                            </div>
+                            <h4 class="achievement-title">Neural Audio Installations</h4>
+                            <p class="achievement-description">
+                                <strong>Professional Art Exhibitions</strong><br>
+                                Real-time neural audio synthesis systems showcased at Dokhuis Gallery (Plantage Doklaan 8) 
+                                and private performance events featuring AFTER project integration.
+                            </p>
+                            <div class="achievement-links">
+                                <a href="https://coderwall.com/wingie" target="_blank" class="achievement-link">
+                                    <i class="fas fa-trophy me-1"></i>Developer Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+        <div class="container">
+            <h2 class="section-title fade-in">Let's Connect</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center fade-in">
+                    <p class="text-light mb-4 fs-5">
+                        Looking for an Engineering Manager who can bridge AI innovation with production scale? 
+                        Let's discuss how I can bring Booking.com-level engineering excellence to your team.
+                    </p>
+                    <p class="text-accent fw-bold">
+                        Open to: Senior Engineering Manager • Director of Engineering • AI/ML Leadership roles
+                    </p>
+                </div>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-card fade-in">
+                    <div class="contact-icon">
+                        <i class="fab fa-linkedin"></i>
+                    </div>
+                    <h4 class="contact-title">LinkedIn</h4>
+                    <a href="https://www.linkedin.com/in/wingstonsharon/" class="contact-link" target="_blank">
+                        Connect professionally
+                    </a>
+                </div>
+                
+                <div class="contact-card fade-in">
+                    <div class="contact-icon">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <h4 class="contact-title">GitHub</h4>
+                    <a href="https://github.com/wingie" class="contact-link" target="_blank">
+                        View my repositories
+                    </a>
+                </div>
+                
+                <div class="contact-card fade-in">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h4 class="contact-title">Email</h4>
+                    <a href="mailto:wingston.sharon@gmail.com" class="contact-link">
+                        wingston.sharon@gmail.com
+                    </a>
+                </div>
+                
+                <div class="contact-card fade-in">
+                    <div class="contact-icon">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <h4 class="contact-title">Schedule</h4>
+                    <a href="mailto:wingston.sharon@gmail.com?subject=AI%20Leadership%20Opportunity" class="contact-link">
+                        Discuss opportunities
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Contact Buttons -->
+    <div class="floating-contact">
+        <a href="https://www.linkedin.com/in/wingstonsharon/" class="float-btn" target="_blank" title="LinkedIn">
+            <i class="fab fa-linkedin"></i>
+        </a>
+        <a href="mailto:wingston.sharon@gmail.com" class="float-btn" title="Email">
+            <i class="fas fa-envelope"></i>
+        </a>
+        <a href="https://github.com/wingie" class="float-btn" title="GitHub Profile" target="_blank">
+            <i class="fab fa-github"></i>
+        </a>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 3D Particles System
+        class ParticleSystem {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.mouse = { x: 0, y: 0 };
+                this.connections = [];
+                
+                this.resize();
+                this.createParticles();
+                this.animate();
+                
+                window.addEventListener('resize', () => this.resize());
+                document.addEventListener('mousemove', (e) => {
+                    this.mouse.x = e.clientX;
+                    this.mouse.y = e.clientY;
+                });
+            }
+            
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            createParticles() {
+                const particleCount = Math.min(100, Math.floor(window.innerWidth * window.innerHeight / 15000));
+                
+                for (let i = 0; i < particleCount; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        z: Math.random() * 1000,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        vz: (Math.random() - 0.5) * 2,
+                        size: Math.random() * 2 + 1,
+                        hue: Math.random() * 60 + 180, // Blue-cyan range
+                        opacity: Math.random() * 0.8 + 0.2
+                    });
+                }
+            }
+            
+            updateParticles() {
+                this.particles.forEach(particle => {
+                    // Update position
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.z += particle.vz;
+                    
+                    // Mouse interaction - orbital movement
+                    const dx = this.mouse.x - particle.x;
+                    const dy = this.mouse.y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 150) {
+                        const force = (150 - distance) / 150;
+                        // Create orbital motion instead of attraction
+                        const angle = Math.atan2(dy, dx);
+                        const orbitalForce = force * 0.002;
+                        particle.vx += Math.cos(angle + Math.PI / 2) * orbitalForce;
+                        particle.vy += Math.sin(angle + Math.PI / 2) * orbitalForce;
+                        // Slight attraction to maintain orbit
+                        particle.vx += dx * force * 0.0005;
+                        particle.vy += dy * force * 0.0005;
+                    }
+                    
+                    // Boundary wrapping
+                    if (particle.x < 0) particle.x = this.canvas.width;
+                    if (particle.x > this.canvas.width) particle.x = 0;
+                    if (particle.y < 0) particle.y = this.canvas.height;
+                    if (particle.y > this.canvas.height) particle.y = 0;
+                    if (particle.z < 0) particle.z = 1000;
+                    if (particle.z > 1000) particle.z = 0;
+                    
+                    // Apply friction
+                    particle.vx *= 0.99;
+                    particle.vy *= 0.99;
+                });
+            }
+            
+            drawParticles() {
+                this.particles.forEach(particle => {
+                    // More subtle scaling - particles grow from 0.1 to 0.5 of original size
+                    const depth = Math.max(0, Math.min(1, particle.z / 1000)); // Clamp 0 to 1
+                    const scale = 0.1 + (1 - depth) * 0.4; // 0.1 to 0.5 scale
+                    const x = particle.x;
+                    const y = particle.y;
+                    const size = Math.min(particle.size * scale, 4); // Max size of 4 pixels
+                    const opacity = particle.opacity * scale;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `hsla(${particle.hue}, 70%, 60%, ${opacity})`;
+                    this.ctx.fill();
+                    
+                    // Glow effect
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = `hsla(${particle.hue}, 70%, 60%, ${opacity * 0.5})`;
+                    this.ctx.fill();
+                    this.ctx.shadowBlur = 0;
+                });
+            }
+            
+            drawConnections() {
+                for (let i = 0; i < this.particles.length; i++) {
+                    for (let j = i + 1; j < this.particles.length; j++) {
+                        const p1 = this.particles[i];
+                        const p2 = this.particles[j];
+                        
+                        const dx = p1.x - p2.x;
+                        const dy = p1.y - p2.y;
+                        const dz = p1.z - p2.z;
+                        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                        
+                        if (distance < 120) {
+                            const opacity = (120 - distance) / 120 * 0.3;
+                            
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(p1.x, p1.y);
+                            this.ctx.lineTo(p2.x, p2.y);
+                            this.ctx.strokeStyle = `rgba(100, 255, 218, ${opacity})`;
+                            this.ctx.lineWidth = 1;
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.updateParticles();
+                this.drawConnections();
+                this.drawParticles();
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        // Initialize particles
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('particles-canvas');
+            new ParticleSystem(canvas);
+            
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Navbar scroll effect
+            const navbar = document.querySelector('.navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            
+            // Fade in animation on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
+    
+    <!-- 
+    Technical Note: This resume demonstrates performance-conscious engineering:
+    - Custom particle physics system in vanilla JavaScript (no heavy libraries)
+    - Subtle orbital mechanics with optimized collision detection
+    - Dynamic particle count based on viewport for mobile optimization
+    - Smooth 60fps animation using requestAnimationFrame
+    Ask me about the technical choices and optimization strategies!
+    -->
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "wingston-mcp-agent-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Wingston's automation agent with web browsing and multi-purpose capabilities.",
+  "license": "MIT",
+  "author": "Wingston",
+  "homepage": "https://github.com/wingston/a2aTravelAgent",
+  "type": "module",
+  "bin": {
+    "wingston-mcp-agent": "mcpserver.js"
+  },
+  "files": [
+    "mcpserver.js"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  },
+  "scripts": {
+    "start": "node mcpserver.js"
+  }
+}

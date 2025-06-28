@@ -55,3 +55,12 @@ app:
   async:
     enabled: true
     max-concurrent-tasks: 3
+
+# WebDriver Configuration
+webdriver:
+  enabled: true   # Set to false to disable WebDriver completely
+  headless: true  # Set to true for headless operation
+  retry:
+    attempts: 3    # Number of initialization attempts
+    delay: 2000    # Delay between retries in milliseconds
+  # Chrome paths will be auto-detected or downloaded by WebDriverManager
