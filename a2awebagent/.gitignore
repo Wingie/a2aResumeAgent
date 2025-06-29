@@ -44,6 +44,7 @@ application_default_credentials.json
 service-account*.json
 .env.local
 .env.production
+tools4ai.properties
 
 ### Application Data ###
 logs/

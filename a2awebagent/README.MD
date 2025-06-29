@@ -79,7 +79,7 @@ Transform natural language queries into comprehensive research with intelligent 
 - Java 18+
 - Maven 3.1+
 - Docker & Docker Compose
-- Google Cloud credentials (for Gemini AI)
+- OpenRouter API key (recommended) or other AI provider credentials
 
 ### 1. Clone and Setup
 ```bash
@@ -88,15 +88,25 @@ cd a2aTravelAgent/a2awebagent
 ```
 
 ### 2. Configure AI Provider
-```bash
-# Setup Google Cloud authentication
-gcloud auth application-default login
 
-# OR copy existing credentials
+#### Option A: OpenRouter (Recommended)
+```bash
+# Get your API key from https://openrouter.ai/
+# Copy the template configuration
+cp src/main/resources/tools4ai.properties.template src/main/resources/tools4ai.properties
+
+# Edit the configuration file and add your OpenRouter API key
+# Replace YOUR_OPENROUTER_API_KEY_HERE with your actual key
+```
+
+#### Option B: Alternative Providers
+```bash
+# For Google Gemini (requires Google Cloud setup)
+gcloud auth application-default login
 cp ~/.config/gcloud/application_default_credentials.json ./
 
-# Set your API keys
-echo "GEMINI_API_KEY=your_gemini_key_here" > .env
+# For OpenAI or Anthropic Claude
+# Set your API keys in tools4ai.properties
 ```
 
 ### 3. Run with Docker
@@ -164,7 +174,7 @@ graph TB
 #### **AI Integration Layer**
 - **tools4ai 1.1.6.2**: AI tool integration framework with annotation-based configuration
 - **a2ajava 0.1.9.6**: Agent-to-agent communication framework
-- **Multi-Provider Support**: OpenAI GPT-4o-mini, Google Gemini 2.0, Anthropic Claude-3
+- **Multi-Provider Support**: OpenRouter (recommended), OpenAI GPT-4o-mini, Google Gemini 2.0, Anthropic Claude-3
 
 #### **Web Automation Engine**
 - **Microsoft Playwright 1.51.0**: Next-generation browser automation with Chrome DevTools Protocol
@@ -647,21 +657,57 @@ logging:
     org.springframework.web: INFO
 ```
 
-**`tools4ai.properties`** (AI Configuration)
+### AI Provider Configuration
+
+The application supports multiple AI providers. **OpenRouter is recommended** as it provides access to many models with a single API key and eliminates Google Cloud setup complexity.
+
+#### OpenRouter Configuration (Recommended)
 ```properties
-# Primary AI provider
+# Copy the template file
+cp src/main/resources/tools4ai.properties.template src/main/resources/tools4ai.properties
+
+# Edit and configure:
+agent.provider=openrouter
+openAiKey=YOUR_OPENROUTER_API_KEY_HERE
+openAiBaseURL=https://openrouter.ai/api/v1
+openAiModelName=deepseek/deepseek-r1-0528:free
+```
+
+**Benefits of OpenRouter:**
+- ✅ **Single API Key**: Access to 200+ models from different providers
+- ✅ **Free Tier**: DeepSeek-R1 model available for free
+- ✅ **No Cloud Setup**: No Google Cloud or complex authentication required
+- ✅ **Cost Effective**: Competitive pricing with usage-based billing
+- ✅ **Model Variety**: Easy switching between models for different use cases
+
+**Get your OpenRouter API key:**
+1. Visit [openrouter.ai](https://openrouter.ai/)
+2. Sign up for a free account
+3. Generate an API key in the dashboard
+4. Add credits to your account (free tier available)
+
+#### Alternative Providers
+
+**Google Gemini** (requires Google Cloud setup)
+```properties
 agent.provider=gemini
 gemini.modelName=gemini-2.0-flash-001
-gemini.projectId=your-project-id
+gemini.projectId=your-google-cloud-project-id
+# Requires: gcloud auth application-default login
+```
 
-# Fallback providers
+**OpenAI Direct**
+```properties
+agent.provider=openai
+openAiKey=your_openai_api_key
 openAiModelName=gpt-4o-mini
-anthropic.modelName=claude-3-haiku-20240307
+```
 
-# API Keys (set via environment or JVM properties)
-# -DgeminiKey=your_key
-# -DopenAiKey=your_key  
-# -DclaudeKey=your_key
+**Anthropic Claude**
+```properties
+agent.provider=anthropic
+claudeKey=your_claude_api_key
+anthropic.modelName=claude-3-haiku-20240307
 ```
 
 ### Running Locally
