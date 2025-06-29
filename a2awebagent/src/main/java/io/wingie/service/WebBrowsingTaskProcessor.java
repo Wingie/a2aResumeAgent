@@ -340,7 +340,7 @@ public class WebBrowsingTaskProcessor {
             
             1. **Chrome/Chromium not installed**: The browser engine required for automation is missing
             2. **Container environment**: Running in Docker without proper browser setup
-            3. **Initialization failure**: WebDriver could not start properly
+            3. **Initialization failure**: Playwright browser automation could not start properly
             
             ### What You Can Do:
             - Try again in a few moments

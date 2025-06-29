@@ -19,7 +19,7 @@ public interface PlaywrightProcessor {
 
     public default void processWebAction(String prompt) throws AIProcessingException {
         PlaywrightActions actions = (PlaywrightActions) getTransformer().transformIntoPojo(prompt, PlaywrightActions.class);
-        String act = actions.getTypeOfActionToTakeOnWebDriver().toUpperCase();
+        String act = actions.getTypeOfActionToTakeOnBrowser().toUpperCase();
         Browser browser = getBrowser();
         BrowserContext context = getContext();
 

@@ -3,7 +3,7 @@ package io.wingie;
 import io.github.vishalmysore.a2a.domain.AgentCard;
 import io.github.vishalmysore.a2a.server.RealTimeAgentCardController;
 import io.github.vishalmysore.a2a.server.SpringAwareAgentCardController;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
@@ -11,16 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.logging.Logger;
 
 @RestController
 @RequestMapping(RealTimeAgentCardController.WELL_KNOWN_PATH)
-public class AgentCardController extends SpringAwareAgentCardController {
-
-    private static final Logger log = Logger.getLogger(AgentCardController.class.getName());
+@Slf4j
+public class CustomAgentCardController extends SpringAwareAgentCardController {
 
     @Autowired
-    public AgentCardController(ApplicationContext context) {
+    public CustomAgentCardController(ApplicationContext context) {
         super(context);
     }
 

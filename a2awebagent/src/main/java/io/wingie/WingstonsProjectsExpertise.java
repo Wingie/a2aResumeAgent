@@ -352,7 +352,7 @@ Specializes in bridging artificial intelligence with creative applications, emph
 # Web Automation & Agent Systems Expertise
 
 ## Core Technologies
-- **Automation Frameworks**: Playwright, Selenium WebDriver
+- **Automation Frameworks**: Microsoft Playwright, advanced browser automation
 - **Backend Development**: Java Spring Boot, Python, TypeScript
 - **AI Integration**: Multi-provider LLM orchestration (OpenAI, Gemini, Claude)
 - **Protocols**: JSON-RPC, WebSocket, RESTful APIs

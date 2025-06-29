@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Playwright callback implementation for A2A web automation
- * Replaces A2ASeleniumCallBack with Playwright functionality
+ * Provides advanced callback functionality for Agent-to-Agent web automation using Microsoft Playwright
  */
 @Slf4j
 public class A2APlaywrightCallback implements PlaywrightCallback {

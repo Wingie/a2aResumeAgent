@@ -74,7 +74,7 @@ public class LinkedInSearchTool {
 ### Technical Expertise Demonstrated
 🔹 **AI/ML Specialist**: Neural networks, diffusion models, real-time AI
 🔹 **Audio Technology Expert**: SuperCollider, MaxMSP, neural audio synthesis
-🔹 **Web Automation Pioneer**: Playwright, Selenium, intelligent automation
+🔹 **Web Automation Pioneer**: Playwright-based intelligent automation
 🔹 **MCP Development Leader**: Model Context Protocol innovation
 🔹 **Creative Coding**: Real-time systems, procedural generation
 
@@ -177,7 +177,7 @@ As a reference point and potential collaboration opportunity, here's a highly qu
 **Contact**: https://www.linkedin.com/in/wingstonsharon/
 
 ---
-*Search performed by a2aTravelAgent's intelligent LinkedIn automation system*
+*Search performed by wingie's intelligent LinkedIn automation system*
 """, searchQuery, searchResult, searchScreenshot, wingstonsProfileInfo);
 
         } catch (Exception e) {

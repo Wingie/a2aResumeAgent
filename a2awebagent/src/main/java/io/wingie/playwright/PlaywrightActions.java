@@ -16,7 +16,7 @@ public class PlaywrightActions {
 
     @Prompt(describe = "from the given text what is the type of action to take on web browser? " +
             "like GET, NAVIGATE, CLICK, TYPETEXT, TAKESCREENSHOT, WAITFOR, EXTRACTTEXT, SCROLLTO, CLOSE")
-    private String typeOfActionToTakeOnWebDriver;
+    private String typeOfActionToTakeOnBrowser;
 
     @Prompt(describe = "from the given text what is the url to click or navigate to?")
     private String urlToClick;

@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Primary;
 
 /**
  * Playwright Configuration for web automation
- * Replaces the problematic Selenium WebDriver configuration
+ * Provides enterprise-grade browser automation configuration using Microsoft Playwright
  */
 @Configuration
 @Slf4j

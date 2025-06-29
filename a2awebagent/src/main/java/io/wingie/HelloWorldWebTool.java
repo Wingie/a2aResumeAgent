@@ -64,7 +64,7 @@ public class HelloWorldWebTool {
             
             The web automation service is temporarily unavailable. This might be due to:
             - Chrome/Chromium not being installed or accessible
-            - WebDriver initialization issues
+            - Browser automation initialization issues
             - Container environment restrictions
             
             ### What You Can Do:
@@ -121,7 +121,7 @@ public class HelloWorldWebTool {
             
             ### Troubleshooting:
             1. Check if Chrome/Chromium is installed
-            2. Verify WebDriver is properly configured
+            2. Verify Playwright browser automation is properly configured
             3. Check application logs for more details
             
             ### Alternative Actions:

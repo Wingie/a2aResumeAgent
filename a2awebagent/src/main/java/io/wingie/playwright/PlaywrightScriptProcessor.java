@@ -16,7 +16,7 @@ import java.io.*;
 
 /**
  * Playwright script processor for executing web automation scripts
- * Replaces SeleniumScriptProcessor with Playwright functionality
+ * Provides advanced web automation capabilities using Microsoft Playwright
  */
 @Slf4j
 public class PlaywrightScriptProcessor extends ScriptProcessor {

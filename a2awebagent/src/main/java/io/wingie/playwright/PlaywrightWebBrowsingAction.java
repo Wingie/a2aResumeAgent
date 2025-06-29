@@ -18,7 +18,7 @@ import java.util.Base64;
 
 /**
  * Playwright-based web browsing service
- * Replaces the problematic Selenium-based WebBrowsingAction
+ * Provides robust and reliable web automation capabilities using Microsoft Playwright
  */
 @Service
 @Slf4j

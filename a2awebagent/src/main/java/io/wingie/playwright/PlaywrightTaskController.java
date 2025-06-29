@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Playwright-based task controller
- * Replaces SeleniumTaskController with Playwright functionality
+ * Provides intelligent web automation task management using Microsoft Playwright
  */
 @Service
 @Lazy

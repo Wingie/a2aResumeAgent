@@ -5,7 +5,7 @@ import com.microsoft.playwright.BrowserContext;
 
 /**
  * Playwright callback interface for web automation events
- * Replaces the Selenium-based callback system
+ * Provides comprehensive event handling for Microsoft Playwright web automation
  */
 public interface PlaywrightCallback {
     

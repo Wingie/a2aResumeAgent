@@ -41,7 +41,7 @@ public class ScreenshotUtils {
      */
     @Deprecated
     public static byte[] captureScreenshotWithFallbacks(Object driver, String context) {
-        log.warn("Legacy WebDriver screenshot method is no longer supported - use Playwright Page instead");
+        log.warn("Legacy screenshot method is no longer supported - use Playwright Page instead");
         return null; // Return null for legacy calls
     }
     

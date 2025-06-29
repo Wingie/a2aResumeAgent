@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Playwright-based screenshot utility class
- * Replaces the Selenium-based ScreenshotUtils with simplified Playwright functionality
+ * Provides enhanced web automation screenshot capabilities using Microsoft Playwright
  */
 @Slf4j
 public class PlaywrightScreenshotUtils {
