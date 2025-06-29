@@ -385,6 +385,140 @@ public class PlaywrightWebBrowsingAction implements WebBrowsingProcessor {
 - **Redis Caching**: Sub-millisecond progress updates
 - **Resource Management**: Lazy initialization patterns throughout
 
+## MCP Configuration & Testing
+
+### Current MCP Setup Issues
+
+Your MCP configuration has several problems:
+
+```json
+// INCORRECT - Don't use this
+"wingston-mcp-agent": {
+  "command": "node",
+  "args": ["/Users/wingston/code/a2aTravelAgent/a2awebagent/src/main/resources/mcpserver.js"]
+}
+```
+
+**Problems:**
+1. **Direct Path**: Uses local file path, won't work in Docker
+2. **Hardcoded URLs**: mcpserver.js has hardcoded "localhost:7860" 
+3. **Dual Architecture**: Both Node.js proxy + Spring Boot MCP endpoint (redundant)
+4. **@EnableAgent Disabled**: Core issue - annotation is commented out in Application.java
+
+### Correct MCP Configuration
+
+#### Option 1: Direct Spring Boot MCP (Recommended)
+```json
+{
+  "mcpServers": {
+    "a2a-travel-agent": {
+      "command": "curl",
+      "args": [
+        "-X", "GET",
+        "http://localhost:7860/v1/tools"
+      ],
+      "transport": "http",
+      "baseUrl": "http://localhost:7860/v1"
+    }
+  }
+}
+```
+
+#### Option 2: Docker Compose Setup
+```json
+{
+  "mcpServers": {
+    "a2a-travel-agent": {
+      "transport": "http", 
+      "baseUrl": "http://a2awebagent:7860/v1"
+    }
+  }
+}
+```
+
+### Fix the Root Issues
+
+#### 1. Enable @EnableAgent Annotation
+```java
+// In Application.java - UNCOMMENT THIS LINE
+@EnableAgent
+@SpringBootApplication
+public class Application {
+```
+
+#### 2. Docker-Aware Configuration
+The mcpserver.js needs environment variable support:
+```javascript
+// Instead of hardcoded localhost:7860
+const SERVER_BASE_URL = process.env.SERVER_BASE_URL || "http://localhost:7860";
+```
+
+### Testing MCP Tools
+
+#### Local Testing (Development)
+```bash
+# 1. Start the application
+mvn spring-boot:run
+
+# 2. Test tool discovery
+curl http://localhost:7860/v1/tools
+
+# 3. Test specific tool
+curl -X POST -H "Content-Type: application/json" \
+-d '{"name": "getWingstonsProjectsExpertiseResume", "arguments": {"provideAllValuesInPlainEnglish": "overview"}}' \
+http://localhost:7860/v1/tools/call
+```
+
+#### Docker Testing
+```bash
+# 1. Start with Docker Compose
+docker-compose up -d
+
+# 2. Test from outside container
+curl http://localhost:7860/v1/tools
+
+# 3. Test from inside Docker network
+docker exec a2awebagent curl http://localhost:7860/v1/tools
+```
+
+#### Integration Testing Script
+```bash
+#!/bin/bash
+# test-mcp-tools.sh
+
+BASE_URL=${1:-"http://localhost:7860"}
+
+echo "Testing MCP Tools at $BASE_URL"
+
+# Test 1: List tools
+echo "1. Listing available tools..."
+curl -s "$BASE_URL/v1/tools" | jq '.tools[].name'
+
+# Test 2: Test resume tool
+echo "2. Testing resume tool..."
+curl -X POST -H "Content-Type: application/json" \
+-d '{"name": "getWingstonsProjectsExpertiseResume", "arguments": {"provideAllValuesInPlainEnglish": "overview"}}' \
+"$BASE_URL/v1/tools/call"
+
+# Test 3: Test web browsing
+echo "3. Testing web browsing..."
+curl -X POST -H "Content-Type: application/json" \
+-d '{"name": "browseWebAndReturnText", "arguments": {"provideAllValuesInPlainEnglish": "Go to example.com"}}' \
+"$BASE_URL/v1/tools/call"
+```
+
+### Available Tools List
+
+Based on the MCP endpoint analysis, these tools are available:
+1. `getWingstonsProjectsExpertiseResume` - Project portfolio information
+2. `askTasteBeforeYouWaste` - Food safety queries  
+3. `getTasteBeforeYouWasteScreenshot` - Food app screenshots
+4. `searchLinkedInProfile` - LinkedIn profile search
+5. `searchHelloWorld` - Demo search functionality
+6. `browseWebAndReturnText` - Web automation with text output
+7. `browseWebAndReturnImage` - Web automation with image output
+8. `takeCurrentPageScreenshot` - Screenshot capture
+
 ### Development Guidelines
 
 #### Code Quality Rules
