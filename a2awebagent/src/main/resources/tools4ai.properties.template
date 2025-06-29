@@ -1,0 +1,53 @@
+##Mistral related settings
+mistral.modelName=mistral-large-latest
+mistral.baseURL=https://api.mistral.ai/v1
+#set it here or use -DmistralKey parameter
+mistralKey=YOUR_MISTRAL_API_KEY_HERE
+
+##OpenRouter related settings (for DeepSeek-R1 Free and other models)
+openrouter.modelName=deepseek/deepseek-r1-0528:free
+openrouter.baseURL=https://openrouter.ai/api/v1
+#set it here or use -DopenrouterKey parameter
+openrouterKey=YOUR_OPENROUTER_API_KEY_HERE
+openrouter.fallback.modelName=openai/gpt-4o-mini
+
+##Serper Key for google search or hallucination detection
+serperKey=YOUR_SERPER_API_KEY_HERE
+
+agent.provider=openrouter
+
+##Task-specific provider configuration (for specific operations)
+task.processor.provider=openrouter
+task.processor.modelName=deepseek/deepseek-r1-0528:free
+
+##Cost optimization settings
+startup.provider=openrouter
+web.automation.provider=openrouter
+general.processing.provider=openrouter
+tool.annotation.provider=openrouter
+
+##Caching configuration for cost optimization
+cache.enabled=true
+cache.ttl.seconds=3600
+cache.max.entries=1000
+cache.response.enabled=true
+cache.web.automation.enabled=true
+
+##Provider-specific caching
+openrouter.cache.enabled=true
+openrouter.cache.ttl.seconds=86400
+mistral.cache.enabled=true
+mistral.cache.ttl.seconds=7200
+gemini.cache.enabled=true
+gemini.cache.ttl.seconds=3600
+
+##Rate limiting for free tier protection
+openrouter.rate.limit.rpm=20
+openrouter.rate.limit.tpm=1000
+openrouter.circuit.breaker.enabled=true
+
+##Debug and monitoring
+debug.provider.usage=true
+log.api.calls=true
+log.cache.hits=true
+log.provider.switching=true
