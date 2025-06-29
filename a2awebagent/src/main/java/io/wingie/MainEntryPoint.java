@@ -7,6 +7,8 @@ import io.github.vishalmysore.common.server.SpringAwareJSONRpcController;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -14,6 +16,8 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/")
+@Primary
+@Component("a2aMainEntryPoint")
 public class MainEntryPoint extends SpringAwareJSONRpcController {
 
     private static final Logger log = Logger.getLogger(MainEntryPoint.class.getName());

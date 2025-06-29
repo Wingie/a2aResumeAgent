@@ -99,9 +99,10 @@ gemini.projectId=your-project-id
 ```
 
 ### Environment Setup
-- **Google Cloud**: `gcloud auth application-default login`
-- **API Keys**: Set via environment variables or JVM properties
-- **Credentials**: Place `application_default_credentials.json` in project root
+- **OpenRouter API Key**: Set via `export OPENROUTER_KEY=your_key` or `-DopenrouterKey=your_key`
+- **Gemini API Key**: Set via `export GEMINI_API_KEY=your_key` or `-DgeminiKey=your_key` (AI Studio, no GCP required)
+- **Mistral API Key**: Set via `export MISTRAL_API_KEY=your_key` or `-DmistralKey=your_key`
+- **No GCP Setup Required**: Fully migrated away from Vertex AI to direct API endpoints
 
 ## Testing Strategy
 
