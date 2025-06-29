@@ -46,7 +46,7 @@ Transform natural language queries into comprehensive research with intelligent 
 - **Microsoft Playwright 1.51.0**: Next-generation browser automation with headless Chrome
 - **Screenshot Intelligence**: Automated visual documentation of results
 - **Dynamic Content Handling**: Adaptive automation for modern web applications
-- **Production Ready**: Fully migrated from Selenium with comprehensive test coverage
+- **Production Ready**: Playwright-based architecture with comprehensive test coverage
 
 ### 📊 **Enterprise-Grade Architecture**
 - **Multi-Database Support**: PostgreSQL + Redis + Neo4j for different data types

@@ -82,7 +82,7 @@ Navigate to http://localhost:7860 to access the web interface (if available).
 When properly configured, the system should:
 
 1. **Parse Natural Language** - Convert queries like "find flights from Amsterdam to Palma" into web actions
-2. **Execute Web Automation** - Navigate Booking.com using Selenium WebDriver
+2. **Execute Web Automation** - Navigate Booking.com using Playwright
 3. **Handle Dynamic Elements** - Wait for dropdowns, calendars, and AJAX content
 4. **Extract Data** - Capture prices, times, ratings from search results
 5. **Generate Reports** - Compile findings into structured output
@@ -90,7 +90,7 @@ When properly configured, the system should:
 ## Troubleshooting
 
 ### Common Issues
-1. **CDP Version Warning** - Update Selenium or use compatible Chrome version
+1. **Browser Compatibility** - Playwright automatically manages browser versions
 2. **Element Not Found** - Booking.com may have changed their UI selectors
 3. **Timeout Errors** - Increase wait times for slow-loading pages
 

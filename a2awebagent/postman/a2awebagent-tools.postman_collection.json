@@ -1,0 +1,536 @@
+{
+  "info": {
+    "name": "a2aTravelAgent - Web Automation Tools",
+    "description": "Comprehensive test collection for all web automation tools in the a2aTravelAgent system. Tests all 7 identified tools using Playwright-based web automation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:7860",
+      "type": "string"
+    },
+    {
+      "key": "timeout_seconds",
+      "value": "120",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set common headers",
+          "pm.request.headers.add({",
+          "    key: 'Content-Type',",
+          "    value: 'application/json'",
+          "});",
+          "",
+          "// Generate unique request ID",
+          "pm.variables.set('request_id', Date.now());",
+          "",
+          "console.log('🚀 Testing a2aTravelAgent tool:', pm.info.requestName);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Common response validation",
+          "pm.test('Response status is 200', function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "pm.test('Response has JSON-RPC structure', function () {",
+          "    const jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property('jsonrpc');",
+          "    pm.expect(jsonData).to.have.property('id');",
+          "});",
+          "",
+          "pm.test('Response time is acceptable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(180000); // 3 minutes max",
+          "});",
+          "",
+          "// Log response info",
+          "console.log('✅ Tool test completed:', pm.info.requestName);",
+          "console.log('📊 Response time:', pm.response.responseTime + 'ms');"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "🏢 Resume & Portfolio Tools",
+      "item": [
+        {
+          "name": "Get Complete Resume",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"getWingstonsProjectsExpertiseResume\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"Show me the complete resume with all sections including ASCII art\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Resume contains expected sections', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.content) {",
+                  "        const content = jsonData.result.content[0].text;",
+                  "        pm.expect(content).to.include('Wingston');",
+                  "        pm.expect(content).to.include('AI');",
+                  "        pm.expect(content).to.include('Booking.com');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Response contains ASCII art', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.content) {",
+                  "        const content = jsonData.result.content[0].text;",
+                  "        pm.expect(content).to.include('█');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get AI/ML Expertise Focus",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"getWingstonsProjectsExpertiseResume\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"Focus on AI-ML expertise and show detailed AI/ML background\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AI/ML content is present', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.content) {",
+                  "        const content = jsonData.result.content[0].text.toLowerCase();",
+                  "        pm.expect(content).to.include('neural');",
+                  "        pm.expect(content).to.include('machine learning');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Audio Technology Expertise",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"getWingstonsProjectsExpertiseResume\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"Show audio synthesis and music technology expertise\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🥗 Food Safety Tools",
+      "item": [
+        {
+          "name": "Food Safety Query - General",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"askTasteBeforeYouWaste\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"Is milk that expired 2 days ago still safe to drink?\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Food safety response contains guidance', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.content) {",
+                  "        const content = jsonData.result.content[0].text.toLowerCase();",
+                  "        pm.expect(content).to.include('food');",
+                  "        pm.expect(content).to.include('safety');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Food Safety Screenshot",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"getTasteBeforeYouWasteScreenshot\",\n        \"arguments\": {}\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Screenshot response contains image data or error message', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.exist;",
+                  "});",
+                  "",
+                  "// Extract screenshot if present",
+                  "if (pm.response.json().result && pm.response.json().result.content) {",
+                  "    const content = pm.response.json().result.content[0];",
+                  "    if (content.data && content.data.startsWith('/9j/')) {",
+                  "        console.log('📸 Screenshot captured successfully');",
+                  "        pm.environment.set('food_safety_screenshot', content.data);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "💼 LinkedIn Tools",
+      "item": [
+        {
+          "name": "Search LinkedIn - Wingston Profile",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"searchLinkedInProfile\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"Search for Wingston Sharon from Booking.com\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('LinkedIn response contains profile information', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.content) {",
+                  "        const content = jsonData.result.content[0].text || jsonData.result.content[0].data;",
+                  "        pm.expect(content).to.include('Wingston');",
+                  "    }",
+                  "});",
+                  "",
+                  "// Check for screenshot data",
+                  "const jsonData = pm.response.json();",
+                  "if (jsonData.result && jsonData.result.content) {",
+                  "    const content = jsonData.result.content[0];",
+                  "    if (content.data && (content.data.startsWith('/9j/') || content.data.startsWith('iVBOR'))) {",
+                  "        console.log('📸 LinkedIn screenshot captured');",
+                  "        pm.environment.set('linkedin_screenshot', content.data);",
+                  "    } else if (content.text) {",
+                  "        console.log('📄 LinkedIn text response received');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search LinkedIn - General Query",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"searchLinkedInProfile\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"Search for software engineers in Amsterdam\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🌐 Web Automation Tools",
+      "item": [
+        {
+          "name": "Browse Web - Return Text",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"browseWebAndReturnText\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"Navigate to https://example.com and extract the main heading and first paragraph\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Web browsing returned text content', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.content) {",
+                  "        const content = jsonData.result.content[0].text;",
+                  "        pm.expect(content).to.be.a('string');",
+                  "        pm.expect(content.length).to.be.greaterThan(10);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Browse Web - Return Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"browseWebAndReturnImage\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"Navigate to https://example.com and take a screenshot\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Web browsing returned screenshot', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.content) {",
+                  "        const content = jsonData.result.content[0];",
+                  "        // Check for base64 image data",
+                  "        if (content.data) {",
+                  "            pm.expect(content.data).to.be.a('string');",
+                  "            pm.expect(content.data.length).to.be.greaterThan(100);",
+                  "            console.log('📸 Screenshot successfully captured');",
+                  "        }",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Take Current Page Screenshot",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"takeCurrentPageScreenshot\",\n        \"arguments\": {}\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Complex Travel Search",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"browseWebAndReturnText\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"Search for flights from Amsterdam to London next weekend on booking.com and extract the top 3 flight options with prices\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Travel search returned flight information', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.content) {",
+                  "        const content = jsonData.result.content[0].text.toLowerCase();",
+                  "        // Check for travel-related content",
+                  "        const hasTravel = content.includes('flight') || content.includes('booking') || content.includes('travel');",
+                  "        pm.expect(hasTravel).to.be.true;",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🧪 Demo & Test Tools",
+      "item": [
+        {
+          "name": "Hello World Demo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/call\",\n    \"params\": {\n        \"name\": \"searchHelloWorld\",\n        \"arguments\": {\n            \"provideAllValuesInPlainEnglish\": \"web automation demo\"\n        }\n    },\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Hello World demo completed', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.content) {",
+                  "        const content = jsonData.result.content[0].text;",
+                  "        pm.expect(content).to.include('Hello World');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📋 System Tools",
+      "item": [
+        {
+          "name": "List Available Tools",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"tools/list\",\n    \"params\": {},\n    \"id\": {{request_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Tools list contains expected tools', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.result && jsonData.result.tools) {",
+                  "        const toolNames = jsonData.result.tools.map(tool => tool.name);",
+                  "        console.log('🔧 Available tools:', toolNames);",
+                  "        ",
+                  "        // Check for our 7 main tools",
+                  "        pm.expect(toolNames).to.include('browseWebAndReturnText');",
+                  "        pm.expect(toolNames).to.include('browseWebAndReturnImage');",
+                  "        pm.expect(toolNames).to.include('getWingstonsProjectsExpertiseResume');",
+                  "        pm.expect(toolNames).to.include('searchLinkedInProfile');",
+                  "        pm.expect(toolNames).to.include('askTasteBeforeYouWaste');",
+                  "        ",
+                  "        pm.environment.set('available_tools', JSON.stringify(toolNames));",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/actuator/health",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Application is healthy', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('UP');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

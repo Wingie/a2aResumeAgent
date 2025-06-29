@@ -1,8 +1,10 @@
-# ChromeDriver ARM64 Docker Solution - Lessons Learned
+# ChromeDriver ARM64 Docker Solution - Lessons Learned [OBSOLETE]
 
 ## Executive Summary
 
-This document captures the comprehensive troubleshooting journey and final solution for resolving ChromeDriver compatibility issues on ARM64 (Apple Silicon) architecture within Docker containers. The primary challenge was WebDriverManager downloading x86-64 ChromeDriver binaries that couldn't execute on ARM64 processors, leading to "Driver server process died prematurely" errors.
+⚠️ **OBSOLETE**: This document is kept for historical reference only. The project has been fully migrated to Microsoft Playwright, eliminating all ChromeDriver and Selenium dependencies.
+
+This document previously captured the troubleshooting journey for resolving ChromeDriver compatibility issues on ARM64 (Apple Silicon) architecture within Docker containers. These issues are no longer relevant as Playwright provides superior cross-platform compatibility.
 
 ## Problem Statement
 

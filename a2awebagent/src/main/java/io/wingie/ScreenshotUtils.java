@@ -5,8 +5,8 @@ import com.microsoft.playwright.Page;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Utility class for screenshot capture - now delegates to Playwright implementation
- * Maintains compatibility with existing code while using Playwright under the hood
+ * Utility class for screenshot capture using Playwright
+ * Provides static methods for screenshot functionality with fallback handling
  */
 @Slf4j
 public class ScreenshotUtils {
@@ -36,12 +36,12 @@ public class ScreenshotUtils {
     }
     
     /**
-     * Legacy method - deprecated
+     * Legacy method - no longer supported
      * @deprecated Use captureScreenshotWithFallbacks(Page, String) instead
      */
     @Deprecated
     public static byte[] captureScreenshotWithFallbacks(Object driver, String context) {
-        log.warn("Using deprecated WebDriver screenshot method - please migrate to Playwright Page");
+        log.warn("Legacy WebDriver screenshot method is no longer supported - use Playwright Page instead");
         return null; // Return null for legacy calls
     }
     

@@ -23,7 +23,7 @@ COPY src/ ./src/
 RUN --mount=type=cache,target=/root/.m2 \
     mvn clean package -DskipTests -B
 
-# Create required directories (remove seleniumCache, add playwrightCache)
+# Create required directories for Playwright operation
 RUN mkdir -p /app/screenshots /app/logs /app/playwrightCache /app/resolutionCache /app/uploads && \
     chmod -R 777 /app
 

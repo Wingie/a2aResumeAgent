@@ -4,10 +4,11 @@
 
 ### Current Architecture
 - **Main Project**: a2aTravelAgent (Playwright-based) on port 7860
-- **Subproject**: a2awebagent (Selenium-based) on port 7860
+- **Subproject**: a2awebagent (Playwright-based) on port 7860
 - **Protocols**: A2A and MCP support
 - **AI Integration**: OpenAI, Gemini, Claude providers
 - **Web Automation**: Booking.com travel research specialization
+- **Status**: Fully migrated to Playwright - Selenium dependencies removed
 
 ### Current Capabilities
 1. Synchronous web automation via JSON-RPC
@@ -38,7 +39,7 @@
 
 #### 1.3 Code Organization
 - [ ] Consolidate duplicated classes between projects
-- [ ] Establish clear separation between Playwright and Selenium implementations
+- [x] Establish clear separation - Selenium completely removed
 - [ ] Create shared interfaces for common functionality
 
 ### Phase 2: Async Infrastructure Setup

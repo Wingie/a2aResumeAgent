@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-**a2aTravelAgent** - AI-powered web automation agent with Spring Boot 3.2.4, Microsoft Playwright 1.51.0, and multi-protocol support (A2A & MCP).
+**a2aTravelAgent** - AI-powered web automation agent with Spring Boot 3.2.4, Microsoft Playwright 1.51.0, and multi-protocol support (A2A & MCP). Fully migrated from Selenium to Playwright for superior performance and reliability.
 
 ### Core Purpose
 - Natural language → automated web research tasks
@@ -57,9 +57,10 @@ src/main/java/io/wingie/
 ## Architecture Essentials
 
 ### Web Automation Stack
-- **Playwright 1.51.0**: Browser automation (replaced Selenium June 2025)
+- **Playwright 1.51.0**: Modern browser automation with superior reliability
 - **Spring Configuration**: `PlaywrightConfig` manages browser lifecycle
 - **Docker**: Uses `mcr.microsoft.com/playwright/java:v1.51.0-noble`
+- **Legacy Support**: All Selenium dependencies removed and excluded
 
 ### AI Integration
 - **Multi-Provider**: Gemini (primary), OpenAI (fallback), Claude (creative)
@@ -535,4 +536,4 @@ Based on the MCP endpoint analysis, these tools are available:
 
 ---
 
-**Recent Update**: Successfully migrated from Selenium to Playwright (June 2025) with full Docker optimization and test coverage.
+**Status**: Fully migrated to Playwright-only architecture with comprehensive test coverage and Docker optimization. All Selenium dependencies removed.

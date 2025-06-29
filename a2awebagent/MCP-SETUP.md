@@ -147,7 +147,7 @@ Spring Boot App (MCPController)
     ↓ Internal calls
 a2ajava Framework (tools4ai)
     ↓ Web automation
-Selenium WebDriver
+Microsoft Playwright
 ```
 
 ## 🐛 Troubleshooting

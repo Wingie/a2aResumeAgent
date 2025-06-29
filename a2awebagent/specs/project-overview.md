@@ -17,11 +17,11 @@ a2aTravelAgent/
 │   └── target/
 │       └── a2aPlaywright-0.2.3.jar       # Deployable JAR
 │
-└── a2awebagent/ (Selenium-based subproject)
-    ├── src/main/java/io/github/vishalmysore/
+└── a2awebagent/ (Playwright-based subproject)
+    ├── src/main/java/io/wingie/
     │   ├── Application.java              # Spring Boot entry point
     │   ├── WebBrowsingAction.java        # Core automation actions
-    │   └── SeleniumTaskController.java   # A2A task handling
+    │   └── PlaywrightTaskController.java # A2A task handling
     ├── src/main/resources/
     │   └── web.action                    # Automation scripts
     └── target/
@@ -35,7 +35,7 @@ a2aTravelAgent/
 **Purpose**: Modern web automation using Microsoft Playwright with AI integration
 
 **Key Features**:
-- Faster and more reliable than Selenium
+- Fast and reliable browser automation
 - Built-in error recovery with AI assistance
 - Support for multiple AI providers (OpenAI, Gemini, Claude)
 - URL safety validation
@@ -45,19 +45,19 @@ a2aTravelAgent/
 - `browseWebAndReturnText`: Execute web actions and extract text
 - `browseWebAndReturnImage`: Execute web actions and capture screenshots
 
-### 2. a2awebagent Subproject (Selenium-based)
+### 2. a2awebagent Subproject (Playwright-based)
 
-**Purpose**: Legacy web automation using Selenium WebDriver
+**Purpose**: Modern web automation using Microsoft Playwright
 
 **Key Features**:
 - A2A and MCP protocol support
 - Web.action file execution for scripted automation
-- Chrome browser automation
+- Modern browser automation with Playwright
 - Real-time WebSocket updates
 - Multi-agent workflow support
 
 **Tools Exposed**:
-- `webPageAction`: Low-level WebDriver actions
+- `webPageAction`: Low-level Playwright actions
 - `browseWebAndReturnText`: High-level text extraction
 - `browseWebAndReturnImage`: Screenshot capture
 
@@ -113,7 +113,7 @@ mvn spring-boot:run
 java -jar target/a2aPlaywright-0.2.3.jar
 ```
 
-### Option 2: a2awebagent (Selenium)
+### Option 2: a2awebagent (Playwright)
 ```bash
 cd a2awebagent
 mvn spring-boot:run
@@ -200,7 +200,7 @@ Based on the current architecture, potential improvements include:
 ## Conclusion
 
 The a2aTravelAgent project represents a sophisticated approach to web automation that combines:
-- Modern browser automation (Playwright/Selenium)
+- Modern browser automation (Playwright)
 - AI language understanding
 - Multi-protocol support (A2A/MCP)
 - Domain-specific optimization (travel research)

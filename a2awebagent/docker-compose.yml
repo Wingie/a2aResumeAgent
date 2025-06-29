@@ -95,6 +95,31 @@ services:
       timeout: 10s
       retries: 3
 
+  # OpenSERP - Search Engine Results API
+  openserp:
+    image: karust/openserp:latest
+    platform: linux/amd64
+    container_name: serp
+    ports:
+      - "7001:7000"
+    command: serve -a 0.0.0.0 -p 7000
+    volumes:
+      - ./config.yaml:/usr/src/app/config.yaml
+    environment:
+      OPENSERP_APP_HOST: "0.0.0.0"
+      OPENSERP_APP_PORT: 7000
+      OPENSERP_BAIDU_RATE_REQUESTS: 6   # Number of requests per Minute
+      OPENSERP_BAIDU_RATE_BURST: 2      # Number of non-ratelimited requests per Minute
+    networks:
+      - a2a-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:7000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
   # Optional: PgAdmin for database management
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -111,22 +136,6 @@ services:
       - a2a-network
     depends_on:
       - postgres
-    restart: unless-stopped
-    profiles:
-      - admin  # Only start with: docker-compose --profile admin up
-
-  # Optional: Redis Commander for Redis management
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: a2a-redis-commander
-    environment:
-      REDIS_HOSTS: local:redis:6379
-    ports:
-      - "8081:8081"
-    networks:
-      - a2a-network
-    depends_on:
-      - redis
     restart: unless-stopped
     profiles:
       - admin  # Only start with: docker-compose --profile admin up

@@ -2,19 +2,19 @@
 
 ## Overview
 
-This document provides a comprehensive testing strategy for integrating Microsoft Playwright into the a2aTravelAgent Docker environment, with special focus on M1 Mac compatibility and migration from the current Selenium/ChromeDriver setup.
+This document provides a comprehensive testing strategy for Microsoft Playwright in the a2aTravelAgent Docker environment, with special focus on M1 Mac compatibility. Selenium/ChromeDriver migration has been completed.
 
 ## Project Context
 
 ### Current State
-- **a2awebagent**: Uses Selenium with ChromeDriver (ARM64 compatibility issues resolved)
-- **a2aPlaywrightReference**: Contains Playwright integration (Microsoft Playwright 1.51.0)
-- **Target**: Migrate a2awebagent from Selenium to Playwright for better reliability and performance
+- **a2awebagent**: Fully migrated to Playwright (Microsoft Playwright 1.51.0)
+- **Status**: Selenium dependencies completely removed
+- **Achievement**: Better reliability and performance with Playwright
 
-### Architecture Comparison
+### Architecture 
 ```
-Current: Java → Selenium WebDriver → ChromeDriver → Chrome Browser
-Target:  Java → Microsoft Playwright → Browser Engines (Chromium/Firefox/WebKit)
+Current: Java → Microsoft Playwright → Browser Engines (Chromium/Firefox/WebKit)
+Previous: Java → Selenium WebDriver → ChromeDriver → Chrome Browser (REMOVED)
 ```
 
 ## 1. Step-by-Step Docker Build and Test Plan
