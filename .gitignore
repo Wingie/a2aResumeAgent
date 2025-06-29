@@ -2,7 +2,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-*.log
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
@@ -36,5 +36,6 @@ build/
 
 ### Mac OS ###
 a2awebagent/src/main/resources/tools4ai.properties
-src/main/resources/tools4ai.properties
+a2ajava/src/test/resources/tools4ai.properties
 .DS_Store
+config.yaml
