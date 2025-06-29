@@ -1,19 +1,40 @@
+##Gemini related settings (DISABLED by default - use OpenRouter instead)
+#gemini.modelName=gemini-2.0-flash-001
+#gemini.location=us-central1
+#gemini.projectId=your-google-cloud-project-id
+#gemini.vision.modelName=gemini-1.0-pro-vision
+
+##Anthropic related settings
+anthropic.modelName=claude-3-haiku-20240307
+anthropic.logRequests=true
+anthropic.logResponse=true
+#set it here or use -DclaudeKey parameter
+claudeKey=
+
 ##Mistral related settings
 mistral.modelName=mistral-large-latest
 mistral.baseURL=https://api.mistral.ai/v1
 #set it here or use -DmistralKey parameter
-mistralKey=YOUR_MISTRAL_API_KEY_HERE
+mistralKey=
 
-##OpenRouter related settings (for DeepSeek-R1 Free and other models)
+##OpenRouter related settings (RECOMMENDED - supports many models with one API key)
 openrouter.modelName=deepseek/deepseek-r1-0528:free
 openrouter.baseURL=https://openrouter.ai/api/v1
 #set it here or use -DopenrouterKey parameter
 openrouterKey=YOUR_OPENROUTER_API_KEY_HERE
 openrouter.fallback.modelName=openai/gpt-4o-mini
 
-##Serper Key for google search or hallucination detection
-serperKey=YOUR_SERPER_API_KEY_HERE
+##Open AI configuration (configured to use OpenRouter by default)
+#set it here or use -DopenAiKey parameter
+openAiKey=YOUR_OPENROUTER_API_KEY_HERE
+##Open AI Base URL - points to OpenRouter for compatibility
+openAiBaseURL=https://openrouter.ai/api/v1
+openAiModelName=deepseek/deepseek-r1-0528:free
 
+##Serper Key for google search or hallucination detection
+serperKey=
+
+##Main provider configuration - use 'openrouter' for best compatibility
 agent.provider=openrouter
 
 ##Task-specific provider configuration (for specific operations)
@@ -38,8 +59,6 @@ openrouter.cache.enabled=true
 openrouter.cache.ttl.seconds=86400
 mistral.cache.enabled=true
 mistral.cache.ttl.seconds=7200
-gemini.cache.enabled=true
-gemini.cache.ttl.seconds=3600
 
 ##Rate limiting for free tier protection
 openrouter.rate.limit.rpm=20
