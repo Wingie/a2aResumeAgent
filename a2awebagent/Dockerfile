@@ -77,8 +77,19 @@ EXPOSE 7860
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:7860/actuator/health || exit 1
 
-# Set JVM options for container environment
-ENV JAVA_OPTS="-Xmx1g -Xms512m -XX:+UseG1GC -XX:+UseContainerSupport"
+# Set JVM options for container environment with module system compatibility
+ENV JAVA_OPTS="-Xmx1g -Xms512m -XX:+UseG1GC -XX:+UseContainerSupport \
+--add-opens java.base/java.lang=ALL-UNNAMED \
+--add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+--add-opens java.base/java.util=ALL-UNNAMED \
+--add-opens java.base/java.util.concurrent=ALL-UNNAMED \
+--add-opens java.base/java.net=ALL-UNNAMED \
+--add-opens java.base/java.text=ALL-UNNAMED \
+--add-opens java.desktop/java.awt=ALL-UNNAMED \
+--add-opens java.desktop/java.awt.image=ALL-UNNAMED \
+--add-opens java.desktop/javax.swing=ALL-UNNAMED \
+--add-exports java.base/sun.net.util=ALL-UNNAMED \
+--add-exports java.desktop/sun.awt=ALL-UNNAMED"
 
 # Copy entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh

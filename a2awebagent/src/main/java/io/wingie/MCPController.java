@@ -2,6 +2,7 @@ package io.wingie;
 
 import io.github.vishalmysore.mcp.server.MCPToolsController;
 import io.github.vishalmysore.mcp.domain.*;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,6 +12,7 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/v1")
+@Lazy
 public class MCPController extends MCPToolsController {
 
     private static final Logger logger = Logger.getLogger(MCPController.class.getName());

@@ -1,6 +1,6 @@
 package io.wingie;
 
-import io.wingie.config.WebDriverConfig;
+import io.wingie.utils.SafeWebDriverWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.WebDriver;
@@ -16,20 +16,25 @@ import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Browser System Health Tests
+ * Enhanced Browser System Integration Tests
  * 
- * This test class validates that the browser automation system is properly configured
- * and functional. These tests will FAIL if Chrome/Chromium is not installed or accessible,
+ * This test class validates the complete browser automation system including:
+ * - SafeWebDriverWrapper proxy handling capabilities 
+ * - Enhanced screenshot functionality with fallbacks
+ * - Spring WebDriver bean configuration with @Primary annotation
+ * - Java module system compatibility for Selenium
+ * 
+ * These tests will FAIL if Chrome/Chromium is not installed or accessible,
  * ensuring that `mvn clean package test` fails in Docker environments where browser
  * dependencies are missing.
  * 
  * The tests are ordered to provide clear failure points:
- * 1. Spring WebDriver bean validation (forces immediate initialization)
- * 2. Direct Chrome binary detection and WebDriver creation
- * 3. Basic browser functionality validation
- * 4. Docker environment compatibility verification
+ * 1. Spring WebDriver bean with SafeWebDriverWrapper validation
+ * 2. Enhanced screenshot functionality with multiple fallback strategies
+ * 3. JavaScript execution through SafeWebDriverWrapper
+ * 4. Docker environment compatibility with optimized Chrome options
  */
-@SpringBootTest
+@SpringBootTest(classes = {Application.class, TestDataConfig.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ActiveProfiles("test")
 @Slf4j
@@ -40,146 +45,163 @@ public class BrowserSystemHealthTest {
 
     @Test
     @Order(1)
-    @DisplayName("Spring WebDriver Bean Initialization - Fail Fast Test")
-    void testSpringWebDriverBeanInitialization() {
-        log.info("=== Testing Spring WebDriver Bean Initialization ===");
-        log.info("This test forces WebDriver bean creation and will FAIL FAST if Chrome/Chromium is not available");
-        
-        // This test explicitly forces the WebDriver bean to initialize
-        // Since we removed @Lazy, this should fail immediately if Chrome/Chromium is not available
+    @DisplayName("Spring WebDriver Bean with SafeWebDriverWrapper - Fail Fast Test")
+    void testSpringWebDriverBeanWithSafeWrapper() {
+        log.info("=== Testing Spring WebDriver Bean with SafeWebDriverWrapper ===");
+        log.info("This test forces WebDriver bean creation and validates SafeWebDriverWrapper functionality");
         
         assertDoesNotThrow(() -> {
             // Force initialization by requesting the WebDriver bean
             WebDriver driver = applicationContext.getBean(WebDriver.class);
             assertNotNull(driver, "WebDriver bean should be successfully created");
             
-            log.info("✅ Spring WebDriver bean initialized successfully: {}", driver.getClass().getSimpleName());
+            log.info("✅ Spring WebDriver bean initialized: {}", driver.getClass().getSimpleName());
             
-        }, "❌ WebDriver initialization FAILED - Chrome/Chromium is not properly installed or accessible. " +
-           "This is the intended behavior when browser system is not working!");
+            // Test SafeWebDriverWrapper functionality
+            SafeWebDriverWrapper safeWrapper = SafeWebDriverWrapper.wrap(driver);
+            assertNotNull(safeWrapper, "SafeWebDriverWrapper should wrap successfully");
+            
+            // Test capability detection
+            boolean supportsJS = safeWrapper.supportsJavaScript();
+            boolean supportsScreenshots = safeWrapper.supportsScreenshots();
+            
+            log.info("✅ SafeWebDriverWrapper capabilities - JavaScript: {}, Screenshots: {}", 
+                    supportsJS, supportsScreenshots);
+            
+            assertTrue(supportsJS, "SafeWebDriverWrapper should support JavaScript execution");
+            assertTrue(supportsScreenshots, "SafeWebDriverWrapper should support screenshot capture");
+            
+        }, "❌ WebDriver initialization or SafeWebDriverWrapper functionality FAILED - " +
+           "Chrome/Chromium is not properly installed or proxy casting is broken!");
     }
 
     @Test
     @Order(2)
-    @DisplayName("Direct Chrome Binary Detection and WebDriver Creation")
-    void testDirectChromeBinaryDetection() {
-        log.info("=== Testing Direct Chrome Binary Detection ===");
+    @DisplayName("Enhanced Screenshot Functionality with Fallback Strategies")
+    void testEnhancedScreenshotFunctionality() {
+        log.info("=== Testing Enhanced Screenshot Functionality ===");
         
-        WebDriver testDriver = null;
-        try {
-            // Create Chrome options similar to WebDriverConfig
-            ChromeOptions options = new ChromeOptions();
+        assertDoesNotThrow(() -> {
+            // Get Spring-managed WebDriver
+            WebDriver driver = applicationContext.getBean(WebDriver.class);
             
-            // Add Docker-compatible options
-            options.addArguments("--headless");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--disable-gpu");
-            options.addArguments("--window-size=1920,1080");
+            // Navigate to a test page
+            driver.get("data:text/html,<html><head><title>Screenshot Test</title></head>" +
+                      "<body style='background:linear-gradient(45deg,red,blue);height:100vh;'>" +
+                      "<h1 style='color:white;text-align:center;padding-top:200px;'>Screenshot Functionality Test</h1>" +
+                      "</body></html>");
             
-            // Try to create WebDriver directly (this will fail if Chrome is not available)
-            testDriver = new ChromeDriver(options);
-            assertNotNull(testDriver, "Direct ChromeDriver creation should succeed");
+            // Test ScreenshotUtils with fallback strategies
+            byte[] screenshot = ScreenshotUtils.captureScreenshotWithFallbacks(driver, "Integration test screenshot");
             
-            log.info("✅ Direct ChromeDriver creation successful");
+            assertNotNull(screenshot, "Screenshot should be captured successfully");
+            assertTrue(screenshot.length > 10000, "Screenshot should be meaningful size (>10KB), got: " + screenshot.length);
             
-        } catch (Exception e) {
-            log.error("❌ Direct ChromeDriver creation FAILED: {}", e.getMessage());
-            fail("Chrome/Chromium binary not found or not functional. " +
-                 "In Docker: install with 'RUN apk add --no-cache chromium chromium-driver' (Alpine) " +
-                 "or 'RUN apt-get install -y chromium-browser chromium-driver' (Debian/Ubuntu). " +
-                 "Locally: install Chrome or Chromium browser. " +
-                 "Original error: " + e.getMessage());
-        } finally {
-            if (testDriver != null) {
-                try {
-                    testDriver.quit();
-                } catch (Exception e) {
-                    log.warn("Error cleaning up test driver: {}", e.getMessage());
-                }
-            }
-        }
+            log.info("✅ Enhanced screenshot captured successfully - size: {} bytes", screenshot.length);
+            
+            // Test direct SafeWebDriverWrapper screenshot
+            SafeWebDriverWrapper safeWrapper = SafeWebDriverWrapper.wrap(driver);
+            byte[] directScreenshot = safeWrapper.getScreenshotAs(org.openqa.selenium.OutputType.BYTES);
+            
+            assertNotNull(directScreenshot, "Direct SafeWebDriverWrapper screenshot should work");
+            assertTrue(directScreenshot.length > 1000, "Direct screenshot should be reasonable size");
+            
+            log.info("✅ Direct SafeWebDriverWrapper screenshot - size: {} bytes", directScreenshot.length);
+            
+        }, "❌ Enhanced screenshot functionality FAILED - this indicates proxy casting or fallback strategies are broken!");
     }
 
     @Test
     @Order(3)
-    @DisplayName("Browser Navigation and JavaScript Execution Test")
-    void testBrowserFunctionality() {
-        log.info("=== Testing Browser Navigation and JavaScript Execution ===");
+    @DisplayName("SafeWebDriverWrapper JavaScript Execution Test")
+    void testSafeWebDriverJavaScriptExecution() {
+        log.info("=== Testing SafeWebDriverWrapper JavaScript Execution ===");
         
-        WebDriver testDriver = null;
-        try {
-            // Get a fresh WebDriver from Spring context
-            testDriver = applicationContext.getBean(WebDriver.class);
+        assertDoesNotThrow(() -> {
+            // Get Spring-managed WebDriver
+            WebDriver driver = applicationContext.getBean(WebDriver.class);
+            SafeWebDriverWrapper safeWrapper = SafeWebDriverWrapper.wrap(driver);
             
             // Test basic navigation
-            testDriver.get("data:text/html,<html><head><title>Browser Test</title></head><body><h1>Browser Health Check</h1></body></html>");
+            driver.get("data:text/html,<html><head><title>JS Test</title></head>" +
+                      "<body><h1 id='header'>SafeWebDriverWrapper JS Test</h1>" +
+                      "<script>window.testValue = 'SafeWrapper Working';</script></body></html>");
             
-            String title = testDriver.getTitle();
-            assertEquals("Browser Test", title, "Browser should be able to navigate and read page title");
+            String title = driver.getTitle();
+            assertEquals("JS Test", title, "Browser should navigate and read page title");
             
-            // Test JavaScript execution
-            Object jsResult = ((org.openqa.selenium.JavascriptExecutor) testDriver)
-                .executeScript("return document.title + ' - JS Working';");
-            assertEquals("Browser Test - JS Working", jsResult.toString(), 
-                        "Browser should be able to execute JavaScript");
+            // Test JavaScript execution through SafeWebDriverWrapper
+            Object jsResult = safeWrapper.executeScript("return document.title + ' - ' + window.testValue;");
+            assertEquals("JS Test - SafeWrapper Working", jsResult.toString(), 
+                        "SafeWebDriverWrapper should execute JavaScript without casting errors");
             
-            log.info("✅ Browser navigation and JavaScript execution successful");
+            // Test complex JavaScript operations
+            Object domResult = safeWrapper.executeScript(
+                "return document.getElementById('header').textContent;");
+            assertEquals("SafeWebDriverWrapper JS Test", domResult.toString(),
+                        "SafeWebDriverWrapper should handle DOM manipulation");
             
-        } catch (Exception e) {
-            log.error("❌ Browser functionality test FAILED: {}", e.getMessage());
-            fail("Browser navigation or JavaScript execution failed. This indicates Chrome/Chromium " +
-                 "is installed but not functioning properly. Error: " + e.getMessage());
-        }
-        // Don't quit here - let Spring manage the shared bean
+            // Test async JavaScript
+            Object asyncResult = safeWrapper.executeAsyncScript(
+                "var callback = arguments[arguments.length - 1]; " +
+                "setTimeout(function() { callback('Async JS Working'); }, 100);");
+            assertEquals("Async JS Working", asyncResult.toString(),
+                        "SafeWebDriverWrapper should handle async JavaScript");
+            
+            log.info("✅ SafeWebDriverWrapper JavaScript execution successful");
+            
+        }, "❌ SafeWebDriverWrapper JavaScript execution FAILED - indicates proxy casting issues!");
     }
 
     @Test
     @Order(4)
-    @DisplayName("Docker Environment and Headless Mode Compatibility")
-    void testDockerCompatibility() {
-        log.info("=== Testing Docker Environment Compatibility ===");
+    @DisplayName("CustomChromeOptions and Docker Optimization Compatibility")
+    void testCustomChromeOptionsDockerCompatibility() {
+        log.info("=== Testing CustomChromeOptions and Docker Optimization ===");
         
         WebDriver testDriver = null;
         try {
-            // Create a separate WebDriver instance with strict Docker settings
-            ChromeOptions dockerOptions = new ChromeOptions();
-            dockerOptions.addArguments("--headless=new");  // Use new headless mode
-            dockerOptions.addArguments("--no-sandbox");
-            dockerOptions.addArguments("--disable-dev-shm-usage");
-            dockerOptions.addArguments("--disable-gpu");
-            dockerOptions.addArguments("--disable-extensions");
-            dockerOptions.addArguments("--disable-background-timer-throttling");
-            dockerOptions.addArguments("--disable-renderer-backgrounding");
-            dockerOptions.addArguments("--disable-backgrounding-occluded-windows");
-            dockerOptions.addArguments("--disable-features=TranslateUI");
-            dockerOptions.addArguments("--disable-ipc-flooding-protection");
-            dockerOptions.addArguments("--window-size=1920,1080");
+            // Test CustomChromeOptions.createOptions() with all optimizations
+            ChromeOptions optimizedOptions = CustomChromeOptions.createOptions();
+            assertNotNull(optimizedOptions, "CustomChromeOptions should create valid options");
             
-            testDriver = new ChromeDriver(dockerOptions);
+            // Create test driver with optimized options
+            testDriver = new ChromeDriver(optimizedOptions);
+            SafeWebDriverWrapper safeWrapper = SafeWebDriverWrapper.wrap(testDriver);
             
-            // Test that Docker-specific options work
-            testDriver.get("about:blank");
+            // Test Docker-optimized options work
+            testDriver.get("data:text/html,<html><head><title>Docker Test</title></head>" +
+                          "<body style='background:#4CAF50;'>" +
+                          "<h1 style='color:white;text-align:center;margin-top:300px;'>Docker Optimization Test</h1>" +
+                          "<div id='test'>Performance optimized!</div></body></html>");
+            
             testDriver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
             testDriver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
             
-            // Test screenshot capability (critical for the agent's functionality)
-            byte[] screenshot = ((org.openqa.selenium.TakesScreenshot) testDriver)
-                .getScreenshotAs(org.openqa.selenium.OutputType.BYTES);
-            assertTrue(screenshot.length > 0, "Screenshot should be captured successfully");
+            // Test all SafeWebDriverWrapper capabilities
+            assertTrue(safeWrapper.supportsJavaScript(), "Should support JavaScript");
+            assertTrue(safeWrapper.supportsScreenshots(), "Should support screenshots");
             
-            log.info("✅ Docker compatibility test passed - screenshot size: {} bytes", screenshot.length);
+            // Test JavaScript execution with optimized settings
+            Object jsResult = safeWrapper.executeScript("return document.getElementById('test').textContent;");
+            assertEquals("Performance optimized!", jsResult.toString());
+            
+            // Test screenshot with all fallback strategies
+            byte[] screenshot = ScreenshotUtils.captureScreenshotWithFallbacks(testDriver, "Docker optimization test");
+            assertTrue(screenshot.length > 5000, "Screenshot should be captured with good quality");
+            
+            log.info("✅ CustomChromeOptions Docker compatibility passed - screenshot: {} bytes", screenshot.length);
             
         } catch (Exception e) {
-            log.error("❌ Docker compatibility test FAILED: {}", e.getMessage());
-            fail("Docker environment compatibility failed. In Docker, ensure Chrome/Chromium is properly " +
-                 "installed with all dependencies. Error: " + e.getMessage());
+            log.error("❌ CustomChromeOptions Docker compatibility FAILED: {}", e.getMessage());
+            fail("CustomChromeOptions or Docker optimization failed. This indicates Chrome arguments " +
+                 "are conflicting or missing dependencies. Error: " + e.getMessage());
         } finally {
             if (testDriver != null) {
                 try {
                     testDriver.quit();
                 } catch (Exception e) {
-                    log.warn("Error cleaning up Docker test driver: {}", e.getMessage());
+                    log.warn("Error cleaning up CustomChromeOptions test driver: {}", e.getMessage());
                 }
             }
         }
@@ -188,24 +210,31 @@ public class BrowserSystemHealthTest {
     @BeforeAll
     static void validateBrowserSystemPrerequisites() {
         log.info("==========================================================");
-        log.info("🔍 BROWSER SYSTEM HEALTH CHECK STARTING");
+        log.info("🔍 ENHANCED BROWSER SYSTEM INTEGRATION TEST STARTING");
         log.info("==========================================================");
-        log.info("This test suite validates browser automation system functionality");
-        log.info("⚠️  If ANY test fails, it indicates Chrome/Chromium is not properly installed");
+        log.info("This test suite validates the complete browser automation system:");
+        log.info("✨ SafeWebDriverWrapper proxy handling capabilities");
+        log.info("📸 Enhanced screenshot functionality with fallback strategies");
+        log.info("🔧 Spring WebDriver bean configuration with @Primary");
+        log.info("🚀 Java module system compatibility for Selenium");
+        log.info("⚠️  If ANY test fails, it indicates system integration issues");
         log.info("🐳 In Docker: ensure 'chromium chromium-driver' packages are installed");
         log.info("💻 In local dev: ensure Chrome or Chromium browser is installed");
-        log.info("🎯 PURPOSE: Make 'mvn clean package test' FAIL when browser system is broken");
+        log.info("🎯 PURPOSE: Validate all bug fixes and enhancements are working");
         log.info("==========================================================");
     }
 
     @AfterAll
-    static void browserSystemHealthCheckComplete() {
+    static void browserSystemIntegrationTestComplete() {
         log.info("==========================================================");
-        log.info("✅ BROWSER SYSTEM HEALTH CHECK COMPLETED SUCCESSFULLY");
+        log.info("✅ ENHANCED BROWSER SYSTEM INTEGRATION TEST COMPLETED");
         log.info("==========================================================");
-        log.info("🎉 All browser system tests passed");
-        log.info("🚀 Chrome/Chromium is properly installed and functional");
-        log.info("✨ Web automation system is ready for use");
+        log.info("🎉 All browser system integration tests passed");
+        log.info("🔧 SafeWebDriverWrapper functionality: WORKING");
+        log.info("📸 Enhanced screenshot with fallbacks: WORKING"); 
+        log.info("⚡ Java module system compatibility: WORKING");
+        log.info("🚀 Spring proxy configuration: WORKING");
+        log.info("✨ Complete web automation system is ready for production use");
         log.info("==========================================================");
     }
 }

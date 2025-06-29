@@ -3,8 +3,8 @@ package io.wingie.service;
 import io.wingie.entity.TaskExecution;
 import io.wingie.entity.TaskStatus;
 import io.wingie.repository.TaskExecutionRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,16 +18,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class TaskExecutorService {
 
     private final TaskExecutionRepository taskRepository;
     private final WebBrowsingTaskProcessor webBrowsingProcessor;
-    private final RedisTemplate<String, Object> redisTemplate;
+    
+    @Autowired(required = false)
+    private RedisTemplate<String, Object> redisTemplate;
     
     // Track running tasks for cancellation
     private final Map<String, CompletableFuture<Void>> runningTasks = new ConcurrentHashMap<>();
+    
+    public TaskExecutorService(TaskExecutionRepository taskRepository, WebBrowsingTaskProcessor webBrowsingProcessor) {
+        this.taskRepository = taskRepository;
+        this.webBrowsingProcessor = webBrowsingProcessor;
+    }
     
     private static final String REDIS_PROGRESS_PREFIX = "task:progress:";
     private static final String REDIS_STATUS_PREFIX = "task:status:";
@@ -132,6 +138,11 @@ public class TaskExecutorService {
     }
 
     private void updateRedisProgress(String taskId, TaskStatus status, String message, Integer progressPercent, List<String> screenshots) {
+        if (redisTemplate == null) {
+            log.debug("Redis not available - skipping real-time progress update for task {}", taskId);
+            return;
+        }
+        
         try {
             Map<String, Object> progressData = Map.of(
                 "taskId", taskId,

@@ -1,0 +1,66 @@
+spring:
+  
+  # H2 In-memory database for testing
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# Disable ALL auto-configurations that might cause conflicts in test environment
+spring.autoconfigure.exclude:
+  - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.neo4j.Neo4jDataAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.neo4j.Neo4jRepositoriesAutoConfiguration
+  # Also exclude the reactive Neo4j repositories
+  - org.springframework.boot.autoconfigure.data.neo4j.Neo4jReactiveDataAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.neo4j.Neo4jReactiveRepositoriesAutoConfiguration
+
+server:
+  port: 0  # Random port for testing
+
+logging:
+  level:
+    root: INFO
+    io.wingie: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.springframework.data: DEBUG
+    # Suppress repository configuration warnings in tests
+    org.springframework.data.repository.config.RepositoryConfigurationDelegate: WARN
+
+# Application configuration for testing
+app:
+  storage:
+    screenshots: ./test-screenshots
+    uploads: ./test-uploads
+  
+  selenium:
+    timeout: 10s
+    headless: true
+    
+  async:
+    enabled: false  # Disable async for simpler testing
+    max-concurrent-tasks: 1
+
+# WebDriver Configuration for testing
+webdriver:
+  enabled: true
+  headless: true
+  retry:
+    attempts: 1    # Fewer retries in tests
+    delay: 1000    # Shorter delay for tests

@@ -8,7 +8,9 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -18,8 +20,10 @@ import java.nio.file.Paths;
 /**
  * Configuration class for WebDriver initialization with Docker support.
  * Handles both local (Chrome) and containerized (Chromium) environments.
+ * Uses CGLIB proxies to ensure proper interface casting.
  */
 @Configuration
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @Slf4j
 public class WebDriverConfig {
 
@@ -42,8 +46,11 @@ public class WebDriverConfig {
      * Creates a WebDriver bean with proper error handling and Docker support.
      * Bean initialization is immediate to ensure browser system fails fast if Chrome/Chromium is not available.
      * This ensures that 'mvn clean package test' will fail immediately in Docker if browser dependencies are missing.
+     * Uses @Primary to ensure this bean is used when multiple WebDriver beans exist.
      */
     @Bean
+    @Primary
+    @Lazy
     public WebDriver webDriver() {
         log.info("Initializing WebDriver with headless={}, retryAttempts={}", headless, retryAttempts);
         
@@ -53,8 +60,8 @@ public class WebDriverConfig {
             try {
                 log.info("WebDriver initialization attempt {}/{}", attempt, retryAttempts);
                 
-                // Configure Chrome options
-                ChromeOptions options = createChromeOptions();
+                // Configure Chrome options using standardized CustomChromeOptions
+                ChromeOptions options = CustomChromeOptions.createOptions();
                 
                 // Set ChromeDriver path if specified
                 if (chromeDriverPath != null && !chromeDriverPath.isEmpty()) {

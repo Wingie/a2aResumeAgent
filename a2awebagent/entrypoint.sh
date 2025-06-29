@@ -59,10 +59,23 @@ fi
 
 echo "Using display :${DISPLAY_NUM}"
 
-# Start Xvfb in the background for headless Chrome
+# Start Xvfb in the background for headless Chrome with enhanced options
 echo "Starting Xvfb on display :${DISPLAY_NUM}..."
-Xvfb :${DISPLAY_NUM} -screen 0 1920x1080x24 -ac +extension GLX +render -noreset &
+Xvfb :${DISPLAY_NUM} \
+  -screen 0 1920x1080x24 \
+  -ac \
+  +extension GLX \
+  +extension RANDR \
+  +extension RENDER \
+  +extension MIT-SHM \
+  +extension XTEST \
+  -dpi 96 \
+  -noreset \
+  -nolisten tcp \
+  -maxclients 1024 &
 XVFB_PID=$!
+
+echo "Xvfb started with PID: $XVFB_PID"
 
 # Wait for Xvfb to start and verify it's running
 echo "Waiting for Xvfb to start..."
@@ -82,14 +95,48 @@ done
 export DISPLAY=:${DISPLAY_NUM}
 echo "DISPLAY set to :${DISPLAY_NUM}"
 
-# Verify X11 display is available
+# Set up XAUTHORITY for enhanced security and compatibility
+export XAUTHORITY=/tmp/.X${DISPLAY_NUM}-auth
+echo "XAUTHORITY set to: $XAUTHORITY"
+
+# Create XAUTHORITY file with proper permissions
+touch $XAUTHORITY
+chmod 600 $XAUTHORITY
+chown $(id -u):$(id -g) $XAUTHORITY 2>/dev/null || true
+
+# Generate and add X11 authentication cookie for better security
+echo "Setting up X11 authentication..."
+XAUTH_COOKIE=$(mcookie 2>/dev/null || echo "$(date +%s)$(dd if=/dev/urandom bs=1 count=16 2>/dev/null | xxd -p)")
+xauth -f $XAUTHORITY add :${DISPLAY_NUM} . $XAUTH_COOKIE
+echo "X11 authentication cookie generated and added"
+
+# Verify X11 display is available with enhanced validation
 echo "Verifying X11 display :${DISPLAY_NUM}..."
 if xdpyinfo -display :${DISPLAY_NUM} >/dev/null 2>&1; then
     echo "X11 display :${DISPLAY_NUM} is available and working"
-    # Get display info for debugging
+    
+    # Get comprehensive display info for debugging
     echo "Display dimensions: $(xdpyinfo -display :${DISPLAY_NUM} | grep dimensions | head -1)"
+    echo "Display depth: $(xdpyinfo -display :${DISPLAY_NUM} | grep 'depth of root window' | head -1)"
+    echo "X11 server vendor: $(xdpyinfo -display :${DISPLAY_NUM} | grep 'vendor string' | head -1)"
+    
+    # Test basic X11 operations
+    echo "Testing basic X11 operations..."
+    if xwininfo -root -display :${DISPLAY_NUM} >/dev/null 2>&1; then
+        echo "X11 window operations: WORKING"
+    else
+        echo "X11 window operations: LIMITED (may affect some browser features)"
+    fi
 else 
     echo "ERROR: X11 display :${DISPLAY_NUM} is not available!"
+    echo "Attempting X11 diagnostic tests..."
+    
+    # Diagnostic information
+    echo "DISPLAY variable: $DISPLAY"
+    echo "XAUTHORITY: $XAUTHORITY" 
+    echo "X11 socket check: $(ls -la /tmp/.X11-unix/ 2>/dev/null || echo 'No X11 sockets found')"
+    echo "Xvfb process status: $(ps aux | grep Xvfb | grep -v grep || echo 'Xvfb not found in process list')"
+    
     exit 1
 fi
 
@@ -100,20 +147,32 @@ if command -v google-chrome >/dev/null 2>&1; then
     google-chrome --version
     # Test Chrome can start in headless mode
     echo "Testing Chrome headless mode..."
-    if google-chrome --headless --disable-gpu --no-sandbox --disable-dev-shm-usage --virtual-time-budget=1000 --run-all-compositor-stages-before-draw --dump-dom about:blank >/dev/null 2>&1; then
-        echo "Chrome headless mode test: PASSED"
+    # Try new headless format first, then fallback to old format
+    if google-chrome --headless=new --disable-gpu --no-sandbox --disable-dev-shm-usage --disable-setuid-sandbox --virtual-time-budget=1000 --run-all-compositor-stages-before-draw --dump-dom about:blank >/dev/null 2>&1; then
+        echo "Chrome headless mode test: PASSED (new format)"
+    elif google-chrome --headless --disable-gpu --no-sandbox --disable-dev-shm-usage --disable-setuid-sandbox --virtual-time-budget=1000 --run-all-compositor-stages-before-draw --dump-dom about:blank >/dev/null 2>&1; then
+        echo "Chrome headless mode test: PASSED (legacy format)"
     else
         echo "Chrome headless mode test: FAILED"
+        echo "Attempting diagnostic test with minimal options..."
+        google-chrome --version 2>&1 || echo "Chrome version check failed"
+        google-chrome --headless --no-sandbox --dump-dom about:blank 2>&1 | head -10 || echo "Minimal Chrome test failed"
     fi
 elif command -v chromium >/dev/null 2>&1; then
     echo "Found Chromium:"
     chromium --version
     # Test Chromium can start in headless mode  
     echo "Testing Chromium headless mode..."
-    if chromium --headless --disable-gpu --no-sandbox --disable-dev-shm-usage --virtual-time-budget=1000 --run-all-compositor-stages-before-draw --dump-dom about:blank >/dev/null 2>&1; then
-        echo "Chromium headless mode test: PASSED"
+    # Try new headless format first, then fallback to old format
+    if chromium --headless=new --disable-gpu --no-sandbox --disable-dev-shm-usage --disable-setuid-sandbox --virtual-time-budget=1000 --run-all-compositor-stages-before-draw --dump-dom about:blank >/dev/null 2>&1; then
+        echo "Chromium headless mode test: PASSED (new format)"
+    elif chromium --headless --disable-gpu --no-sandbox --disable-dev-shm-usage --disable-setuid-sandbox --virtual-time-budget=1000 --run-all-compositor-stages-before-draw --dump-dom about:blank >/dev/null 2>&1; then
+        echo "Chromium headless mode test: PASSED (legacy format)"
     else
         echo "Chromium headless mode test: FAILED"
+        echo "Attempting diagnostic test with minimal options..."
+        chromium --version 2>&1 || echo "Chromium version check failed"
+        chromium --headless --no-sandbox --dump-dom about:blank 2>&1 | head -10 || echo "Minimal Chromium test failed"
     fi
 else
     echo "ERROR: Neither Chrome nor Chromium found!"
@@ -135,4 +194,13 @@ exec java \
   -Djava.security.egd=file:/dev/./urandom \
   -Dwdm.cachePath=/app/seleniumCache \
   -Dwdm.resolutionCachePath=/app/resolutionCache \
+  --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+  --add-opens java.base/java.util=ALL-UNNAMED \
+  --add-opens java.base/java.util.concurrent=ALL-UNNAMED \
+  --add-opens java.base/sun.nio.ch=ALL-UNNAMED \
+  --add-opens java.base/java.net=ALL-UNNAMED \
+  --add-opens jdk.proxy2/jdk.proxy2=ALL-UNNAMED \
+  --add-exports java.base/jdk.internal.ref=ALL-UNNAMED \
+  --add-exports java.base/sun.security.util=ALL-UNNAMED \
+  --add-exports jdk.unsupported/sun.misc=ALL-UNNAMED \
   -jar /app/target/a2awebagent-0.0.1.jar

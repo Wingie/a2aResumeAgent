@@ -27,10 +27,12 @@ spring:
       port: 6379
       timeout: 5000ms
 
-# Disable MongoDB auto-configurations
+# Disable unused auto-configurations to prevent conflicts
 spring.autoconfigure.exclude:
   - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
   - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+  # Note: Neo4j auto-configuration is kept enabled for future use
+  # Redis auto-configuration is kept enabled for caching and pub/sub
 
 server:
   port: 7860

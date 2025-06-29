@@ -4,14 +4,17 @@ import io.wingie.entity.TaskExecution;
 import io.wingie.entity.TaskStatus;
 import io.wingie.service.TaskExecutorService;
 import io.wingie.repository.TaskExecutionRepository;
+import io.wingie.utils.SafeWebDriverWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.openqa.selenium.WebDriver;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -19,6 +22,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +35,8 @@ public class AsyncTaskController {
 
     private final TaskExecutorService taskExecutorService;
     private final TaskExecutionRepository taskRepository;
+    @Lazy
+    private final WebDriver webDriver;
 
     // DTO Classes
     public static class TaskSubmissionRequest {
@@ -356,28 +362,108 @@ public class AsyncTaskController {
         return ResponseEntity.ok(stats);
     }
 
-    // Health check endpoint
+    // Enhanced health check endpoint with browser validation
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> healthCheck() {
+        Map<String, Object> health = new HashMap<>();
+        boolean isHealthy = true;
+        
         try {
+            // Basic task system health
             long stuckTasks = taskRepository.countStuckTasks(LocalDateTime.now().minusMinutes(30));
             long activeTasks = taskRepository.countByStatus(TaskStatus.RUNNING);
             
-            Map<String, Object> health = Map.of(
-                "status", "healthy",
-                "activeTasks", activeTasks,
-                "stuckTasks", stuckTasks,
-                "timestamp", LocalDateTime.now()
-            );
+            health.put("activeTasks", activeTasks);
+            health.put("stuckTasks", stuckTasks);
+            health.put("timestamp", LocalDateTime.now());
             
-            return ResponseEntity.ok(health);
+            // Browser system health validation
+            Map<String, Object> browserHealth = validateBrowserSystem();
+            health.put("browser", browserHealth);
+            
+            boolean browserHealthy = (Boolean) browserHealth.get("healthy");
+            if (!browserHealthy) {
+                isHealthy = false;
+                log.warn("Browser system is unhealthy: {}", browserHealth.get("details"));
+            }
+            
+            // Overall system status
+            health.put("status", isHealthy ? "healthy" : "degraded");
+            
+            // Set appropriate HTTP status
+            int httpStatus = isHealthy ? 200 : 503; // Service Unavailable if browser is down
+            return ResponseEntity.status(httpStatus).body(health);
+            
         } catch (Exception e) {
             log.error("Health check failed", e);
             return ResponseEntity.status(500).body(Map.of(
                 "status", "unhealthy",
-                "error", e.getMessage()
+                "error", e.getMessage(),
+                "timestamp", LocalDateTime.now()
             ));
         }
+    }
+    
+    /**
+     * Validates browser system health including WebDriver and SafeWebDriverWrapper functionality
+     */
+    private Map<String, Object> validateBrowserSystem() {
+        Map<String, Object> browserHealth = new HashMap<>();
+        Map<String, Object> details = new HashMap<>();
+        
+        try {
+            // Test 1: WebDriver bean availability
+            if (webDriver == null) {
+                details.put("webDriverBean", "UNAVAILABLE");
+                browserHealth.put("healthy", false);
+                browserHealth.put("details", details);
+                return browserHealth;
+            }
+            details.put("webDriverBean", "AVAILABLE");
+            
+            // Test 2: SafeWebDriverWrapper functionality
+            SafeWebDriverWrapper safeWrapper = SafeWebDriverWrapper.wrap(webDriver);
+            boolean supportsJS = safeWrapper.supportsJavaScript();
+            boolean supportsScreenshots = safeWrapper.supportsScreenshots();
+            
+            details.put("javascriptSupport", supportsJS ? "WORKING" : "FAILED");
+            details.put("screenshotSupport", supportsScreenshots ? "WORKING" : "FAILED");
+            
+            // Test 3: Basic browser functionality test
+            try {
+                String currentUrl = webDriver.getCurrentUrl();
+                details.put("basicNavigation", "WORKING");
+                details.put("currentUrl", currentUrl != null ? currentUrl : "data:,");
+            } catch (Exception e) {
+                details.put("basicNavigation", "FAILED: " + e.getMessage());
+            }
+            
+            // Test 4: Quick JavaScript execution test
+            if (supportsJS) {
+                try {
+                    Object jsResult = safeWrapper.executeScript("return 'JS_TEST_OK';");
+                    boolean jsWorking = "JS_TEST_OK".equals(jsResult);
+                    details.put("javascriptExecution", jsWorking ? "WORKING" : "FAILED");
+                } catch (Exception e) {
+                    details.put("javascriptExecution", "FAILED: " + e.getMessage());
+                }
+            }
+            
+            // Determine overall browser health
+            boolean isHealthy = supportsJS && supportsScreenshots && 
+                              "WORKING".equals(details.get("basicNavigation"));
+            
+            browserHealth.put("healthy", isHealthy);
+            browserHealth.put("details", details);
+            
+        } catch (Exception e) {
+            log.error("Browser system validation failed", e);
+            details.put("validationError", e.getMessage());
+            browserHealth.put("healthy", false);
+            browserHealth.put("details", details);
+        }
+        
+        return browserHealth;
     }
 
     // Helper method to estimate task duration based on type

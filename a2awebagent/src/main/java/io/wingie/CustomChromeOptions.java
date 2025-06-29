@@ -12,6 +12,11 @@ public class CustomChromeOptions {
         boolean useCommandLineOptions = Boolean.getBoolean("driverOptions");
         System.out.println("Use command line options: " + useCommandLineOptions);
         
+        // Log environment information for debugging
+        System.out.println("Java version: " + System.getProperty("java.version"));
+        System.out.println("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch"));
+        System.out.println("Is Docker environment: " + isRunningInDocker());
+        
         // Detect and set Chrome/Chromium binary path
         String binaryPath = detectChromeBinaryPath();
         if (binaryPath != null) {
@@ -23,61 +28,139 @@ public class CustomChromeOptions {
         }
 
         if (useCommandLineOptions) {
+            // Use custom command-line options when specified
             String commandLineArgs = System.getProperty("chrome.options", "");
             if (!commandLineArgs.isEmpty()) {
                 String[] args = commandLineArgs.split(",");
                 options.addArguments(args);
-                System.out.println(commandLineArgs);
+                System.out.println("Using command line Chrome options: " + commandLineArgs);
+                
+                // Only add debugging options if not already specified
+                if (!commandLineArgs.contains("--remote-debugging")) {
+                    // For headless mode, use pipe; for non-headless, use port
+                    if (commandLineArgs.contains("--headless")) {
+                        options.addArguments("--remote-debugging-pipe");
+                        System.out.println("Added --remote-debugging-pipe for headless mode");
+                    } else {
+                        options.addArguments("--remote-debugging-port=9222");
+                        System.out.println("Added --remote-debugging-port=9222 for non-headless mode");
+                    }
+                }
             }
         } else {
+            // Default configuration: headless mode optimized for automation
+            System.out.println("Using default Chrome options (headless mode)");
+            
+            // === CORE HEADLESS OPTIONS ===
+            // Use new headless mode for better compatibility (fallback to old if not supported)
             options.addArguments("--headless=new");
+            
+            // Essential security options for running in containers/automation
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
+            
+            // === WINDOW AND DISPLAY SETTINGS ===
+            // Set consistent window size for screenshots and rendering
+            options.addArguments("--window-size=1920,1080");
+            options.addArguments("--force-device-scale-factor=1");
+            
+            // === GPU AND RENDERING OPTIONS ===
+            // Disable GPU to avoid graphics driver issues in containers
+            options.addArguments("--disable-gpu");
+            // Use software rendering for compatibility
+            options.addArguments("--use-gl=swiftshader");
+            
+            // === AUTOMATION AND PERFORMANCE OPTIONS ===
+            // Disable unnecessary features for automation
             options.addArguments("--disable-extensions");
             options.addArguments("--disable-background-timer-throttling");
             options.addArguments("--disable-renderer-backgrounding");
             options.addArguments("--disable-backgrounding-occluded-windows");
+            options.addArguments("--disable-default-apps");
+            options.addArguments("--disable-sync");
+            options.addArguments("--no-first-run");
             
-            // Window and viewport configuration for proper screenshot rendering
-            options.addArguments("--window-size=1920,1080");
-            options.addArguments("--start-maximized");
-            options.addArguments("--force-device-scale-factor=1");
-            options.addArguments("--high-dpi-support=1");
+            // Additional performance optimizations
+            options.addArguments("--disable-features=TranslateUI");
+            options.addArguments("--disable-features=Translate");
+            options.addArguments("--disable-popup-blocking");
+            options.addArguments("--disable-notifications");
+            options.addArguments("--disable-password-generation");
+            options.addArguments("--disable-save-password-bubble");
+            options.addArguments("--disable-infobars");
+            options.addArguments("--disable-web-resources");
+            options.addArguments("--aggressive-cache-discard");
             
-            // GPU and rendering fixes for blank screenshots
-            options.addArguments("--disable-gpu");
-            options.addArguments("--use-gl=swiftshader");
-            options.addArguments("--disable-software-rasterizer");
-            options.addArguments("--disable-gpu-sandbox");
+            // Network and loading optimizations
+            options.addArguments("--disable-lazy-loading");
+            options.addArguments("--disable-features=LazyImageLoading");
+            options.addArguments("--disable-features=LazyFrameLoading");
             
-            // Alternative GL implementations for ARM64 compatibility
-            options.addArguments("--use-angle=swiftshader");
+            // === DEBUGGING COMMUNICATION ===
+            // Use pipe for headless mode - avoids port conflicts and works better in containers
+            options.addArguments("--remote-debugging-pipe");
             
-            // Enable better rendering for screenshots
-            options.addArguments("--enable-features=VizDisplayCompositor");
-            options.addArguments("--run-all-compositor-stages-before-draw");
-            options.addArguments("--disable-features=VizDisplayCompositor");
+            // === LOGGING CONFIGURATION ===
+            // Reduce log verbosity to minimize noise
+            options.addArguments("--log-level=3");
             
-            // Font and rendering improvements
-            options.addArguments("--font-render-hinting=none");
-            options.addArguments("--disable-font-subpixel-positioning");
-            options.addArguments("--disable-partial-raster");
-            
-            // Additional stability options
-            options.addArguments("--disable-logging");
-            options.addArguments("--disable-gpu-early-init");
-            options.addArguments("--disable-dev-tools");
-            options.addArguments("--disable-ipc-flooding-protection");
-            
-            // Additional Docker-specific options
+            // === DOCKER/CONTAINER SPECIFIC OPTIONS ===
             if (isRunningInDocker()) {
+                System.out.println("Docker environment detected - adding container-specific options");
+                
+                // Additional sandbox disabling for containers
                 options.addArguments("--disable-setuid-sandbox");
-                options.addArguments("--single-process"); // For containers with limited resources
-                options.addArguments("--no-zygote"); // Disable zygote process for containers
-                options.addArguments("--disable-web-security"); // May help with rendering in containers
-                System.out.println("Docker environment detected - added container-specific Chrome options");
+                
+                // Security options for container environments
+                options.addArguments("--disable-web-security");
+                options.addArguments("--ignore-certificate-errors");
+                options.addArguments("--ignore-ssl-errors");
+                options.addArguments("--ignore-certificate-errors-spki-list");
+                
+                // Stability options for containers
+                options.addArguments("--disable-crash-reporter");
+                options.addArguments("--no-default-browser-check");
+                options.addArguments("--disable-hang-monitor");
+                options.addArguments("--disable-prompt-on-repost");
+                options.addArguments("--disable-domain-reliability");
+                
+                // Memory and resource optimization for containers
+                options.addArguments("--memory-pressure-off");
+                options.addArguments("--max_old_space_size=4096");
+                options.addArguments("--disable-ipc-flooding-protection");
+                
+                // Network and DNS optimizations
+                options.addArguments("--disable-features=VizDisplayCompositor");
+                options.addArguments("--disable-background-networking");
+                options.addArguments("--disable-client-side-phishing-detection");
+                
+                // Audio/video processing optimizations (for web automation)
+                options.addArguments("--disable-audio-output");
+                options.addArguments("--mute-audio");
+                options.addArguments("--autoplay-policy=no-user-gesture-required");
+                
+                // Additional stability flags for headless automation
+                options.addArguments("--disable-component-update");
+                options.addArguments("--disable-plugins-discovery");
+                options.addArguments("--disable-translate");
+                options.addArguments("--disable-logging");
+                options.addArguments("--disable-login-animations");
+                
+                // NOTE: Avoided problematic options:
+                // --single-process: Can cause Chrome to exit immediately in containers
+                // --no-zygote: Can conflict with headless mode and cause crashes
+                // --remote-debugging-port: Conflicts with headless mode in newer Chrome versions
+                // --disable-shared-memory-usage: Can cause crashes in some Docker configurations
             }
         }
+        
+        // Log all options for debugging
+        System.out.println("=== Final Chrome Options ===");
+        if (binaryPath != null) {
+            System.out.println("Binary: " + binaryPath);
+        }
+        System.out.println("Chrome options configured successfully");
+        System.out.println("=== CustomChromeOptions.createOptions() Complete ===");
 
         return options;
     }
@@ -107,8 +190,12 @@ public class CustomChromeOptions {
             "/usr/local/bin/chromium",          // Alternative location
             "/usr/bin/google-chrome",           // Google Chrome on Linux
             "/usr/bin/google-chrome-stable",    // Google Chrome stable
+            "/usr/bin/google-chrome-unstable",  // Google Chrome unstable
+            "/snap/bin/chromium",               // Snap package
             "/opt/google/chrome/chrome",        // Google Chrome alternative
+            "/usr/lib/chromium-browser/chromium-browser", // Debian/Ubuntu
             "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",  // macOS
+            "/Applications/Chromium.app/Contents/MacOS/Chromium",           // macOS Chromium
             "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",    // Windows
             "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" // Windows 32-bit
         };
