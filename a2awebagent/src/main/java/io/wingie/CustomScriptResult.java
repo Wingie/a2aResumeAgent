@@ -27,6 +27,20 @@ public class CustomScriptResult {
         screenshots.add(screenshot);
     }
 
+    public void addScreenshot(String path, String base64) {
+        try {
+            byte[] screenshotBytes = Base64.getDecoder().decode(base64);
+            screenshots.add(screenshotBytes);
+            data.add("Screenshot saved: " + path);
+        } catch (Exception e) {
+            data.add("Failed to process screenshot: " + e.getMessage());
+        }
+    }
+
+    public void addData(String text) {
+        data.add(text);
+    }
+
     public String getLastScreenshotAsBase64() {
         if (screenshots.isEmpty()) {
             return "No screenshot available";

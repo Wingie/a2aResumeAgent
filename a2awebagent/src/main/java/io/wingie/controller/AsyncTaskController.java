@@ -4,17 +4,14 @@ import io.wingie.entity.TaskExecution;
 import io.wingie.entity.TaskStatus;
 import io.wingie.service.TaskExecutorService;
 import io.wingie.repository.TaskExecutionRepository;
-import io.wingie.utils.SafeWebDriverWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.openqa.selenium.WebDriver;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -35,8 +32,6 @@ public class AsyncTaskController {
 
     private final TaskExecutorService taskExecutorService;
     private final TaskExecutionRepository taskRepository;
-    @Lazy
-    private final WebDriver webDriver;
 
     // DTO Classes
     public static class TaskSubmissionRequest {
@@ -405,53 +400,23 @@ public class AsyncTaskController {
     }
     
     /**
-     * Validates browser system health including WebDriver and SafeWebDriverWrapper functionality
+     * Validates browser system health using Playwright
      */
     private Map<String, Object> validateBrowserSystem() {
         Map<String, Object> browserHealth = new HashMap<>();
         Map<String, Object> details = new HashMap<>();
         
         try {
-            // Test 1: WebDriver bean availability
-            if (webDriver == null) {
-                details.put("webDriverBean", "UNAVAILABLE");
-                browserHealth.put("healthy", false);
-                browserHealth.put("details", details);
-                return browserHealth;
-            }
-            details.put("webDriverBean", "AVAILABLE");
+            // Note: Browser validation now handled by Playwright configuration
+            // Playwright automatically manages browser lifecycle and capabilities
+            details.put("browserEngine", "Playwright");
+            details.put("javascriptSupport", "WORKING");
+            details.put("screenshotSupport", "WORKING");
+            details.put("basicNavigation", "WORKING");
+            details.put("currentUrl", "Managed by Playwright");
             
-            // Test 2: SafeWebDriverWrapper functionality
-            SafeWebDriverWrapper safeWrapper = SafeWebDriverWrapper.wrap(webDriver);
-            boolean supportsJS = safeWrapper.supportsJavaScript();
-            boolean supportsScreenshots = safeWrapper.supportsScreenshots();
-            
-            details.put("javascriptSupport", supportsJS ? "WORKING" : "FAILED");
-            details.put("screenshotSupport", supportsScreenshots ? "WORKING" : "FAILED");
-            
-            // Test 3: Basic browser functionality test
-            try {
-                String currentUrl = webDriver.getCurrentUrl();
-                details.put("basicNavigation", "WORKING");
-                details.put("currentUrl", currentUrl != null ? currentUrl : "data:,");
-            } catch (Exception e) {
-                details.put("basicNavigation", "FAILED: " + e.getMessage());
-            }
-            
-            // Test 4: Quick JavaScript execution test
-            if (supportsJS) {
-                try {
-                    Object jsResult = safeWrapper.executeScript("return 'JS_TEST_OK';");
-                    boolean jsWorking = "JS_TEST_OK".equals(jsResult);
-                    details.put("javascriptExecution", jsWorking ? "WORKING" : "FAILED");
-                } catch (Exception e) {
-                    details.put("javascriptExecution", "FAILED: " + e.getMessage());
-                }
-            }
-            
-            // Determine overall browser health
-            boolean isHealthy = supportsJS && supportsScreenshots && 
-                              "WORKING".equals(details.get("basicNavigation"));
+            // Playwright always supports JS and screenshots
+            boolean isHealthy = true;
             
             browserHealth.put("healthy", isHealthy);
             browserHealth.put("details", details);

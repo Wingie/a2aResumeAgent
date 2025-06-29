@@ -115,11 +115,13 @@ app:
     uploads: /app/uploads
     cleanup-older-than: 7d
   
-  selenium:
-    timeout: 30s
+  playwright:
+    timeout: 30000
     headless: true
-    window-size: "1920,1080"
-    cache-dir: /app/seleniumCache
+    viewport:
+      width: 1920
+      height: 1080
+    cache-dir: /app/playwrightCache
   
   async:
     enabled: true

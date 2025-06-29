@@ -1,41 +1,9 @@
 # syntax=docker/dockerfile:1
-FROM openjdk:18-jdk-slim
+FROM mcr.microsoft.com/playwright/java:v1.51.0-noble
 
-# Install system dependencies for Chrome and build tools
+# Install build tools (Maven is needed for compilation)
 RUN apt-get update && apt-get install -y \
-    curl unzip gnupg wget tar maven \
-    fonts-liberation \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libatspi2.0-0 \
-    libcups2 \
-    libdbus-1-3 \
-    libdrm2 \
-    libgbm1 \
-    libgtk-3-0 \
-    libnspr4 \
-    libnss3 \
-    libwayland-client0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxkbcommon0 \
-    libxrandr2 \
-    xdg-utils \
-    libu2f-udev \
-    libvulkan1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Chromium and xvfb for headless display (ARM64 compatible)
-RUN apt-get update && \
-    apt-get install -y chromium chromium-driver xvfb x11-utils \
-    # Add additional browser dependencies
-    ca-certificates \
-    fontconfig \
-    libappindicator3-1 \
-    libgconf-2-4 \
-    libxss1 \
+    curl maven \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -55,20 +23,20 @@ COPY src/ ./src/
 RUN --mount=type=cache,target=/root/.m2 \
     mvn clean package -DskipTests -B
 
-# Create required directories
-RUN mkdir -p /app/screenshots /app/logs /app/seleniumCache /app/resolutionCache /app/uploads && \
+# Create required directories (remove seleniumCache, add playwrightCache)
+RUN mkdir -p /app/screenshots /app/logs /app/playwrightCache /app/resolutionCache /app/uploads && \
     chmod -R 777 /app
 
 # Verify the JAR was built
 RUN ls -la target/ && \
     test -f target/a2awebagent-0.0.1.jar
 
-# Create a non-root user for security
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
+# Check what user exists in Playwright image and use it
+RUN id && ls -la /home/ && \
+    chown -R $(id -u):$(id -g) /app 2>/dev/null || true
 
-# Switch to non-root user
-USER appuser
+# Use the existing pwuser that comes with Playwright image
+USER pwuser
 
 # Expose port
 EXPOSE 7860
@@ -91,18 +59,18 @@ ENV JAVA_OPTS="-Xmx1g -Xms512m -XX:+UseG1GC -XX:+UseContainerSupport \
 --add-exports java.base/sun.net.util=ALL-UNNAMED \
 --add-exports java.desktop/sun.awt=ALL-UNNAMED"
 
-# Copy entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
+# Copy Playwright-optimized entrypoint script
+COPY entrypoint-playwright.sh /app/entrypoint.sh
 
 # Make entrypoint executable
 USER root
 RUN chmod +x /app/entrypoint.sh && \
     mkdir -p /tmp/.X11-unix && \
     chmod 1777 /tmp/.X11-unix && \
-    chown -R appuser:appuser /app
+    chown -R pwuser:pwuser /app 2>/dev/null || chown -R $(id -u pwuser):$(id -g pwuser) /app
 
 # Switch back to non-root user
-USER appuser
+USER pwuser
 
 # Start the application
 ENTRYPOINT ["/app/entrypoint.sh"]

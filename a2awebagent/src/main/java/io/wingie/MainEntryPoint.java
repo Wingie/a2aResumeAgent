@@ -1,7 +1,7 @@
 package io.wingie;
 
 import io.github.vishalmysore.a2a.domain.JsonRpcRequest;
-
+import io.wingie.playwright.PlaywrightTaskController;
 import io.github.vishalmysore.a2a.server.A2ATaskController;
 import io.github.vishalmysore.common.server.SpringAwareJSONRpcController;
 import lombok.extern.java.Log;
@@ -19,7 +19,7 @@ public class MainEntryPoint extends SpringAwareJSONRpcController {
     private static final Logger log = Logger.getLogger(MainEntryPoint.class.getName());
 
     @Autowired
-    SeleniumTaskController seleniumTaskController;
+    PlaywrightTaskController playwrightTaskController;
 
     @Autowired
     public MainEntryPoint(ApplicationContext applicationContext) {
@@ -43,6 +43,6 @@ public class MainEntryPoint extends SpringAwareJSONRpcController {
 
     @Override
     public A2ATaskController getTaskController() {
-        return seleniumTaskController;
+        return playwrightTaskController;
     }
 }
