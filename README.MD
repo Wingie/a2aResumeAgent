@@ -1,6 +1,55 @@
-# a2aResumeAgent - AI-Powered Professional Showcase & MCP Framework
+# a2aTravelAgent - AI-Powered Travel Research with Local Tools4AI Framework
 
-This repository contains a sophisticated AI-powered professional showcase system that demonstrates advanced web automation, MCP protocol implementation, and intelligent resume capabilities:
+This repository showcases a personal demo - its a versatile system that you can use for a lot of things.
+
+- **Native Tools4AI Classe Integration**: Complete framework studied and recreated locally under `io.wingie.a2acore.tools4ai.*` from https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/transform
+- **Java 17+ Compatibility**: Resolved JAXB and modern Java runtime issues
+
+![Tools4AI Framework](Tools4AI/tools4ai.png)
+
+This technical achievement demonstrates advanced Java/Spring Boot expertise, strategic architecture decisions, and the ability to take ownership of complex dependencies rather than relying on external libraries.
+
+## 🏗️ Framework Recreation Architecture
+
+### **The Local Tools4AI Achievement**
+
+
+
+#### **After: Local Framework**
+```
+a2awebagent/
+├── a2acore/                          # 🎯 LOCAL TOOLS4AI FRAMEWORK
+│   └── src/main/java/io/wingie/a2acore/tools4ai/
+│       ├── JsonUtils.java            # JSON processing utilities
+│       ├── annotations/              # @Prompt, @Action, @Parameter
+│       ├── predict/                  # AI prediction capabilities  
+│       ├── processor/                # Core processing engine
+│       ├── transform/                # Data transformation
+│       └── [132 total classes]       # Complete framework recreation
+│
+└── a2awebapp/                        # APPLICATION USING LOCAL FRAMEWORK
+    ├── Application.java              # @EnableA2ACore integration
+    ├── PlaywrightProcessor.java      # Web automation interface
+    └── [64 application classes]      # Travel research application
+```
+
+#### **Technical Sanity**
+
+![Build Success](Tools4AI/compiler.PNG)
+
+### **Framework Integration Architecture**
+
+
+```java
+// a2awebapp/Application.java
+@SpringBootApplication
+@EnableA2ACore  // Activates local Tools4AI framework
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
 
 ## 📁 Project Structure
 
@@ -9,21 +58,21 @@ This repository contains a sophisticated AI-powered professional showcase system
 - **Structure**: Multi-module Maven project with:
   - **a2acore/**: Fast MCP framework library (replaces heavy a2ajava dependency)
   - **a2awebapp/**: Spring Boot application with Playwright automation
-- **Purpose**: Professional resume showcase, web automation, and AI integration
-- **Key Features**: LinkedIn search, project expertise display, web browsing with screenshots, PostgreSQL/Redis caching
+- **Purpose**: AI-powered travel research and web automation with locally controlled Tools4AI framework
+- **Key Features**: Travel research automation, flight/hotel search, web browsing with screenshots, PostgreSQL/Redis caching, complete framework recreation
 
 ## 🎯 Project Purpose
 
 This project serves as:
-- A **comprehensive professional resume** with interactive AI capabilities
-- A **technical portfolio demonstration** of advanced web automation
-- An **educational MCP protocol implementation** showcase  
-- A **production-ready framework** for AI-powered agents
-- A **personal showcase tool** highlighting development expertise
-
-**⚠️ Important**: For the resume showcase and professional demonstration, run the **a2awebagent** project (multi-module structure).
+- A **sophisticated travel research agent** with comprehensive automation capabilities
+- A **framework recreation showcase** demonstrating advanced dependency management
+- A **technical achievement demonstration** of Tools4AI local integration
+- A **production-ready MCP protocol implementation** for AI-powerlayered agents  
+- A **good base for red teaming attack vectors at architecture example** of taking control over external dependencies
 
 ![Agent Interface](agent.png)
+
+![Claude Integration](claude.png)
 
 ## 🏗️ Architecture Overview
 
@@ -40,7 +89,7 @@ The system is built using a modern multi-module Spring Boot architecture with en
 - **Annotations**: @EnableA2ACore, @Action, @Parameter
 - **Performance**: Fast-starting replacement for heavy a2ajava library
 
-#### **a2awebapp Application** (Professional Showcase)
+#### **a2awebapp Application** (Demo Showcase)
 - **Application.java**: Spring Boot main class with @EnableA2ACore
 - **PlaywrightProcessor**: Modern web automation interface using Microsoft Playwright
 - **CachedMCPToolsController**: Performance optimization bridge between a2acore and PostgreSQL
