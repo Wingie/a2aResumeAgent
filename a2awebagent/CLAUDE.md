@@ -6,7 +6,7 @@ a2aTravelAgent/
 ├── a2ajava/              # Maven Library (A2A/MCP protocols)
 │   └── io.github.vishalmysore.*
 └── a2awebagent/          # Multi-module Spring Boot App
-    ├── a2acore/          # Fast MCP Framework Library
+    ├── a2acore/          # (NEW) Fast MCP Framework Library
     │   └── io.wingie.a2acore.*
     └── a2awebapp/        # Web Automation Application  
         └── io.wingie.*
