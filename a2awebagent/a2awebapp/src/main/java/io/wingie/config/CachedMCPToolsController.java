@@ -12,6 +12,7 @@ import io.github.vishalmysore.mcp.server.MCPToolsController;
 import io.wingie.service.ToolDescriptionCacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,7 @@ import java.util.*;
  */
 @Component
 @Primary
+@ConditionalOnProperty(name = "app.mcp.legacy.enabled", havingValue = "true", matchIfMissing = false)
 @Slf4j
 public class CachedMCPToolsController extends MCPToolsController {
     
