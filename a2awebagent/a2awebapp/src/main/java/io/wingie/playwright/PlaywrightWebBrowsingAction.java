@@ -7,8 +7,7 @@ import com.microsoft.playwright.options.LoadState;
 import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
-import com.t4a.processor.AIProcessingException;
-import com.t4a.processor.AIProcessor;
+// AI processing imports removed - using a2acore annotations instead
 import io.wingie.CustomScriptResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +31,7 @@ public class PlaywrightWebBrowsingAction {
     @Autowired
     private BrowserContext playwrightContext;
 
-    @Autowired(required = false)
-    private AIProcessor aiProcessor;
+    // AI processor removed - using static annotations instead
 
     @Action(description = "perform actions on the web with Playwright and return text", name = "browseWebAndReturnText")
     public String browseWebAndReturnText(@Parameter(description = "Natural language description of web browsing steps to perform") String webBrowsingSteps) {
@@ -75,20 +73,8 @@ public class PlaywrightWebBrowsingAction {
             page = playwrightContext.newPage();
             log.info("Created new Playwright page");
 
-            if (aiProcessor != null) {
-                // Use AI processor to break down steps
-                String separatedSteps = aiProcessor.query(
-                    "Separate the web browsing steps into individual steps just give me steps without any additional text or bracket. " +
-                    "MOST IMP - 1) make sure each step can be processed by Playwright browse, " +
-                    "2) urls should always start with http or https, " +
-                    "3) Do not give steps such as 'open the browser' as i am using headless browser {" + webBrowsingSteps + "}"
-                );
-                
-                log.info("AI-processed steps: {}", separatedSteps);
-                
-                // Execute each step
-                executeIndividualSteps(page, separatedSteps, result);
-            } else {
+            // Execute steps directly without AI processing (using static tool descriptions)
+            {
                 // Fallback: execute directly if no AI processor
                 log.warn("No AI processor available, executing steps directly");
                 executeDirectSteps(page, webBrowsingSteps, result);

@@ -68,40 +68,7 @@
             <version>2.3.0</version>
         </dependency>
         
-        <!-- Tools4AI for enhanced AI integration -->
-        <dependency>
-            <groupId>io.github.vishalmysore</groupId>
-            <artifactId>tools4ai-annotations</artifactId>
-            <version>0.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.vishalmysore</groupId>
-            <artifactId>tools4ai</artifactId>
-            <version>1.1.6.2</version>
-            <exclusions>
-                <!-- Exclude Selenium from tools4ai to prevent conflicts -->
-                <exclusion>
-                    <groupId>org.seleniumhq.selenium</groupId>
-                    <artifactId>selenium-java</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.seleniumhq.selenium</groupId>
-                    <artifactId>selenium-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.seleniumhq.selenium</groupId>
-                    <artifactId>selenium-chrome-driver</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.seleniumhq.selenium</groupId>
-                    <artifactId>selenium-support</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.seleniumhq.selenium</groupId>
-                    <artifactId>selenium-remote-driver</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        <!-- Tools4AI dependencies removed - using a2acore internal annotations instead -->
 
         <!-- Lombok for code generation -->
         <dependency>

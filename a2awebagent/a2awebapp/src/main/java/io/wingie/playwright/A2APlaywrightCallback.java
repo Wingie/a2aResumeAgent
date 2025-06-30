@@ -3,8 +3,8 @@ package io.wingie.playwright;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
-import com.t4a.processor.AIProcessingException;
-import com.t4a.processor.AIProcessor;
+import io.wingie.a2acore.tools4ai.processor.AIProcessingException;
+import io.wingie.a2acore.tools4ai.processor.AIProcessor;
 import io.wingie.CustomScriptResult;
 import lombok.extern.slf4j.Slf4j;
 

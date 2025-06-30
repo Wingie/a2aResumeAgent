@@ -1,0 +1,25 @@
+package io.wingie.a2acore.tools4ai.processor.selenium;
+
+public enum WebDriverAction {
+    GET,
+    FINDELEMENT,
+    FINDELEMENTS,
+    CLICK,
+    SENDKEYS,
+    CLEAR,
+    SUBMIT,
+    GETTEXT,
+    ISDISPLAYED,
+    ISENABLED,
+    ISSELECTED,
+    GETATTRIBUTE,
+    SWITCHTO,
+    SELECTBYVISIBLETEXT,
+    SELECTBYVALUE,
+    SELECTBYINDEX,
+    NAVIGATE,
+    TAKESCREENSHOT;
+
+
+}
+

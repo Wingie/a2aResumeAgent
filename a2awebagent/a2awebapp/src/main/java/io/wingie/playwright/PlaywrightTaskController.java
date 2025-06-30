@@ -2,21 +2,23 @@ package io.wingie.playwright;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
-import com.t4a.processor.scripts.BaseScriptProcessor;
-import io.github.vishalmysore.a2a.server.DyanamicTaskContoller;
+import io.wingie.a2acore.tools4ai.processor.scripts.BaseScriptProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
  * Playwright-based task controller
- * Provides intelligent web automation task management using Microsoft Playwright
+ * DISABLED: Legacy controller that depends on external a2ajava library
+ * Web automation functionality is provided by PlaywrightWebBrowsingAction
  */
 @Service
 @Lazy
-public class PlaywrightTaskController extends DyanamicTaskContoller {
+@ConditionalOnProperty(name = "app.playwright.legacy-task-controller.enabled", havingValue = "true", matchIfMissing = false)
+public class PlaywrightTaskController {
     private static final Logger logger = LoggerFactory.getLogger(PlaywrightTaskController.class);
     
     private BaseScriptProcessor baseScriptProcessor;
@@ -64,7 +66,6 @@ public class PlaywrightTaskController extends DyanamicTaskContoller {
         }
     }
 
-    @Override
     public BaseScriptProcessor getScriptProcessor() {
         try {
             initializePlaywrightIfNeeded();

@@ -2,14 +2,8 @@ package io.wingie.playwright;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.Page;
-import com.t4a.JsonUtils;
-import com.t4a.processor.AIProcessingException;
-import com.t4a.processor.AIProcessor;
-import com.t4a.transform.PromptTransformer;
-import com.microsoft.playwright.options.LoadState;
-
-import java.nio.file.Paths;
+import io.wingie.a2acore.tools4ai.JsonUtils;
+import io.wingie.a2acore.tools4ai.processor.AIProcessingException;
 
 /**
  * Playwright processor interface for web automation
@@ -17,91 +11,23 @@ import java.nio.file.Paths;
  */
 public interface PlaywrightProcessor {
 
+    // Legacy methods commented out - no longer used with a2acore framework
+    // The actual web automation is handled by PlaywrightWebBrowsingAction service
+    // These methods were dependent on PromptTransformer which is no longer available
+    
+    /*
     public default void processWebAction(String prompt) throws AIProcessingException {
-        PlaywrightActions actions = (PlaywrightActions) getTransformer().transformIntoPojo(prompt, PlaywrightActions.class);
-        String act = actions.getTypeOfActionToTakeOnBrowser().toUpperCase();
-        Browser browser = getBrowser();
-        BrowserContext context = getContext();
-
-        Page page;
-        if (context.pages().isEmpty()) {
-            page = context.newPage();
-        } else {
-            page = context.pages().get(0);
-        }
-
-        try {
-            switch (act) {
-                case "GET":
-                case "NAVIGATE":
-                    String url = getStringFromPrompt(prompt, "urlToClick");
-                    if (url == null || url.isEmpty()) {
-                        break;
-                    } else {
-                        URLSafety safe = (URLSafety) getTransformer().transformIntoPojo("Is this URL safe to navigate? "+url, URLSafety.class);
-                        if (!safe.isItSafeAndValid()) {
-                            throw new AIProcessingException("The URL is not safe to navigate: {" + url+ "}");
-                        }
-                        page.navigate(url);
-                        page.waitForLoadState(LoadState.NETWORKIDLE);
-                        break;
-                    }
-
-                case "CLICK":
-                    page.waitForLoadState(LoadState.NETWORKIDLE);
-                    String clickText = getStringFromPrompt(prompt, "textOfElementToClick");
-                    page.getByText(clickText).click();
-                    page.waitForLoadState(LoadState.NETWORKIDLE);
-                    break;
-
-                case "TYPETEXT":
-                    page.waitForLoadState(LoadState.NETWORKIDLE);
-                    String selectorToType = getStringFromPrompt(prompt, "selectorToTypeInto");
-                    String textToType = getStringFromPrompt(prompt, "textToType");
-                    page.locator(selectorToType).fill(textToType);
-                    break;
-
-                case "TAKESCREENSHOT":
-                    page.waitForLoadState(LoadState.NETWORKIDLE);
-                    String fileName = getStringFromPrompt(prompt, "fileNameToSaveScreenshot");
-                    page.screenshot(new Page.ScreenshotOptions()
-                            .setPath(Paths.get(fileName)));
-                    break;
-
-                case "WAITFOR":
-                    String selectorToWait = getStringFromPrompt(prompt, "selectorToWaitFor");
-                    page.waitForSelector(selectorToWait);
-                    break;
-
-                case "EXTRACTTEXT":
-                    page.waitForLoadState(LoadState.NETWORKIDLE);
-                    String selectorToExtract = getStringFromPrompt(prompt, "selectorToExtractTextFrom");
-                    String extractedText = page.locator(selectorToExtract).textContent();
-                    System.out.println("Extracted Text: " + extractedText);
-                    break;
-
-                case "SCROLLTO":
-                    String scrollSelector = getStringFromPrompt(prompt, "selectorToScrollTo");
-                    page.locator(scrollSelector).scrollIntoViewIfNeeded();
-                    break;
-
-                case "CLOSE":
-                    page.close();
-                    break;
-
-                default:
-                    break;
-            }
-        } catch (Exception e) {
-            throw new AIProcessingException("Failed to perform action [" + act + "]: " + e.getMessage());
-        }
+        // This method is no longer used - web automation is handled by 
+        // PlaywrightWebBrowsingAction service with a2acore annotations
+        throw new AIProcessingException("processWebAction is deprecated - use PlaywrightWebBrowsingAction service");
     }
 
     public default String getStringFromPrompt(String prompt, String key) throws AIProcessingException {
-        String urlOfTheWebPage = getTransformer().transformIntoJson(getUtils().createJson(key).toString(), prompt);
-        urlOfTheWebPage = getUtils().getFieldValue(urlOfTheWebPage, key);
-        return urlOfTheWebPage;
+        // This method is no longer used - direct JSON processing is handled
+        // by a2acore framework
+        throw new AIProcessingException("getStringFromPrompt is deprecated - use a2acore JsonUtils");
     }
+    */
 
     boolean trueFalseQuery(String question) throws AIProcessingException;
 
@@ -109,9 +35,5 @@ public interface PlaywrightProcessor {
 
     JsonUtils getUtils();
 
-    PromptTransformer getTransformer();
-
     BrowserContext getContext();
-
-    AIProcessor getActionProcessor();
 }

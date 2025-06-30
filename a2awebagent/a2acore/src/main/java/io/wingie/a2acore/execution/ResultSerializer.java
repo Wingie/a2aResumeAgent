@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.wingie.a2acore.domain.Content;
 import io.wingie.a2acore.domain.ImageContent;
 import io.wingie.a2acore.domain.TextContent;
+import io.wingie.a2acore.domain.ToolCallResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -33,55 +34,55 @@ public class ResultSerializer {
     }
     
     /**
-     * Serializes a tool execution result to MCP format.
+     * Serializes a tool execution result to MCP-compatible ToolCallResult format.
      * 
      * @param result The raw result from method execution
-     * @return Serialized result ready for MCP response
+     * @return ToolCallResult wrapped for Claude Desktop compatibility
      */
-    public Object serialize(Object result) {
+    public ToolCallResult serialize(Object result) {
         if (result == null) {
-            return TextContent.of("Tool executed successfully with no output");
+            return ToolCallResult.success(TextContent.of("Tool executed successfully with no output"));
         }
         
         try {
             // Handle MCP Content types directly
             if (result instanceof Content) {
-                return result;
+                return ToolCallResult.success((Content) result);
             }
             
             // Handle basic types
             if (result instanceof String) {
-                return serializeString((String) result);
+                return ToolCallResult.success(serializeString((String) result));
             }
             
             if (result instanceof Number || result instanceof Boolean) {
-                return TextContent.of(result.toString());
+                return ToolCallResult.success(TextContent.of(result.toString()));
             }
             
             // Handle collections and maps
             if (result instanceof List || result instanceof Map) {
-                return serializeStructuredData(result);
+                return ToolCallResult.success(serializeStructuredData(result));
             }
             
             // Handle byte arrays (potential images)
             if (result instanceof byte[]) {
-                return serializeByteArray((byte[]) result);
+                return ToolCallResult.success(serializeByteArray((byte[]) result));
             }
             
             // Handle custom objects
-            return serializeObject(result);
+            return ToolCallResult.success(serializeObject(result));
             
         } catch (Exception e) {
             log.error("Failed to serialize result of type {}", 
                 result.getClass().getSimpleName(), e);
-            return TextContent.of("Error serializing result: " + e.getMessage());
+            return ToolCallResult.error("Error serializing result: " + e.getMessage());
         }
     }
     
     /**
      * Serializes string results, detecting base64 images.
      */
-    private Object serializeString(String result) {
+    private Content serializeString(String result) {
         // Check if it looks like a base64 encoded image
         if (isBase64Image(result)) {
             String mimeType = detectImageMimeType(result);
@@ -95,7 +96,7 @@ public class ResultSerializer {
     /**
      * Serializes structured data (Lists, Maps) to JSON text.
      */
-    private Object serializeStructuredData(Object result) {
+    private Content serializeStructuredData(Object result) {
         try {
             String jsonString = objectMapper.writeValueAsString(result);
             
@@ -115,7 +116,7 @@ public class ResultSerializer {
     /**
      * Serializes byte arrays, typically as base64 images.
      */
-    private Object serializeByteArray(byte[] bytes) {
+    private Content serializeByteArray(byte[] bytes) {
         try {
             // Convert to base64
             String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
@@ -132,7 +133,7 @@ public class ResultSerializer {
     /**
      * Serializes custom objects using Jackson.
      */
-    private Object serializeObject(Object result) {
+    private Content serializeObject(Object result) {
         try {
             // First try to convert to a simple string representation
             String stringRepresentation = result.toString();

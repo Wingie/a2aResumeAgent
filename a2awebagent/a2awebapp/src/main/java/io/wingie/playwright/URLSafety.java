@@ -1,13 +1,13 @@
 package io.wingie.playwright;
 
-import com.t4a.annotations.Prompt;
+import io.wingie.a2acore.tools4ai.annotations.Prompt;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
  * URL Safety validation for web navigation
- * Based on the a2aPlaywrightReference implementation
+ * Data model for URL safety checks with AI prompt annotation
  */
 @Data
 @AllArgsConstructor

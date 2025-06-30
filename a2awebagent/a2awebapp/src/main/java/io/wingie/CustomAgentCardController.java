@@ -1,44 +1,44 @@
 package io.wingie;
 
-import io.github.vishalmysore.a2a.domain.AgentCard;
-import io.github.vishalmysore.a2a.server.RealTimeAgentCardController;
-import io.github.vishalmysore.a2a.server.SpringAwareAgentCardController;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Custom agent card controller - disabled by default
+ * The a2ajava dependency has been removed, so this provides a simple replacement
+ */
 @RestController
-@RequestMapping(RealTimeAgentCardController.WELL_KNOWN_PATH)
+@RequestMapping("/v1/agent")
 @Slf4j
-public class CustomAgentCardController extends SpringAwareAgentCardController {
+@ConditionalOnProperty(name = "app.agent-card.enabled", havingValue = "true", matchIfMissing = false)
+public class CustomAgentCardController {
 
-    @Autowired
-    public CustomAgentCardController(ApplicationContext context) {
-        super(context);
+    public CustomAgentCardController() {
+        // Simple constructor - no dependencies needed
     }
 
-    @GetMapping(value = RealTimeAgentCardController.AGENT_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AgentCard> getAgentCardForMyApp() {
-
-        AgentCard card = getCachedAgentCard();
-        card.getCapabilities().setStreaming(true);
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> getAgentCardForMyApp() {
         
-        // Update card with resume information for Wingston Sharon
-        card.setName("Wingston Sharon - Web Automation Agent");
-        card.setDescription("AI-powered web automation agent by Wingston Sharon. " +
+        Map<String, Object> agentInfo = new HashMap<>();
+        agentInfo.put("name", "Wingston Sharon - Web Automation Agent");
+        agentInfo.put("description", "AI-powered web automation agent by Wingston Sharon. " +
             "Seeking exciting opportunities in enterprise AI and Machine Learning. " +
-            "Specializes in web automation, AI research (Red Teaming and Existential Risk)," + 
-            "and working with enterprise grade intelligent self learning agent systems at scale." +
+            "Specializes in web automation, AI research (Red Teaming and Existential Risk), " + 
+            "and working with enterprise grade intelligent self learning agent systems at scale. " +
             "Connect with me on LinkedIn: https://www.linkedin.com/in/wingstonsharon/");
+        agentInfo.put("version", "0.0.1");
+        agentInfo.put("capabilities", Map.of("streaming", true, "web_automation", true));
         
-        log.info(card.getUrl());
-        return ResponseEntity.ok(card);
-
+        log.info("Agent card requested: {}", agentInfo.get("name"));
+        return ResponseEntity.ok(agentInfo);
     }
-
 }
