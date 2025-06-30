@@ -1,5 +1,6 @@
 package io.wingie.controller;
 
+import io.wingie.dto.TaskExecutionDTO;
 import io.wingie.entity.TaskExecution;
 import io.wingie.entity.TaskStatus;
 import io.wingie.repository.TaskExecutionRepository;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -105,8 +107,12 @@ public class AgentDashboardController {
 
     @GetMapping("/agents/api/active")
     @ResponseBody
-    public List<TaskExecution> getActiveTasksApi() {
-        return taskRepository.findActiveTasks();
+    public List<TaskExecutionDTO> getActiveTasksApi() {
+        // Use DTO-safe method to avoid lazy loading issues
+        return taskRepository.findActiveTasksForSSE()
+                .stream()
+                .map(TaskExecutionDTO::fromEntityMinimal)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/agents/api/recent")
@@ -142,12 +148,17 @@ public class AgentDashboardController {
             log.debug("SSE client error. Remaining clients: {}", emitters.size());
         });
         
-        // Send initial data
+        // Send initial data using DTOs to avoid lazy loading issues
         try {
+            List<TaskExecutionDTO> activeTaskDTOs = taskRepository.findActiveTasksForSSE()
+                    .stream()
+                    .map(TaskExecutionDTO::fromEntityMinimal)
+                    .collect(Collectors.toList());
+            
             Map<String, Object> initialData = Map.of(
                 "type", "initial",
                 "stats", getSystemStats(),
-                "activeTasks", taskRepository.findActiveTasks()
+                "activeTasks", activeTaskDTOs
             );
             emitter.send(SseEmitter.event().name("dashboard-update").data(initialData));
         } catch (Exception e) {
@@ -204,10 +215,16 @@ public class AgentDashboardController {
         }
         
         try {
+            // Use DTOs to avoid lazy loading issues in SSE
+            List<TaskExecutionDTO> activeTaskDTOs = taskRepository.findActiveTasksForSSE()
+                    .stream()
+                    .map(TaskExecutionDTO::fromEntityMinimal)
+                    .collect(Collectors.toList());
+            
             Map<String, Object> updateData = Map.of(
                 "type", "update",
                 "stats", getSystemStats(),
-                "activeTasks", taskRepository.findActiveTasks(),
+                "activeTasks", activeTaskDTOs,
                 "timestamp", LocalDateTime.now()
             );
             

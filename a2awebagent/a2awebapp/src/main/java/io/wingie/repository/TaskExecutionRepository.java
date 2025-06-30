@@ -94,4 +94,37 @@ public interface TaskExecutionRepository extends JpaRepository<TaskExecution, St
     @Query("SELECT MIN(t.actualDurationSeconds), MAX(t.actualDurationSeconds), AVG(t.actualDurationSeconds) " +
            "FROM TaskExecution t WHERE t.status = 'COMPLETED' AND t.created >= :startDate")
     List<Object[]> getDurationStatistics(@Param("startDate") LocalDateTime startDate);
+    
+    // DTO-optimized queries for SSE endpoints (avoiding lazy loading issues)
+    
+    // Find active tasks without loading screenshots collection
+    @Query("SELECT t FROM TaskExecution t WHERE t.status IN ('QUEUED', 'RUNNING') ORDER BY t.created ASC")
+    List<TaskExecution> findActiveTasksForSSE();
+    
+    // Find recent tasks for dashboard without screenshots (for performance)
+    @Query("SELECT t FROM TaskExecution t ORDER BY t.created DESC")
+    Page<TaskExecution> findRecentTasksForDashboard(Pageable pageable);
+    
+    // Find task with eagerly loaded screenshots for details view
+    @Query("SELECT t FROM TaskExecution t LEFT JOIN FETCH t.screenshots WHERE t.taskId = :taskId")
+    Optional<TaskExecution> findByIdWithScreenshots(@Param("taskId") String taskId);
+    
+    // Count screenshots for a task without loading the collection
+    @Query("SELECT SIZE(t.screenshots) FROM TaskExecution t WHERE t.taskId = :taskId")
+    Optional<Integer> countScreenshotsForTask(@Param("taskId") String taskId);
+    
+    // Find tasks with screenshot count for list views
+    @Query("SELECT t.taskId, t.status, t.taskType, t.originalQuery, t.progressMessage, t.progressPercent, " +
+           "t.created, t.updated, t.startedAt, t.completedAt, t.requesterId, t.actualDurationSeconds, " +
+           "t.retryCount, SIZE(t.screenshots) as screenshotCount " +
+           "FROM TaskExecution t WHERE t.status IN ('QUEUED', 'RUNNING') ORDER BY t.created ASC")
+    List<Object[]> findActiveTasksWithScreenshotCount();
+    
+    // Statistics query optimized for SSE (no screenshots loading)
+    @Query("SELECT COUNT(t) FROM TaskExecution t WHERE t.status = :status")
+    long countByStatusForSSE(@Param("status") TaskStatus status);
+    
+    // Find latest tasks for SSE without screenshots
+    @Query("SELECT t FROM TaskExecution t WHERE t.updated >= :sinceTime ORDER BY t.updated DESC")
+    List<TaskExecution> findRecentlyUpdatedTasks(@Param("sinceTime") LocalDateTime sinceTime);
 }

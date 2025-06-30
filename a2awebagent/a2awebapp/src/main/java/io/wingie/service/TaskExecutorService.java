@@ -1,5 +1,6 @@
 package io.wingie.service;
 
+import io.wingie.dto.TaskExecutionDTO;
 import io.wingie.entity.TaskExecution;
 import io.wingie.entity.TaskStatus;
 import io.wingie.repository.TaskExecutionRepository;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -342,6 +344,38 @@ public class TaskExecutorService {
 
     private double getAverageExecutionTime() {
         return taskRepository.getAverageDurationForTaskType("travel_search").orElse(0.0);
+    }
+
+    // DTO mapping methods for safe API responses
+    
+    /**
+     * Get active tasks as DTOs to avoid lazy loading issues
+     */
+    public List<TaskExecutionDTO> getActiveTasksAsDTO() {
+        return taskRepository.findActiveTasksForSSE()
+                .stream()
+                .map(TaskExecutionDTO::fromEntityMinimal)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get task by ID as DTO with screenshots if available
+     */
+    public TaskExecutionDTO getTaskByIdAsDTO(String taskId) {
+        return taskRepository.findByIdWithScreenshots(taskId)
+                .map(TaskExecutionDTO::fromEntity)
+                .orElse(null);
+    }
+    
+    /**
+     * Get recent tasks as DTOs for dashboard
+     */
+    public List<TaskExecutionDTO> getRecentTasksAsDTO(int limit) {
+        return taskRepository.findRecentlyUpdatedTasks(LocalDateTime.now().minusHours(1))
+                .stream()
+                .limit(limit)
+                .map(TaskExecutionDTO::fromEntityMinimal)
+                .collect(Collectors.toList());
     }
 
     // Custom exceptions

@@ -118,11 +118,17 @@ class A2aCoreIntegrationTest {
         request.setName("testTool");
         request.setArguments(Map.of("provideAllValuesInPlainEnglish", "test input"));
         
-        ResponseEntity<Object> response = mockController.callTool(request);
+        ResponseEntity<JsonRpcResponse> response = mockController.callTool(request);
         
-        // Should handle gracefully even if tool doesn't exist
+        // Should handle gracefully and return proper JSON-RPC response
         assertNotNull(response);
-        assertTrue(response.getStatusCode().is4xxClientError() || response.getStatusCode().is2xxSuccessful());
+        assertTrue(response.getStatusCode().is2xxSuccessful());
+        
+        JsonRpcResponse jsonRpcResponse = response.getBody();
+        assertNotNull(jsonRpcResponse);
+        assertEquals("2.0", jsonRpcResponse.getJsonrpc());
+        assertNotNull(jsonRpcResponse.getId());
+        assertTrue(jsonRpcResponse.isSuccess());
     }
     
     @Test
@@ -220,10 +226,11 @@ class A2aCoreIntegrationTest {
         }
         
         @Override
-        public ResponseEntity<Object> callTool(ToolCallRequest toolCallRequest) {
+        public ResponseEntity<JsonRpcResponse> callTool(ToolCallRequest toolCallRequest) {
             // Mock tool call response
             if ("testTool".equals(toolCallRequest.getName())) {
-                return ResponseEntity.ok(TextContent.of("Mock tool response"));
+                JsonRpcResponse response = JsonRpcResponse.success("test", TextContent.of("Mock tool response"));
+                return ResponseEntity.ok(response);
             } else {
                 JsonRpcResponse error = JsonRpcResponse.error("test", 
                     JsonRpcError.toolNotFound(toolCallRequest.getName()));

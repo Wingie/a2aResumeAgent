@@ -137,10 +137,10 @@ public class A2aCoreController {
     @PostMapping(value = "/tools/call", 
                  consumes = MediaType.APPLICATION_JSON_VALUE,
                  produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> callTool(@RequestBody ToolCallRequest toolCallRequest) {
+    public ResponseEntity<JsonRpcResponse> callTool(@RequestBody ToolCallRequest toolCallRequest) {
         if (!initialized) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(JsonRpcResponse.error("service-unavailable", "A2ACore not initialized"));
+                .body(JsonRpcResponse.error("call-tool", "A2ACore not initialized"));
         }
         
         try {
@@ -151,7 +151,7 @@ public class A2aCoreController {
             JsonRpcResponse response = jsonRpcHandler.handleCallTool(jsonRpcRequest);
             
             if (response.isSuccess()) {
-                return ResponseEntity.ok(response.getResult());
+                return ResponseEntity.ok(response);
             } else {
                 // Return error with appropriate HTTP status
                 HttpStatus httpStatus = mapJsonRpcErrorToHttpStatus(response.getError());
