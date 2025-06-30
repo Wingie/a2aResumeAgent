@@ -1,6 +1,0 @@
-[submodule "a2ajava"]
-	path = a2ajava
-	url = git@github.com:vishalmysore/a2ajava.git
-[submodule "a2aPlaywright"]
-	path = a2aPlaywright
-	url = https://github.com/vishalmysore/a2aPlaywright

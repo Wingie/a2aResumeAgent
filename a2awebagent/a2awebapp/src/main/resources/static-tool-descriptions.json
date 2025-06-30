@@ -1,0 +1,10 @@
+{
+  "askTasteBeforeYouWaste": "Answers food-related questions to help reduce waste by suggesting creative ways to use ingredients, recipes for leftovers, or food storage/preservation advice",
+  "getTasteBeforeYouWasteScreenshot": "Captures a screenshot of the 'Taste Before You Waste' application interface to show the current state of the food waste prevention app",
+  "searchLinkedInProfile": "Searches and analyzes LinkedIn profiles to extract professional information, connections, and career details for networking and recruitment purposes",
+  "searchHelloWorld": "Basic search demonstration functionality that provides a simple example of how search operations work within the system",
+  "browseWebAndReturnText": "Automated web browsing that navigates to specified URLs, interacts with web pages, and extracts text content for analysis and processing",
+  "browseWebAndReturnImage": "Automated web browsing that navigates to specified URLs, captures screenshots or images from web pages, and returns visual content",
+  "takeCurrentPageScreenshot": "Captures a screenshot of the currently loaded web page, useful for documentation, debugging, or visual verification of web automation tasks",
+  "getWingstonsProjectsExpertiseResume": "Provides comprehensive information about professional projects, technical expertise, skills, and experience portfolio for career and collaboration purposes"
+}

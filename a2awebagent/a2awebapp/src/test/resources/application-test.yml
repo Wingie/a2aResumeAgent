@@ -1,0 +1,61 @@
+spring:
+  
+  # PostgreSQL database for testing (via Docker)
+  datasource:
+    url: jdbc:postgresql://localhost:5432/a2awebagent
+    driver-class-name: org.postgresql.Driver
+    username: agent
+    password: agent123
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+# Disable ALL auto-configurations that might cause conflicts in test environment
+spring.autoconfigure.exclude:
+  - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.neo4j.Neo4jDataAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.neo4j.Neo4jRepositoriesAutoConfiguration
+  # Also exclude the reactive Neo4j repositories
+  - org.springframework.boot.autoconfigure.data.neo4j.Neo4jReactiveDataAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.neo4j.Neo4jReactiveRepositoriesAutoConfiguration
+
+server:
+  port: 0  # Random port for testing
+
+logging:
+  level:
+    root: INFO
+    io.wingie: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.springframework.data: DEBUG
+    # Suppress repository configuration warnings in tests
+    org.springframework.data.repository.config.RepositoryConfigurationDelegate: WARN
+
+# Application configuration for testing
+app:
+  storage:
+    screenshots: ./test-screenshots
+    uploads: ./test-uploads
+  
+  playwright:
+    timeout: 10000
+    headless: true
+    
+  async:
+    enabled: false  # Disable async for simpler testing
+    max-concurrent-tasks: 1
+
+# Playwright Configuration for testing
+playwright:
+  enabled: true
+  headless: true
+  retry:
+    attempts: 1    # Fewer retries in tests
+    delay: 1000    # Shorter delay for tests

@@ -9,17 +9,20 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy Maven configuration first (for better layer caching)
+# Copy Maven configuration for multi-module setup
 COPY pom.xml .
+COPY a2acore/pom.xml ./a2acore/
+COPY a2awebapp/pom.xml ./a2awebapp/
 
 # Download dependencies with BuildKit cache mount for faster builds
 RUN --mount=type=cache,target=/root/.m2 \
     mvn dependency:go-offline -B
 
-# Copy source code
-COPY src/ ./src/
+# Copy all source code for multi-module build
+COPY a2acore/src/ ./a2acore/src/
+COPY a2awebapp/src/ ./a2awebapp/src/
 
-# Build the application with BuildKit cache mount
+# Build the application with BuildKit cache mount (skip tests for Docker)
 RUN --mount=type=cache,target=/root/.m2 \
     mvn clean package -DskipTests -B
 
@@ -27,9 +30,9 @@ RUN --mount=type=cache,target=/root/.m2 \
 RUN mkdir -p /app/screenshots /app/logs /app/playwrightCache /app/resolutionCache /app/uploads && \
     chmod -R 777 /app
 
-# Verify the JAR was built
-RUN ls -la target/ && \
-    test -f target/a2awebagent-0.0.1.jar
+# Verify the JAR was built (now in a2awebapp/target/)
+RUN ls -la a2awebapp/target/ && \
+    test -f a2awebapp/target/a2awebapp-0.0.1.jar
 
 # Check what user exists in Playwright image and use it
 RUN id && ls -la /home/ && \

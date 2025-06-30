@@ -326,3 +326,7 @@ java -Dloader.path=/path/to/conf -jar a2aPlaywright-0.2.3.jar
   * Make precise edits
   * Verify that the code change has the desired effect
   * Ensure no unintended negative consequences occur
+
+## Development Memories
+
+- When testing things, you should do a down and build of just that one container: `docker-compose down a2awebagent && docker-compose up --build a2awebagent -d`

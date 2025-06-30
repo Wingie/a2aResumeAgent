@@ -34,7 +34,7 @@ fi
 
 # Test Playwright browser availability
 echo "Testing Playwright browser capabilities..."
-java -cp /app/target/a2awebagent-0.0.1.jar \
+java -cp /app/a2awebapp/target/a2awebapp-0.0.1.jar \
     -Dloader.main=com.microsoft.playwright.CLI \
     org.springframework.boot.loader.launch.PropertiesLauncher \
     --version 2>/dev/null && echo "  Playwright CLI: AVAILABLE" || echo "  Playwright CLI: NOT AVAILABLE"
@@ -51,7 +51,7 @@ export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 # Application startup
 echo "=========================================="
 echo "Starting Spring Boot application..."
-echo "JAR file: /app/target/a2awebagent-0.0.1.jar"
+echo "JAR file: /app/a2awebapp/target/a2awebapp-0.0.1.jar"
 echo "JVM Options: $JAVA_OPTS"
 echo "=========================================="
 
@@ -67,4 +67,4 @@ exec java \
   --add-opens java.desktop/java.awt=ALL-UNNAMED \
   --add-exports java.base/jdk.internal.ref=ALL-UNNAMED \
   --add-exports java.base/sun.security.util=ALL-UNNAMED \
-  -jar /app/target/a2awebagent-0.0.1.jar
+  -jar /app/a2awebapp/target/a2awebapp-0.0.1.jar

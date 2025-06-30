@@ -1,0 +1,188 @@
+package io.wingie;
+
+import io.github.vishalmysore.mcp.server.MCPToolsController;
+import io.wingie.service.ToolDescriptionCacheService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
+
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.*;
+
+/**
+ * Integration test to verify that the Spring Boot exclusion strategy successfully
+ * prevents dual MCPController instantiation and ensures only the cached version runs.
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = {
+    "app.mcp.custom.enabled=true",
+    "app.mcp.cache.enabled=true",
+    "logging.level.io.wingie.MCPController=DEBUG",
+    "logging.level.io.github.vishalmysore.mcp.server=WARN",
+    "spring.jpa.hibernate.ddl-auto=create-drop"
+})
+class MCPControllerExclusionTest {
+
+    @Autowired
+    private ApplicationContext context;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private ToolDescriptionCacheService cacheService;
+
+    @Test
+    void shouldHaveOnlyOneMCPController() {
+        // Verify only one MCPController bean exists in the application context
+        Map<String, MCPToolsController> controllers = 
+            context.getBeansOfType(MCPToolsController.class);
+        
+        assertThat(controllers)
+            .as("Should have exactly one MCPController bean")
+            .hasSize(1);
+        
+        // Verify it's our custom cached controller, not the library version
+        MCPToolsController controller = controllers.values().iterator().next();
+        assertThat(controller)
+            .as("Should be instance of our custom MCPController")
+            .isInstanceOf(io.wingie.MCPController.class);
+        
+        // Verify the bean has the correct qualifier name
+        String beanName = controllers.keySet().iterator().next();
+        assertThat(beanName)
+            .as("Bean should have 'cachedMCPController' qualifier or be the MCPController")
+            .satisfiesAnyOf(
+                name -> assertThat(name).isEqualTo("cachedMCPController"),
+                name -> assertThat(name).isEqualTo("MCPController")
+            );
+    }
+    
+    @Test
+    void shouldNotHaveLibraryMCPController() {
+        // Verify the library MCPToolsController is NOT instantiated
+        // This test confirms our exclusion filter is working
+        assertThatThrownBy(() -> 
+            context.getBean("MCPToolsController", io.github.vishalmysore.mcp.server.MCPToolsController.class))
+            .as("Library MCPToolsController should not be instantiated")
+            .isInstanceOf(NoSuchBeanDefinitionException.class);
+    }
+    
+    @Test
+    void shouldHaveCachedMCPControllerQualifier() {
+        // Verify we can retrieve the controller by our custom qualifier
+        MCPController controller = context.getBean("cachedMCPController", MCPController.class);
+        
+        assertThat(controller)
+            .as("Should be able to retrieve controller by qualifier")
+            .isNotNull()
+            .isInstanceOf(MCPController.class);
+    }
+    
+    @Test
+    void shouldUseCachedMCPControllerInMainEntryPoint() {
+        // Verify MainEntryPoint is using our qualified controller
+        MainEntryPoint mainEntryPoint = context.getBean(MainEntryPoint.class);
+        
+        assertThat(mainEntryPoint)
+            .as("MainEntryPoint should be present")
+            .isNotNull();
+        
+        // Verify the MCP controller returned is our cached version
+        MCPToolsController mcpController = mainEntryPoint.getMCPToolsController();
+        assertThat(mcpController)
+            .as("MainEntryPoint should return our cached MCPController")
+            .isNotNull()
+            .isInstanceOf(MCPController.class);
+    }
+    
+    @Test
+    void shouldRespondToMCPEndpoints() {
+        // Test that our cached controller responds to MCP endpoints correctly
+        ResponseEntity<String> response = restTemplate.getForEntity(
+            "http://localhost:" + port + "/v1/tools", String.class);
+        
+        assertThat(response.getStatusCode())
+            .as("MCP tools endpoint should respond successfully")
+            .isEqualTo(HttpStatus.OK);
+        
+        assertThat(response.getBody())
+            .as("Response should contain WingstonTravelAgent server name")
+            .contains("tools");
+    }
+    
+    @Test
+    void shouldHaveWorkingCacheService() {
+        // Verify the cache service is properly autowired and functional
+        assertThat(cacheService)
+            .as("Cache service should be autowired")
+            .isNotNull();
+        
+        String currentModel = cacheService.getCurrentProviderModel();
+        assertThat(currentModel)
+            .as("Cache service should return valid model name")
+            .isNotNull()
+            .isNotEmpty();
+    }
+    
+    @Test
+    void shouldHaveCorrectServerConfiguration() {
+        // Test that our custom controller has the correct server configuration
+        MCPController controller = context.getBean("cachedMCPController", MCPController.class);
+        
+        // Verify server name is set correctly (from constructor)
+        assertThat(controller.getServerName())
+            .as("Server name should be set to WingstonTravelAgent")
+            .isEqualTo("WingstonTravelAgent");
+        
+        assertThat(controller.getVersion())
+            .as("Version should be set correctly")
+            .isEqualTo("1.0.0");
+        
+        assertThat(controller.getProtocolVersion())
+            .as("Protocol version should be set correctly")
+            .isEqualTo("2024-11-05");
+    }
+    
+    @Test
+    void shouldHaveDebugLoggingEnabled() {
+        // Verify logging configuration is applied correctly
+        // This test ensures our debugging setup is working
+        
+        // Get all MCP-related beans
+        Map<String, MCPToolsController> mcpBeans = context.getBeansOfType(MCPToolsController.class);
+        
+        assertThat(mcpBeans)
+            .as("Should have MCP controller beans for logging verification")
+            .isNotEmpty();
+        
+        // Verify no library controllers are present (they would log warnings)
+        mcpBeans.values().forEach(controller -> {
+            assertThat(controller.getClass().getName())
+                .as("All MCP controllers should be from io.wingie package")
+                .startsWith("io.wingie");
+        });
+    }
+    
+    @Test
+    void shouldHandleConditionalConfiguration() {
+        // Test that conditional properties are working
+        // Verify our controller is created when custom.enabled=true
+        
+        MCPController controller = context.getBean(MCPController.class);
+        assertThat(controller)
+            .as("Custom controller should be created when enabled")
+            .isNotNull();
+    }
+}
