@@ -38,4 +38,5 @@ build/
 a2awebagent/src/main/resources/tools4ai.properties
 a2ajava/src/test/resources/tools4ai.properties
 .DS_Store
+.env
 config.yaml
