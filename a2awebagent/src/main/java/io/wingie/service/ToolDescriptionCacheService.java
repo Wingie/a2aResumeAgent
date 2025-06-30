@@ -32,7 +32,7 @@ public class ToolDescriptionCacheService {
     /**
      * Get cached tool description or return null if not found
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, transactionManager = "transactionManager")
     public Optional<ToolDescription> getCachedDescription(String providerModel, String toolName) {
         log.debug("🔍 Checking cache for provider: {}, tool: {}", providerModel, toolName);
         
@@ -52,7 +52,7 @@ public class ToolDescriptionCacheService {
     /**
      * Cache a newly generated tool description
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public ToolDescription cacheDescription(String providerModel, String toolName, 
                                           String description, String parametersInfo, 
                                           String toolProperties, Long generationTimeMs) {
@@ -78,7 +78,7 @@ public class ToolDescriptionCacheService {
     /**
      * Update usage statistics for a cached description
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public void updateUsageStats(ToolDescription description) {
         try {
             repository.incrementUsageCount(description.getId(), LocalDateTime.now());
@@ -97,7 +97,7 @@ public class ToolDescriptionCacheService {
     /**
      * Check if description exists in cache
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, transactionManager = "transactionManager")
     public boolean isDescriptionCached(String providerModel, String toolName) {
         return repository.existsByProviderModelAndToolName(providerModel, toolName);
     }
@@ -105,7 +105,7 @@ public class ToolDescriptionCacheService {
     /**
      * Get all descriptions for current provider
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, transactionManager = "transactionManager")
     public List<ToolDescription> getCurrentProviderDescriptions() {
         return repository.findByProviderModel(getCurrentProviderModel());
     }
@@ -113,7 +113,7 @@ public class ToolDescriptionCacheService {
     /**
      * Get provider comparison statistics
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, transactionManager = "transactionManager")
     public List<Object[]> getProviderStatistics() {
         return repository.getProviderStatistics();
     }
@@ -121,7 +121,7 @@ public class ToolDescriptionCacheService {
     /**
      * Get cache effectiveness report
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, transactionManager = "transactionManager")
     public String getCacheReport() {
         long totalDescriptions = repository.countTotalDescriptions();
         List<Object[]> providerCounts = repository.countByProvider();
@@ -156,7 +156,7 @@ public class ToolDescriptionCacheService {
     /**
      * Get cached response by cache key (for CachingAIProcessor)
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, transactionManager = "transactionManager")
     public String getCachedResponse(String cacheKey) {
         log.debug("Checking cache for key: {}", cacheKey);
         
@@ -176,7 +176,7 @@ public class ToolDescriptionCacheService {
     /**
      * Cache response by cache key (for CachingAIProcessor)
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public ToolDescription cacheResponse(String cacheKey, String response, long generationTimeMs) {
         log.info("Caching response for key: {} (generated in {}ms)", cacheKey, generationTimeMs);
 
@@ -202,7 +202,7 @@ public class ToolDescriptionCacheService {
     /**
      * Clear cache by model name (for cache management)
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public void clearCacheByModel(String modelName) {
         try {
             repository.deleteByProviderModel(modelName);
@@ -215,7 +215,7 @@ public class ToolDescriptionCacheService {
     /**
      * Clear cache by tool name pattern (for cache management)
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public void clearCacheByToolPattern(String toolNamePattern) {
         try {
             repository.deleteByToolNameContaining(toolNamePattern);
@@ -228,7 +228,7 @@ public class ToolDescriptionCacheService {
     /**
      * Clean up old descriptions (optional maintenance)
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public void cleanupOldDescriptions(int daysOld) {
         LocalDateTime cutoff = LocalDateTime.now().minusDays(daysOld);
         try {

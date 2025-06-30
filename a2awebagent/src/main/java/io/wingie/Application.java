@@ -4,10 +4,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.PropertySource;
 // TODO: Add @EnableAgent annotation once tools4ai-annotations dependency is available
 
 import io.github.vishalmysore.tools4ai.EnableAgent;
 
+@PropertySource("classpath:tools4ai.properties")
 @SpringBootApplication
 @EnableAgent
 @ComponentScan(excludeFilters = {
