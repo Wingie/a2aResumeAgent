@@ -6,3 +6,6 @@ docker-compose build up -d
 
 # testing for example browser working
 docker exec a2awebagent mvn test -Dtest=BrowserSystemHealthTest
+
+# always use to rebuild
+docker-compose --profile admin down && docker-compose up --build -profile admin

@@ -24,10 +24,15 @@ public class MainEntryPoint extends SpringAwareJSONRpcController {
 
     @Autowired
     PlaywrightTaskController playwrightTaskController;
+    
+    @Autowired 
+    MCPController customMCPController;
 
     @Autowired
     public MainEntryPoint(ApplicationContext applicationContext) {
         super(applicationContext);
+        // Replace the default MCPToolsController with our cached version
+        setMcpToolsController(customMCPController);
     }
 
     @GetMapping
