@@ -33,16 +33,16 @@ public class MainEntryPoint extends JsonRpcController {
 
     @Autowired
     public MainEntryPoint(ApplicationContext applicationContext, MCPController customMCPController) {
-        // Don't call super() to avoid default MCPToolsController creation
-        // Instead, manually initialize what we need
-        PredictionLoader.getInstance(applicationContext);
-        this.dynamicTaskController = new DyanamicTaskContoller();
+        // Call parent constructor with ApplicationContext
+        super(applicationContext);
+        
+        // Replace the default MCPToolsController with our cached version
         this.customMCPController = customMCPController;
+        super.setMcpToolsController(customMCPController);
         
-        // Initialize our custom controller (this will use PostgreSQL caching)
-        customMCPController.init();
+        this.dynamicTaskController = new DyanamicTaskContoller();
         
-        log.info("MainEntryPoint initialized with cached MCPController");
+        log.info("MainEntryPoint initialized with cached MCPController replacing default");
     }
 
     @GetMapping

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Tool Description Cache Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        .nav-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .nav-links a {
+            display: inline-block;
+            margin: 0 15px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-card.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .metric-card.success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+        
+        .metric-card.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .metric-card h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .metric-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .metric-card .unit {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .tools-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .tools-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tools-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .tools-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tools-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .tools-table tr:hover {
+            background: #e3f2fd;
+            transition: background 0.3s ease;
+        }
+        
+        .usage-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .usage-high { background: #4caf50; }
+        .usage-medium { background: #ff9800; }
+        .usage-low { background: #f44336; }
+        .usage-none { background: #9e9e9e; }
+        
+        .generation-time {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .generation-fast { color: #4caf50; }
+        .generation-medium { color: #ff9800; }
+        .generation-slow { color: #f44336; }
+        
+        .model-info {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .model-info strong {
+            color: #333;
+            font-size: 1.1em;
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+        
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .highlight-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+        }
+        
+        .highlight-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ PostgreSQL Tool Cache Dashboard</h1>
+            <p class="subtitle">Phase 1 Success: Incremental AI Tool Description Caching</p>
+        </div>
+        
+        <div class="nav-links">
+            <a href="/agents">📊 Agent Dashboard</a>
+            <a href="/startup">🚀 Startup Status</a>
+            <a href="/api/cache/descriptions">📋 Raw Cache API</a>
+            <a href="/api/cache/report">📈 Cache Report</a>
+        </div>
+        
+        <div th:if="${error}" class="error-message">
+            ⚠️ <span th:text="${error}">Error loading cache data</span>
+        </div>
+        
+        <div class="model-info">
+            <strong>Current AI Model:</strong> 
+            <span th:text="${currentModel ?: 'Unknown'}">google/gemma-3n-e4b-it:free</span>
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card primary">
+                <h3>🎯 Total Cached Tools</h3>
+                <div class="value" th:text="${metrics?.totalTools ?: 0}">0</div>
+                <div class="unit">tools in cache</div>
+            </div>
+            
+            <div class="metric-card success">
+                <h3>⚡ Avg Generation Time</h3>
+                <div class="value" th:text="${metrics?.averageGenerationTime ?: 0}">0</div>
+                <div class="unit">milliseconds</div>
+            </div>
+            
+            <div class="metric-card warning">
+                <h3>📈 Total Usage Count</h3>
+                <div class="value" th:text="${metrics?.totalUsage ?: 0}">0</div>
+                <div class="unit">cache hits</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>🎯 Cache Efficiency</h3>
+                <div class="value" th:text="${metrics?.cacheEfficiency ?: 0}">0</div>
+                <div class="unit">avg uses per tool</div>
+            </div>
+        </div>
+        
+        <div th:if="${metrics?.fastestTool}" class="highlight-card">
+            <h4>🚀 Performance Highlights</h4>
+            <p><strong>Fastest Generation:</strong> 
+                <span th:text="${metrics.fastestTool.toolName}">tool</span> 
+                (<span th:text="${metrics.fastestTool.generationTimeMs}">0</span>ms)
+            </p>
+            <p><strong>Most Used Tool:</strong> 
+                <span th:text="${metrics.mostUsedTool?.toolName ?: 'None'}">tool</span> 
+                (<span th:text="${metrics.mostUsedTool?.usageCount ?: 0}">0</span> uses)
+            </p>
+        </div>
+        
+        <div class="tools-section">
+            <h2 class="section-title">🔧 Cached Tool Descriptions</h2>
+            
+            <div th:if="${descriptions == null or descriptions.isEmpty()}" style="text-align: center; padding: 40px; color: #666;">
+                <h3>📭 No cached tools found</h3>
+                <p>Tools will appear here after the first successful generation.</p>
+            </div>
+            
+            <table th:if="${descriptions != null and !descriptions.isEmpty()}" class="tools-table">
+                <thead>
+                    <tr>
+                        <th>🔧 Tool Name</th>
+                        <th>⏱️ Generation Time</th>
+                        <th>📊 Usage Count</th>
+                        <th>📅 Created</th>
+                        <th>🤖 Model</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="tool : ${descriptions}">
+                        <td>
+                            <strong th:text="${tool.toolName}">Tool Name</strong>
+                        </td>
+                        <td>
+                            <span th:if="${tool.generationTimeMs != null}" 
+                                  th:class="'generation-time ' + 
+                                           (${tool.generationTimeMs < 20000} ? 'generation-fast' : 
+                                            ${tool.generationTimeMs < 35000} ? 'generation-medium' : 'generation-slow')"
+                                  th:text="${#numbers.formatDecimal(tool.generationTimeMs/1000.0, 1, 1)} + 's'">
+                                0.0s
+                            </span>
+                            <span th:unless="${tool.generationTimeMs != null}" class="generation-time">
+                                Unknown
+                            </span>
+                        </td>
+                        <td>
+                            <span th:class="'usage-badge ' + 
+                                           (${tool.usageCount > 3} ? 'usage-high' : 
+                                            ${tool.usageCount > 1} ? 'usage-medium' : 
+                                            ${tool.usageCount > 0} ? 'usage-low' : 'usage-none')"
+                                  th:text="${tool.usageCount}">
+                                0
+                            </span>
+                        </td>
+                        <td th:text="${#temporals.format(tool.createdAt, 'MMM dd, HH:mm')}">
+                            Date
+                        </td>
+                        <td>
+                            <small th:text="${tool.providerModel}">Model</small>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div th:if="${cacheReport}" class="highlight-card">
+            <h4>📊 Detailed Cache Report</h4>
+            <pre th:text="${cacheReport}" style="white-space: pre-wrap; font-family: monospace; font-size: 0.9em; line-height: 1.4;">
+                Cache report content
+            </pre>
+        </div>
+    </div>
+    
+    <button class="refresh-btn" onclick="location.reload()" title="Refresh Dashboard">
+        🔄
+    </button>
+    
+    <script>
+        // Auto-refresh every 30 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+        
+        // Add loading animation for refresh button
+        document.querySelector('.refresh-btn').addEventListener('click', function() {
+            this.style.animation = 'spin 1s linear infinite';
+        });
+        
+        // CSS animation for spin
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

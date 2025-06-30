@@ -366,7 +366,43 @@ public class MCPController extends MCPToolsController {
      * Get current model name for cache keys
      */
     private String getCurrentModelName() {
-        return cacheService.getCurrentProviderModel();
+        try {
+            // Get the actual model name being used by the AI processor
+            AIProcessor processor = PredictionLoader.getInstance().createOrGetAIProcessor();
+            String modelName = processor.getClass().getSimpleName();
+            
+            // Try to get the actual model name from tools4ai properties
+            Map<Object, Object> properties = PredictionLoader.getInstance().getTools4AIProperties();
+            String provider = (String) properties.get("agent.provider");
+            
+            if ("openrouter".equals(provider) || "openai".equals(provider)) {
+                String openAiModelName = (String) properties.get("openAiModelName");
+                if (openAiModelName != null && !openAiModelName.trim().isEmpty()) {
+                    log.debug("Using OpenRouter model for cache key: {}", openAiModelName);
+                    return openAiModelName;
+                }
+            } else if ("gemini".equals(provider)) {
+                String geminiModelName = (String) properties.get("gemini.modelName");
+                if (geminiModelName != null && !geminiModelName.trim().isEmpty()) {
+                    log.debug("Using Gemini model for cache key: {}", geminiModelName);
+                    return geminiModelName;
+                }
+            } else if ("anthropic".equals(provider) || "claude".equals(provider)) {
+                String claudeModelName = (String) properties.get("anthropic.modelName");
+                if (claudeModelName != null && !claudeModelName.trim().isEmpty()) {
+                    log.debug("Using Claude model for cache key: {}", claudeModelName);
+                    return claudeModelName;
+                }
+            }
+            
+            // Fallback to cache service default
+            log.debug("Using fallback model for cache key: {}", cacheService.getCurrentProviderModel());
+            return cacheService.getCurrentProviderModel();
+            
+        } catch (Exception e) {
+            log.warn("Failed to get current model name, using fallback: {}", e.getMessage());
+            return cacheService.getCurrentProviderModel();
+        }
     }
     
     /**

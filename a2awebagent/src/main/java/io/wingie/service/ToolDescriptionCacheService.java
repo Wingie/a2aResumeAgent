@@ -5,7 +5,9 @@ import io.wingie.repository.ToolDescriptionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -34,17 +36,20 @@ public class ToolDescriptionCacheService {
      */
     @Transactional(readOnly = true, transactionManager = "transactionManager")
     public Optional<ToolDescription> getCachedDescription(String providerModel, String toolName) {
-        log.debug("🔍 Checking cache for provider: {}, tool: {}", providerModel, toolName);
+        log.debug("Checking cache for provider: {}, tool: {}", providerModel, toolName);
         
-        Optional<ToolDescription> cached = repository.findByProviderModelAndToolName(providerModel, toolName);
-        
-        if (cached.isPresent()) {
-            log.info("✅ Cache HIT: {} - {} (used {} times)", providerModel, toolName, cached.get().getUsageCount());
-            // Update usage statistics
-            updateUsageStats(cached.get());
-            return cached;
-        } else {
-            log.info("❌ Cache MISS: {} - {}", providerModel, toolName);
+        try {
+            Optional<ToolDescription> cached = repository.findByProviderModelAndToolName(providerModel, toolName);
+            
+            if (cached.isPresent()) {
+                log.info("Cache HIT: {} - {} (used {} times)", providerModel, toolName, cached.get().getUsageCount());
+                return cached;
+            } else {
+                log.info("Cache MISS: {} - {}", providerModel, toolName);
+                return Optional.empty();
+            }
+        } catch (Exception e) {
+            log.warn("Cache lookup failed (non-critical): {}", e.getMessage());
             return Optional.empty();
         }
     }
@@ -84,6 +89,21 @@ public class ToolDescriptionCacheService {
             repository.incrementUsageCount(description.getId(), LocalDateTime.now());
         } catch (Exception e) {
             log.warn("Failed to update usage stats for {}: {}", description.getToolName(), e.getMessage());
+        }
+    }
+    
+    /**
+     * Update usage statistics asynchronously by ID (separate transaction)
+     * Uses REQUIRES_NEW to ensure it runs in a completely separate transaction
+     */
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW, transactionManager = "transactionManager")
+    public void updateUsageStatsAsync(Long descriptionId) {
+        try {
+            repository.incrementUsageCount(descriptionId, LocalDateTime.now());
+            log.debug("Updated usage stats for tool ID: {}", descriptionId);
+        } catch (Exception e) {
+            log.warn("Failed to update usage stats for ID {}: {}", descriptionId, e.getMessage());
         }
     }
 
@@ -160,15 +180,19 @@ public class ToolDescriptionCacheService {
     public String getCachedResponse(String cacheKey) {
         log.debug("Checking cache for key: {}", cacheKey);
         
-        Optional<ToolDescription> cached = repository.findByCacheKey(cacheKey);
-        
-        if (cached.isPresent()) {
-            log.info("Cache HIT for key: {} (used {} times)", cacheKey, cached.get().getUsageCount());
-            // Update usage statistics
-            updateUsageStats(cached.get());
-            return cached.get().getDescription();
-        } else {
-            log.info("Cache MISS for key: {}", cacheKey);
+        try {
+            Optional<ToolDescription> cached = repository.findByCacheKey(cacheKey);
+            
+            if (cached.isPresent()) {
+                log.info("Cache HIT for key: {} (used {} times)", cacheKey, cached.get().getUsageCount());
+                // Note: Usage stats update is done separately to avoid read-only transaction violations
+                return cached.get().getDescription();
+            } else {
+                log.info("Cache MISS for key: {}", cacheKey);
+                return null;
+            }
+        } catch (Exception e) {
+            log.warn("Cache lookup failed for key {} (non-critical): {}", cacheKey, e.getMessage());
             return null;
         }
     }
