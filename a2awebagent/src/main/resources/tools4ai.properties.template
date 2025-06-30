@@ -8,13 +8,13 @@
 anthropic.modelName=claude-3-haiku-20240307
 anthropic.logRequests=true
 anthropic.logResponse=true
-#set it here or use -DclaudeKey parameter
+#SECURITY: Set CLAUDE_API_KEY in .env file (docker reads it automatically)
 claudeKey=
 
 ##Mistral related settings
 mistral.modelName=mistral-large-latest
 mistral.baseURL=https://api.mistral.ai/v1
-#set it here or use -DmistralKey parameter
+#SECURITY: Set MISTRAL_API_KEY in .env file (docker reads it automatically)
 mistralKey=
 
 ##OpenRouter related settings (RECOMMENDED - supports many models with one API key)
@@ -25,8 +25,8 @@ openrouterKey=YOUR_OPENROUTER_API_KEY_HERE
 openrouter.fallback.modelName=openai/gpt-4o-mini
 
 ##Open AI configuration (configured to use OpenRouter by default)
-#set it here or use -DopenAiKey parameter
-openAiKey=YOUR_OPENROUTER_API_KEY_HERE
+#SECURITY: Set OPENROUTER_API_KEY in .env file (docker reads it automatically)
+openAiKey=
 ##Open AI Base URL - points to OpenRouter for compatibility
 openAiBaseURL=https://openrouter.ai/api/v1
 openAiModelName=deepseek/deepseek-r1-0528:free

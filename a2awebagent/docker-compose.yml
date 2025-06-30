@@ -17,16 +17,14 @@ services:
       - DATABASE_URL=jdbc:postgresql://postgres:5432/a2awebagent
       - REDIS_URL=redis://redis:6379
       - NEO4J_URI=bolt://neo4j:7687
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/application_default_credentials.json
       - DB_USER=${DB_USER:-agent}
       - DB_PASSWORD=${DB_PASSWORD:-agent123}
-      - JAVA_OPTS=-Xms512m -Xmx1g -DgeminiKey=${GEMINI_API_KEY} -DmistralKey=${MISTRAL_API_KEY}
+      - JAVA_OPTS=-Xms512m -Xmx1g -DgeminiKey=${GEMINI_API_KEY} -DmistralKey=${MISTRAL_API_KEY} -DopenAiKey=${OPENROUTER_API_KEY}
       - ENABLE_XVFB=true
     volumes:
       - "./screenshots:/app/screenshots"
       - "./logs:/app/logs"
       - "./data/uploads:/app/uploads"
-      - "./application_default_credentials.json:/app/credentials/application_default_credentials.json:ro"
     networks:
       - a2a-network
     restart: unless-stopped

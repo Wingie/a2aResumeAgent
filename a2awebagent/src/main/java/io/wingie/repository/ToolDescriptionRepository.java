@@ -83,4 +83,20 @@ public interface ToolDescriptionRepository extends JpaRepository<ToolDescription
      */
     @Query("SELECT t.providerModel, COUNT(t) FROM ToolDescription t GROUP BY t.providerModel")
     List<Object[]> countByProvider();
+    
+    /**
+     * Find cached description by cache key (for CachingAIProcessor)
+     */
+    @Query("SELECT t FROM ToolDescription t WHERE t.toolProperties = :cacheKey")
+    Optional<ToolDescription> findByCacheKey(@Param("cacheKey") String cacheKey);
+    
+    /**
+     * Delete by provider model (for cache management)
+     */
+    void deleteByProviderModel(String providerModel);
+    
+    /**
+     * Delete by tool name pattern (for cache management)
+     */
+    void deleteByToolNameContaining(String toolNamePattern);
 }

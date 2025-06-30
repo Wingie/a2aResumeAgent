@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    
+    <!-- Console appender with API key masking -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- Mask API keys in log messages using regex replacement -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%logger{36}] - %replace(%msg){
+                'openAiKey: (sk-[a-zA-Z0-9-]{20,})', 'openAiKey: sk-***MASKED***'
+            }%replace(){
+                'claudeKey: (sk-[a-zA-Z0-9-]{20,})', 'claudeKey: sk-***MASKED***'
+            }%replace(){
+                'mistralKey: ([a-zA-Z0-9]{20,})', 'mistralKey: ***MASKED***'
+            }%replace(){
+                'serperKey: ([a-zA-Z0-9]{20,})', 'serperKey: ***MASKED***'
+            }%replace(){
+                'openrouterKey: ([a-zA-Z0-9-]{20,})', 'openrouterKey: ***MASKED***'
+            }%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- File appender with API key masking -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/a2awebagent.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/a2awebagent.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- Same masking patterns for file output -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%logger{36}] - %replace(%msg){
+                'openAiKey: (sk-[a-zA-Z0-9-]{20,})', 'openAiKey: sk-***MASKED***'
+            }%replace(){
+                'claudeKey: (sk-[a-zA-Z0-9-]{20,})', 'claudeKey: sk-***MASKED***'
+            }%replace(){
+                'mistralKey: ([a-zA-Z0-9]{20,})', 'mistralKey: ***MASKED***'
+            }%replace(){
+                'serperKey: ([a-zA-Z0-9]{20,})', 'serperKey: ***MASKED***'
+            }%replace(){
+                'openrouterKey: ([a-zA-Z0-9-]{20,})', 'openrouterKey: ***MASKED***'
+            }%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- Root logger configuration -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </root>
+    
+    <!-- Application-specific loggers -->
+    <logger name="io.wingie" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </logger>
+    
+    <!-- Reduce verbosity from third-party libraries -->
+    <logger name="org.springframework" level="WARN" />
+    <logger name="org.hibernate" level="WARN" />
+    <logger name="com.zaxxer.hikari" level="WARN" />
+    <logger name="org.apache.http" level="WARN" />
+    
+    <!-- Enable detailed OpenRouter/OpenAI HTTP logging -->
+    <logger name="dev.langchain4j" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </logger>
+    <logger name="dev.ai4j.openai4j" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </logger>
+    <logger name="com.t4a.processor.OpenAiActionProcessor" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </logger>
+    
+    <!-- Enable HTTP client logging for detailed request/response -->
+    <logger name="org.apache.http.wire" level="DEBUG" />
+    <logger name="org.apache.http.headers" level="DEBUG" />
+    <logger name="okhttp3.OkHttpClient" level="DEBUG" />
+    <logger name="okhttp3.logging.HttpLoggingInterceptor" level="DEBUG" />
+    
+    <!-- Create logs directory if it doesn't exist -->
+    <mkdir dir="logs" />
+    
+</configuration>

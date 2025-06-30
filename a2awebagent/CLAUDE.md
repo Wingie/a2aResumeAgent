@@ -12,6 +12,27 @@ This file provides guidance to Claude Code when working with this repository.
 - Multi-provider AI integration (Gemini, OpenAI, Claude)
 - Enterprise-grade async task processing
 
+## Repository Structure & Development Guidelines
+
+### ⚠️ IMPORTANT: a2ajava Library Relationship
+
+**a2ajava folder is READ-ONLY for reference purposes only**
+
+- `/a2ajava/` - Published Maven library (io.github.vishalmysore:a2ajava:0.1.9.6) 
+- `/a2awebagent/` - **THIS PROJECT** - All modifications must be made here only
+
+**Development Rules:**
+- ✅ **DO**: Read a2ajava code for understanding library behavior
+- ✅ **DO**: Make all changes in a2awebagent project only  
+- ❌ **DON'T**: Edit any files in a2ajava/ directory
+- ❌ **DON'T**: Treat a2ajava as a local dependency
+
+**Why this separation exists:**
+- a2ajava is a published library on Maven Central
+- We use the published version via Maven dependency in pom.xml
+- Local a2ajava folder is for code reference and understanding only
+- Any customizations must be implemented via Spring Boot overrides in a2awebagent
+
 ## Quick Commands
 
 ### Development
@@ -99,10 +120,16 @@ gemini.projectId=your-project-id
 ```
 
 ### Environment Setup
-- **OpenRouter API Key**: Set via `export OPENROUTER_KEY=your_key` or `-DopenrouterKey=your_key`
-- **Gemini API Key**: Set via `export GEMINI_API_KEY=your_key` or `-DgeminiKey=your_key` (AI Studio, no GCP required)
-- **Mistral API Key**: Set via `export MISTRAL_API_KEY=your_key` or `-DmistralKey=your_key`
-- **No GCP Setup Required**: Fully migrated away from Vertex AI to direct API endpoints
+- **All API Keys**: Set in `.env` file (copy from `.env.template`)
+- **Docker**: Automatically reads `.env` file and passes keys as JVM system properties
+- **Local Development**: Use `-DopenAiKey=your_key` or `.env` file
+- **Security**: Keys never stored in code/config files, masked in logs by Logback
+
+```bash
+# Copy template and edit with your keys
+cp .env.template .env
+# Edit .env file with your API keys
+```
 
 ## Testing Strategy
 

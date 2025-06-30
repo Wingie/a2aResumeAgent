@@ -154,6 +154,78 @@ public class ToolDescriptionCacheService {
     }
 
     /**
+     * Get cached response by cache key (for CachingAIProcessor)
+     */
+    @Transactional(readOnly = true)
+    public String getCachedResponse(String cacheKey) {
+        log.debug("Checking cache for key: {}", cacheKey);
+        
+        Optional<ToolDescription> cached = repository.findByCacheKey(cacheKey);
+        
+        if (cached.isPresent()) {
+            log.info("Cache HIT for key: {} (used {} times)", cacheKey, cached.get().getUsageCount());
+            // Update usage statistics
+            updateUsageStats(cached.get());
+            return cached.get().getDescription();
+        } else {
+            log.info("Cache MISS for key: {}", cacheKey);
+            return null;
+        }
+    }
+    
+    /**
+     * Cache response by cache key (for CachingAIProcessor)
+     */
+    @Transactional
+    public ToolDescription cacheResponse(String cacheKey, String response, long generationTimeMs) {
+        log.info("Caching response for key: {} (generated in {}ms)", cacheKey, generationTimeMs);
+
+        ToolDescription toolDescription = new ToolDescription(
+            getCurrentProviderModel(), // providerModel
+            "ai-generated", // toolName (generic for cache key based)
+            response, // description
+            "", // parametersInfo
+            cacheKey, // use toolProperties field to store cache key
+            generationTimeMs
+        );
+
+        try {
+            ToolDescription saved = repository.save(toolDescription);
+            log.debug("Saved to PostgreSQL with ID: {}", saved.getId());
+            return saved;
+        } catch (Exception e) {
+            log.error("Failed to cache response for key {}: {}", cacheKey, e.getMessage());
+            return toolDescription; // Return unsaved entity
+        }
+    }
+    
+    /**
+     * Clear cache by model name (for cache management)
+     */
+    @Transactional
+    public void clearCacheByModel(String modelName) {
+        try {
+            repository.deleteByProviderModel(modelName);
+            log.info("Cleared cache for model: {}", modelName);
+        } catch (Exception e) {
+            log.error("Failed to clear cache for model {}: {}", modelName, e.getMessage());
+        }
+    }
+    
+    /**
+     * Clear cache by tool name pattern (for cache management)
+     */
+    @Transactional
+    public void clearCacheByToolPattern(String toolNamePattern) {
+        try {
+            repository.deleteByToolNameContaining(toolNamePattern);
+            log.info("Cleared cache for tool pattern: {}", toolNamePattern);
+        } catch (Exception e) {
+            log.error("Failed to clear cache for pattern {}: {}", toolNamePattern, e.getMessage());
+        }
+    }
+    
+    /**
      * Clean up old descriptions (optional maintenance)
      */
     @Transactional
@@ -161,7 +233,7 @@ public class ToolDescriptionCacheService {
         LocalDateTime cutoff = LocalDateTime.now().minusDays(daysOld);
         try {
             repository.deleteByCreatedAtBefore(cutoff);
-            log.info("🧹 Cleaned up tool descriptions older than {} days", daysOld);
+            log.info("Cleaned up tool descriptions older than {} days", daysOld);
         } catch (Exception e) {
             log.error("Failed to cleanup old descriptions: {}", e.getMessage());
         }
