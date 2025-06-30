@@ -1,380 +1,354 @@
-# a2aTravelAgent - JAVA  enterprise based AI-Powered Travel Research Agent & MCP Demo
+# a2aResumeAgent - AI-Powered Professional Showcase & MCP Framework
 
-This repository contains A SAMPLE MCP that demonstrate advanced AI integration and web automation capabilities:
+This repository contains a sophisticated AI-powered professional showcase system that demonstrates advanced web automation, MCP protocol implementation, and intelligent resume capabilities:
 
 ## 📁 Project Structure
 
-### 2. **a2awebagent** (Web Automation Engine) 
+### **a2awebagent** (Multi-Module Web Automation Engine) 
 - **Location**: `a2awebagent/` subdirectory
-- **Purpose**: Selenium-based web automation and travel research
-- **Key Features**: Web browsing, screenshot capture, data extraction, travel planning
+- **Structure**: Multi-module Maven project with:
+  - **a2acore/**: Fast MCP framework library (replaces heavy a2ajava dependency)
+  - **a2awebapp/**: Spring Boot application with Playwright automation
+- **Purpose**: Professional resume showcase, web automation, and AI integration
+- **Key Features**: LinkedIn search, project expertise display, web browsing with screenshots, PostgreSQL/Redis caching
 
 ## 🎯 Project Purpose
 
 This project serves as:
-- A technical portfolio demonstration of **AI-powered travel research**
-- An educational example of **MCP protocol implementation**  
-- A showcase of **advanced web automation capabilities**
-- A **personal resume tool** with interactive AI features
+- A **comprehensive professional resume** with interactive AI capabilities
+- A **technical portfolio demonstration** of advanced web automation
+- An **educational MCP protocol implementation** showcase  
+- A **production-ready framework** for AI-powered agents
+- A **personal showcase tool** highlighting development expertise
 
-**⚠️ Important**: For the resume example and testing, make sure you're running the **a2awebagent** project (not the main directory). 
+**⚠️ Important**: For the resume showcase and professional demonstration, run the **a2awebagent** project (multi-module structure).
 
 ![Agent Interface](agent.png)
 
-## Features
+## 🏗️ Architecture Overview
 
-- Web automation using Selenium WebDriver
-- Flexible deployment modes:
-  - Local A2A task execution
-  - Remote 8-Way server integration
-- Screenshot capture and validation
-- Multi-agent workflow support
-- Integration with other agents (e.g., Kafka, lock capture)
-
-## Architecture
-
-The system is built using Spring Boot and follows a modular architecture:
+The system is built using a modern multi-module Spring Boot architecture with enhanced performance optimization:
 
 ![Multiple Agent Architecture](multiple.png)
 
-### Components
+### Core Architecture Components
 
-1. **Web Browsing Agent**: Handles Selenium-based web automation
-2. **Agent Card Controller**: Manages agent capabilities and real-time communication
-3. **Selenium A2A Controller**: Processes JSON-RPC requests for web automation
-4. **Task Management**: Supports both local and remote task execution
+#### **a2acore Framework** (New Fast MCP Implementation)
+- **A2aCoreController**: Lightweight MCP JSON-RPC endpoint
+- **ToolDiscoveryService**: Auto-discovery of @Action annotated methods
+- **JsonRpcHandler**: Protocol message processing
+- **Annotations**: @EnableA2ACore, @Action, @Parameter
+- **Performance**: Fast-starting replacement for heavy a2ajava library
 
-## Getting Started
+#### **a2awebapp Application** (Professional Showcase)
+- **Application.java**: Spring Boot main class with @EnableA2ACore
+- **PlaywrightProcessor**: Modern web automation interface using Microsoft Playwright
+- **CachedMCPToolsController**: Performance optimization bridge between a2acore and PostgreSQL
+- **Professional Tools**: LinkedIn search, expertise showcase, screenshot utilities
+- **Caching Services**: PostgreSQL + Redis for tool descriptions and performance
+
+#### **Database & Caching Layer**
+- **PostgreSQL**: Tool description caching and persistent storage
+- **Redis**: High-performance session and data caching
+- **ToolDescriptionCacheService**: Intelligent caching bridge service
+- **Admin Interfaces**: 
+  - `/tools` page: Tool descriptions with tabular filtering by model/tool
+  - `/agents` page: Neo4j-logged tool invocations with async job tracking
+
+## 🚀 Professional Resume Features
+
+### **Core Resume Capabilities**
+- **`getWingstonsProjectsExpertiseResume`**: Comprehensive technical expertise showcase
+- **`searchLinkedInProfile`**: Professional profile search and analysis
+- **`browseWebAndReturnText`**: Intelligent web research and data extraction
+- **`browseWebAndReturnImage`**: Screenshot capture for visual documentation
+- **`askTasteBeforeYouWaste`**: Specialized food/restaurant research tool
+
+### **Web Automation Excellence**
+- **Microsoft Playwright**: Modern, reliable browser automation (replacing legacy Selenium)
+- **AI-Powered Error Recovery**: Self-healing automation with intelligent retry mechanisms
+- **Multi-Provider AI Support**: OpenAI, Gemini, Claude, Mistral integration
+- **URL Safety Validation**: Built-in security for safe web navigation
+- **Real-time WebSocket Updates**: Live progress tracking and notifications
+
+## 🔧 Serena Code Intelligence Integration
+
+### **Enhanced Development Workflow**
+This project features comprehensive **Serena tools integration** for professional code analysis:
+
+- **Indexed Files**: 13 Java source files with Eclipse JDT Language Server
+- **Symbol Navigation**: Fast lookup of classes, methods, and architectural patterns
+- **Code Analysis**: Intelligent understanding of Spring Boot MCP architecture
+- **Performance**: 8.40 files/second indexing with persistent cache
+
+### **Professional Development Capabilities**
+- **Architecture Visualization**: Component relationships and design patterns
+- **Code Navigation**: Cross-references and call graph analysis
+- **Documentation**: Automated insights for technical communication
+- **Quality Metrics**: Maintainability and complexity analysis
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Java 18 or higher
-- Maven
-- Chrome/Chromium browser
+- **Java 21+** (configured for modern development)
+- **Maven 3.8+**
+- **PostgreSQL** (for caching and persistence)
+- **Redis** (for high-performance caching)
+- **Chrome/Chromium** (for Playwright automation)
 
-### Installation
+### ✅ Quick Start (Professional Demo)
 
-1. Clone the repository
-2. Install dependencies:
+#### **Step 1: Build the Multi-Module Project**
 ```bash
-mvn install
+# Navigate to the web agent project
+cd a2awebagent
+
+# Build both modules (a2acore + a2awebapp)
+mvn clean compile
+
+# Run the professional showcase application
+mvn spring-boot:run -pl a2awebapp
 ```
 
-### ✅ Technical Implementation Validation
-
-This project demonstrates **production-ready** technical implementation:
-- ✅ **Advanced Spring Boot architecture** 
-- ✅ **MCP protocol implementation**
-- ✅ **AI integration capabilities**
-- ✅ **Web automation framework**
-- ✅ **Professional error handling**
-- ✅ **Proper dependency management**
-
-### 🔑 API Key Configuration (Required)
-
-**For anyone wanting to test this resume showcase project**, you'll need to provide your own API keys:
-
-#### Method 1: Environment Variables
+#### **Step 2: Database Setup (Required for Production Features)**
 ```bash
-# Standard OpenAI
+# PostgreSQL setup for tool caching
+createdb a2aresume
+
+# Redis setup for performance caching
+redis-server
+```
+
+### 🔑 API Key Configuration (Required for AI Features)
+
+**For professional demonstration and AI-powered features**, configure API keys:
+
+#### Method 1: Environment Variables (Recommended)
+```bash
+# Professional AI providers
 export OPENAI_API_KEY=sk-your-actual-key-here
 export CLAUDE_KEY=sk-ant-your-key-here  
 export GEMINI_KEY=your-gemini-key-here
-java -jar target/a2awebagent-0.0.1.jar
 
-# Mistral AI (Free Alternative) # But it cannot use a browser via Selenium
-export OPENAI_API_KEY=your-mistral-api-key
-export OPENAI_BASE_URL=https://api.mistral.ai/v1
-export OPENAI_MODEL_NAME=mistral-large-latest
-java -jar target/a2awebagent-0.0.1.jar
+# Launch the resume agent
+java -jar a2awebapp/target/a2awebapp-0.0.1.jar
 ```
 
-#### Method 2: JVM Arguments  
-```bash
-# Standard OpenAI
-java -DopenAiKey=sk-your-actual-key-here \
-     -DclaudeKey=sk-ant-your-key-here \
-     -DgeminiKey=your-gemini-key-here \
-     -jar target/a2awebagent-0.0.1.jar
-
-# Mistral AI (Free Alternative via Le Chat)
-java -DopenAiKey=your-mistral-api-key \
-     -DopenAiBaseURL=https://api.mistral.ai/v1 \
-     -DopenAiModelName=mistral-large-latest \
-     -Dagent.provider=openai \
-     -jar target/a2awebagent-0.0.1.jar
-```
-
-#### Method 3: Configuration Files (Recommended for Local Development)
-
-**📁 Project-Specific Configuration**: Both projects have their own `tools4ai.properties` files:
-
-- **Main Project**: `src/main/resources/tools4ai.properties`
-- **Web Agent**: `a2awebagent/src/main/resources/tools4ai.properties`
-
-Create or edit these files with your API keys:
+#### Method 2: Configuration Files (Development)
+Create `a2awebagent/a2awebapp/src/main/resources/tools4ai.properties`:
 
 ```properties
-##Gemini related settings (Recommended - Better AI understanding)
+##Gemini Configuration (Recommended for resume features)
 gemini.modelName=gemini-2.0-flash-001
 gemini.location=us-central1
 gemini.projectId=your-google-project-id
 geminiKey=your-gemini-api-key-here
 agent.provider=gemini
 
-##Anthropic related settings
-anthropic.modelName=claude-3-haiku-20240307
-claudeKey=sk-ant-your-claude-key-here
-
-##OpenAI Configuration
+##Professional AI Integration
 openAiKey=sk-your-openai-key-here
 openAiModelName=gpt-4o-mini
+claudeKey=sk-ant-your-claude-key-here
 
-##Mistral AI Configuration (Free Alternative)
-openAiKey=your-mistral-api-key-here
-openAiBaseURL=https://api.mistral.ai/v1
-openAiModelName=mistral-large-latest
-agent.provider=openai
-
-##Serper Key for google search
+##LinkedIn & Web Research
 serperKey=your-serper-key-here
 ```
 
-**🔐 Security Note**: These files are automatically ignored by git to protect your API keys.
+### 🤖 MCP (Model Context Protocol) Integration
 
-### 🎯 Why API Keys Are Required
+#### **Professional Claude Desktop Setup**
 
-This showcases **real AI integration** capabilities:
-- **Natural language processing** for web automation commands
-- **Multi-provider AI support** (OpenAI, Gemini, Anthropic, Mistral)
-- **Intelligent command interpretation** and execution
-- **Context-aware automation** decision making
-
-### 🆓 Recommended: Mistral AI (Free Alternative) # But it cannot use a browser via Selenium
-
-**Best option for testing**: Use Mistral AI via Le Chat platform:
-- ✅ **Free tier available** through Le Chat foundation
-- ✅ **High-quality large language model** (mistral-large-latest)
-- ✅ **Compatible with OpenAI API format** (drop-in replacement)
-- ✅ **Perfect for demonstration purposes**
-
-Get your free Mistral API key at: https://console.mistral.ai/
-
-## 🤖 MCP (Model Context Protocol) Setup with Gemini
-
-This project provides a complete **MCP server implementation** that integrates with Claude Desktop for advanced AI-powered travel automation.
-
-### Prerequisites for MCP Setup
-
-1. **Google Cloud CLI** (for Gemini Vertex AI):
-   ```bash
-   # Install on macOS
-   brew install --cask google-cloud-sdk
-   ```
-
-2. **Node.js** (for MCP proxy server):
-   ```bash
-   # Install via Homebrew
-   brew install node
-   ```
-
-### Step-by-Step MCP Setup
-
-#### 1. Google Cloud Authentication
+1. **Build the complete system**:
 ```bash
-# Authenticate with Google Cloud
-gcloud auth application-default login
-
-# Set your project (if needed)
-gcloud config set project your-google-project-id
-```
-
-#### 2. Build the Complete MCP System
-```bash
-# Navigate to the web agent project
 cd a2awebagent
-
-# Run the automated build script
-./build-mcp.sh
+./build-mcp.sh  # Builds both a2acore and a2awebapp
 ```
 
-#### 3. Configure Vertex AI Gemini
-The `tools4ai.properties` file should be configured for Vertex AI:
-```properties
-##Gemini related settings (Vertex AI)
-gemini.modelName=gemini-2.0-flash-001
-gemini.location=us-central1
-gemini.projectId=your-google-project-id
-geminiKey=
-agent.provider=gemini
-```
-
-#### 4. Start the Travel Agent Server
-```bash
-# Start the Java application
-java -jar target/a2awebagent-0.0.1.jar
-
-# OR use the run script
-./run-mcp.sh
-```
-
-#### 5. Configure Claude Desktop
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+2. **Configure Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
-    "wingston-demo-agent": {
-      "command": "node",
+    "professional-resume-agent": {
+      "command": "java",
       "args": [
-        "/Users/your-username/code/a2aTravelAgent/a2awebagent/src/main/resources/mcpserver.js"
-      ]
+        "-jar",
+        "/path/to/a2awebagent/mcp-connector-full.jar",
+        "http://localhost:7860/"
+      ],
+      "timeout": 30000
     }
   }
 }
 ```
 
-#### 6. Restart Claude Desktop
-Close and reopen Claude Desktop to load the MCP server.
-
-### 🎯 Available MCP Tools
-
-Once configured, Claude Desktop will have access to these tools:
-
-- **`browseWebAndReturnText`** - Web automation with text extraction
-- **`browseWebAndReturnImage`** - Web automation with screenshot capture  
-- **`searchLinkedInProfile`** - LinkedIn profile search
-- **`getWingstonsProjectsExpertiseResume`** - Personal expertise and resume showcase
-- **`askTasteBeforeYouWaste`** - Food research and recommendations
-
-### 🧪 Testing Your MCP Setup
-
-1. **Verify server is running**:
-   ```bash
-   curl http://localhost:7860/v1/tools
-   ```
-
-2. **Test in Claude Desktop**:
-   - Open Claude Desktop
-   - Look for "wingston-demo-agent" in MCP settings
-   - Try asking: "Can you help me research travel options from New York to Paris?"
-
-### 🔧 Troubleshooting MCP Setup
-
-**Common Issues:**
-
-1. **Authentication errors**: Ensure `gcloud auth application-default login` was successful
-2. **Port conflicts**: Check that port 7860 is available
-3. **Node.js errors**: Verify Node.js dependencies with `npm install` in resources directory
-4. **Claude Desktop not detecting**: Restart Claude Desktop after config changes
-
-### 📖 Complete MCP Documentation
-
-For detailed setup instructions and troubleshooting, see: `a2awebagent/MCP-SETUP.md`
-
-### 🚀 Running the Projects
-
-#### For Resume Example & Web Automation Testing:
+3. **Launch and test**:
 ```bash
-# Navigate to the web agent project
-cd a2awebagent
+# Start the resume agent
+java -jar a2awebapp/target/a2awebapp-0.0.1.jar
 
-# Ensure your API keys are configured in tools4ai.properties
-# Then build and run
-mvn clean compile
-mvn spring-boot:run
+# Test professional features
+curl http://localhost:7860/v1/tools
 ```
 
-#### For Main Orchestration Server:
-```bash
-# In the root directory
-mvn clean compile  
-mvn spring-boot:run
-```
+## 🎯 Professional Use Cases
 
-**⚠️ Important for Resume Demo**: Always run the **`a2awebagent`** project (not the main directory) to access the interactive resume features and web automation capabilities.
+### **1. Interactive Resume Showcase**
+- **Live Expertise Display**: Real-time demonstration of technical capabilities
+- **Project Portfolio**: Interactive exploration of development work
+- **Skills Validation**: AI-powered verification of technical competencies
 
-### 🚀 Successful Startup Indicators
+### **2. Professional Research**
+- **LinkedIn Integration**: Automated profile search and analysis
+- **Competitive Analysis**: Research industry trends and opportunities
+- **Technical Documentation**: Automated creation of professional materials
 
-When properly configured, you'll see:
-```
-🎯 Testing Wingston's New Expertise Tools
-📋 Available Tools:
-  ✅ getWingstonsProjectsExpertiseResume
-  ✅ searchLinkedInProfile  
-  ✅ askTasteBeforeYouWaste
-  ✅ browseWebAndReturnText
-  ✅ browseWebAndReturnImage
-  ✅ webPageAction
+### **3. Web Automation Portfolio**
+- **Modern Playwright Implementation**: Demonstrating cutting-edge automation
+- **AI-Powered Error Recovery**: Showcasing intelligent problem-solving
+- **Multi-Protocol Support**: A2A and MCP integration expertise
 
-Server started on port 7860
-```
+## 🌐 Professional Access Points
 
-### 🌐 Access Points
+Once running, access the professional features at:
 
-Once the server is running, you can access:
-
-- **Main Application**: http://localhost:7860 (or 7861 if using custom port)
+- **Main Resume Interface**: http://localhost:7860
+- **Tools Administration**: http://localhost:7860/tools (PostgreSQL-cached tool descriptions)
+- **Agent Analytics**: http://localhost:7860/agents (Neo4j async job tracking)
 - **API Documentation**: http://localhost:7860/swagger-ui/index.html
-- **MCP Tools List**: `curl -X POST http://localhost:7860 -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1}'`
+- **MCP Tools**: `curl -X POST http://localhost:7860 -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1}'`
 
-### 💡 "API Key Required" = Successful Technical Demonstration
+### 🚀 Professional Startup Indicators
 
-If you see this error when starting without API keys:
+When properly configured for professional demonstration:
 ```
-OpenAiHttpException: You have exceeded your daily limit of free tokens for demonstration purposes. 
-If you wish to continue, please use your own OpenAI API key.
-```
+🎯 Professional Resume Agent - Technical Showcase
+📋 Available Professional Tools:
+  ✅ getWingstonsProjectsExpertiseResume  - Interactive expertise showcase
+  ✅ searchLinkedInProfile                - Professional networking research
+  ✅ askTasteBeforeYouWaste              - Specialized research capabilities
+  ✅ browseWebAndReturnText              - Intelligent web automation
+  ✅ browseWebAndReturnImage             - Visual documentation capture
+  ✅ webPageAction                       - Advanced Playwright automation
 
-## Usage
+🏗️ Architecture Status:
+  ✅ a2acore Framework                   - Fast MCP implementation loaded
+  ✅ PostgreSQL Cache                    - Tool descriptions optimized
+  ✅ Redis Performance                   - High-speed data caching
+  ✅ Playwright Engine                   - Modern web automation ready
+  ✅ Multi-AI Integration                - OpenAI/Gemini/Claude available
 
-### Local Task Execution
-
-Create a web action file (`web.action`):
-
-```action
-go to website https://the-internet.herokuapp.com
-click on A/B Testing
-save screenshot as "the-internet.herokuapp.com.png"
-```
-
-Run the agent:
-
-```java
-LocalA2ATaskClient client = context.getBean(LocalA2ATaskClient.class);
-FilePart filePart = new FilePart();
-// ... setup file content
-Task t = client.sendFileTask(filePart);
+🌐 Professional Interface: http://localhost:7860
+📊 Admin Tools: /tools | /agents
 ```
 
-### Task Management
+## 💼 Technical Excellence Demonstration
 
-Monitor task execution through the web interface:
+This project showcases **enterprise-grade** technical implementation:
 
-![Task List](taskList.png)
+### **Modern Architecture Patterns**
+- ✅ **Multi-module Maven structure** with separation of concerns
+- ✅ **Dependency injection** with Spring Boot 3.x
+- ✅ **Protocol abstraction** (A2A/MCP support)
+- ✅ **Performance optimization** (PostgreSQL/Redis caching)
+- ✅ **Error handling & recovery** with AI-assisted debugging
 
-### Real-time Communication
+### **Professional Development Practices**
+- ✅ **Code intelligence** with Serena integration
+- ✅ **Database design** for scalable caching
+- ✅ **API design** following JSON-RPC standards
+- ✅ **Security considerations** with URL validation
+- ✅ **Documentation standards** with comprehensive README
 
-The system supports real-time updates through WebSocket:
+### **Cutting-Edge Technology Integration**
+- ✅ **Microsoft Playwright** (modern web automation)
+- ✅ **AI/LLM integration** (multiple providers)
+- ✅ **Real-time communication** (WebSocket support)
+- ✅ **Containerization** (Docker support)
+- ✅ **Protocol compliance** (MCP/A2A standards)
 
-![WebChat Interface](webchat.png)
+## 🔄 Development Workflow
 
-## Event Flow
+### **Multi-Module Development**
+```bash
+# Working directory
+cd /Users/wingston/code/a2aTravelAgent/a2awebagent
 
-The following diagram illustrates the event flow in the system:
+# Build entire project (both modules)
+mvn clean compile
 
-![Event Flow](event.png)
+# Run application module specifically
+mvn spring-boot:run -pl a2awebapp
 
-## Local Task Execution
+# Docker single container rebuild
+docker-compose down a2awebagent && docker-compose up --build a2awebagent -d
+```
 
-Example of local task execution:
+### **Professional Testing**
+```bash
+# Test professional resume features
+curl -X POST http://localhost:7860 \
+-H "Content-Type: application/json" \
+-d '{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "getWingstonsProjectsExpertiseResume",
+    "arguments": {
+      "query": "Show comprehensive technical expertise and project portfolio"
+    }
+  },
+  "id": 1
+}'
 
-![Local Task](LocalTask.png)
+# Test LinkedIn professional search
+curl -X POST http://localhost:7860 \
+-H "Content-Type: application/json" \
+-d '{
+  "jsonrpc": "2.0", 
+  "method": "tools/call",
+  "params": {
+    "name": "searchLinkedInProfile",
+    "arguments": {
+      "searchCriteria": "AI engineering expertise"
+    }
+  },
+  "id": 2
+}'
+```
 
-## Sample Test Results
+## 📊 Performance & Caching Architecture
 
-Here are sample test execution results:
+### **Database Layer**
+- **PostgreSQL**: Tool description caching with model/tool filtering
+- **Redis**: High-performance session and data caching
+- **Neo4j**: Async job tracking and agent analytics
 
-![Test Result 1](the-internet.herokuapp.com.png)
-![Test Result 2](the-internet.herokuapp.com_2.png)
+### **Optimization Features**
+- **CachedMCPToolsController**: Bridge between a2acore framework and PostgreSQL
+- **ToolDescriptionCacheService**: Intelligent caching for tool descriptions
+- **Async Processing**: Background job handling for intensive operations
 
+## 🏆 Professional Portfolio Value
 
+This project demonstrates:
+
+1. **Full-Stack Development**: From database design to AI integration
+2. **Modern Architecture**: Multi-module, microservices-ready design
+3. **Protocol Implementation**: Standards-compliant MCP/A2A support
+4. **Performance Engineering**: Intelligent caching and optimization
+5. **AI Integration**: Multi-provider LLM capabilities
+6. **Professional Tools**: LinkedIn integration and resume showcase
+7. **Quality Standards**: Comprehensive testing and documentation
+
+## 🎖️ "Professional Resume Agent" = Technical Excellence Showcase
+
+This project serves as a **living technical resume** that demonstrates:
+- **Advanced Spring Boot architecture** with multi-module design
+- **Modern web automation** using Microsoft Playwright
+- **AI integration expertise** across multiple providers
+- **Database design** with PostgreSQL/Redis optimization
+- **Protocol implementation** following MCP/A2A standards
+- **Professional development** practices and code quality
+
+**Perfect for demonstrating technical capabilities to potential employers, clients, or collaborators.**

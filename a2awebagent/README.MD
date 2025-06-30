@@ -1,7 +1,7 @@
-# a2aTravelAgent: AI-Powered Intelligent Research Automation
+# a2aResumeAgent: AI-Powered Intelligent Research Automation
 
 -This project serves as:
--- A technical portfolio demonstration (resume.html at localhost:7840/)
+-- A technical portfolio demonstration (resume.html at localhost:7840/ because i need a reason to pay hosting)
 -- An educational example of MCP protocol implementation  
 -- A showcase of web automation capabilities
 -- A personal resume tool with interactive features 
@@ -21,12 +21,13 @@ Transform natural language queries into comprehensive research with intelligent 
 
 **Input**: *"Research travel options from Amsterdam to Palma on July 6th 2025, then from Palma to Ibiza via a ferry on the same day with a hotel in Ibize. Include flights, hotels, and attractions and generate a plan to execute this trip."*
 
-**Output**: Complete travel research report with:
-- ✈️ Flight options with pricing and schedules
-- 🏨 Hotels sorted by rating and price
-- 🎯 Attractions, museums, and tour recommendations
-- 📸 Screenshots of all search results
-- 📊 Structured data for easy comparison
+**Output**: 
+- Job Id for Create a "Job" i.e. multiday workflow -> Complete travel research report with:
+  - ✈️ Flight options with pricing and schedules
+  - 🏨 Hotels sorted by rating and price
+  - 🎯 Attractions, museums, and tour recommendations
+  - 📸 Screenshots of all search results
+  - 📊 Structured dataset for easy comparison in neo4j and postgres with a travel_queries_cheatsheet.pdf  
 
 **Time**: ~90 seconds (vs 4+ hours manual research)
 
