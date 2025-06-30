@@ -184,13 +184,19 @@ public class WebBrowsingTaskProcessor {
             callback.updateProgress(0.7, "Capturing screenshots...");
             
             // Capture screenshots
-            String screenshotResult = webBrowsingAction.browseWebAndReturnImage(query);
+            io.wingie.a2acore.domain.ImageContent screenshotImageContent = webBrowsingAction.browseWebAndReturnImage(query);
+            String screenshotResult = "Screenshot captured";
             
-            // Store screenshot path in task
-            if (screenshotResult != null && screenshotResult.contains("Screenshot saved to:")) {
-                String screenshotPath = screenshotResult.substring(screenshotResult.indexOf(":") + 1).trim();
-                task.addScreenshot(screenshotPath);
-                progressService.addScreenshot(task, screenshotPath);
+            // Handle ImageContent for async task processing
+            if (screenshotImageContent != null && screenshotImageContent.getData() != null && !screenshotImageContent.getData().isEmpty()) {
+                // Create a descriptive result message for the async system
+                screenshotResult = String.format("Screenshot captured successfully - MIME type: %s, Data size: %d bytes", 
+                    screenshotImageContent.getMimeType(), 
+                    screenshotImageContent.getData().length());
+                
+                // For async tasks, we can optionally save the screenshot path
+                // Note: The actual screenshot file paths are handled by PlaywrightWebBrowsingAction internally
+                // and stored in the TaskExecution.screenshots via the browser automation flow
             }
             
             callback.updateProgress(0.9, "Processing extracted data...");

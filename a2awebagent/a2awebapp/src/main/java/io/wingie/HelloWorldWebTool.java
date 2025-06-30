@@ -9,12 +9,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
- * TEMPLATE: Example web automation tool showing proper WebBrowsingAction usage.
- * Copy this pattern for any new tools that need web browsing capabilities.
+ * Meme Generator Tool using memegen API for creating memes that Claude can use to communicate with users.
+ * Generates memes by visiting the memegen website and taking screenshots via browser automation.
  */
 @Service
 @Slf4j
-@Agent(name = "example", description = "Example web automation tools")
+@Agent(name = "meme", description = "Generate memes for communication using memegen API")
 public class HelloWorldWebTool {
 
     @Autowired
@@ -22,46 +22,92 @@ public class HelloWorldWebTool {
     private io.wingie.playwright.PlaywrightWebBrowsingAction webBrowsingAction;
 
     /**
-     * Example action that searches for "Hello World" and takes a screenshot.
-     * This demonstrates proper error handling and fallback behavior.
+     * Generates a meme using the memegen API that Claude can use to communicate with users.
+     * Takes meme template, top text, and bottom text to create custom memes.
      */
-    @Action(description = "Search for Hello World and demonstrate web automation", name = "searchHelloWorld")
-    public String searchHelloWorld(@Parameter(description = "The search term to look for") String searchTerm) {
-        log.info("Starting Hello World search for: {}", searchTerm);
+    @Action(description = "Generate memes for communication using memegen API - specify template, top text, and bottom text", name = "generateMeme")
+    public String generateMeme(
+        @Parameter(description = "Meme template (e.g., 'drake', 'distracted-boyfriend', 'woman-yelling-at-cat', 'this-is-fine', 'expanding-brain', 'change-my-mind', 'two-buttons', 'is-this-a-pigeon')") String template,
+        @Parameter(description = "Top text for the meme") String topText,
+        @Parameter(description = "Bottom text for the meme (optional, can be empty)") String bottomText) {
+        
+        log.info("Generating meme with template: {}, top: {}, bottom: {}", template, topText, bottomText);
         
         try {
             // Check if WebBrowsingAction is available
             if (webBrowsingAction == null) {
                 log.warn("WebBrowsingAction not available, returning fallback response");
-                return generateFallbackResponse(searchTerm);
+                return generateFallbackResponse(template, topText, bottomText);
             }
             
-            // Perform web automation
-            String textResult = webBrowsingAction.browseWebAndReturnText(
-                String.format("Go to Google.com and search for '%s', then extract the first 3 results", searchTerm)
-            );
+            // Build memegen URL
+            String memeUrl = buildMemegenUrl(template, topText, bottomText);
+            log.info("Generated memegen URL: {}", memeUrl);
             
-            // Take a screenshot
+            // Take a screenshot of the meme
             String screenshotResult = webBrowsingAction.browseWebAndReturnImage(
-                String.format("Take a screenshot of the search results for '%s'", searchTerm)
-            );
+                String.format("Navigate to %s and take a high-quality screenshot of the meme", memeUrl)
+            ).getData(); // Extract base64 data from ImageContent
             
-            return formatSuccessResponse(searchTerm, textResult, screenshotResult);
+            return formatMemeResponse(template, topText, bottomText, memeUrl, screenshotResult);
             
         } catch (Exception e) {
-            log.error("Error during web search for '{}': {}", searchTerm, e.getMessage(), e);
-            return generateErrorResponse(searchTerm, e.getMessage());
+            log.error("Error generating meme with template '{}': {}", template, e.getMessage(), e);
+            return generateErrorResponse(template, topText, bottomText, e.getMessage());
         }
+    }
+
+    /**
+     * Builds a memegen URL from template and text parameters.
+     * Format: https://api.memegen.link/images/{template}/{top_text}/{bottom_text}.png
+     */
+    private String buildMemegenUrl(String template, String topText, String bottomText) {
+        // Clean and encode text for URL
+        String encodedTop = encodeTextForUrl(topText);
+        String encodedBottom = encodeTextForUrl(bottomText);
+        
+        // Build URL based on whether we have bottom text
+        if (bottomText == null || bottomText.trim().isEmpty()) {
+            return String.format("https://api.memegen.link/images/%s/%s.png", 
+                template.toLowerCase().trim(), encodedTop);
+        } else {
+            return String.format("https://api.memegen.link/images/%s/%s/%s.png", 
+                template.toLowerCase().trim(), encodedTop, encodedBottom);
+        }
+    }
+    
+    /**
+     * Encodes text for use in memegen URLs - replaces spaces with underscores and handles special characters.
+     */
+    private String encodeTextForUrl(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return "_";
+        }
+        
+        return text.trim()
+            .replace(" ", "_")
+            .replace("?", "~q")
+            .replace("%", "~p")
+            .replace("#", "~h")
+            .replace("/", "~s")
+            .replace("\"", "''")
+            .replace("&", "~a")
+            .replaceAll("[^a-zA-Z0-9_~']", "");
     }
 
     /**
      * Generates a fallback response when WebBrowsingAction is not available.
      */
-    private String generateFallbackResponse(String searchTerm) {
+    private String generateFallbackResponse(String template, String topText, String bottomText) {
+        String memeUrl = buildMemegenUrl(template, topText, bottomText);
         return String.format("""
-            # Hello World Search - Service Temporarily Unavailable
+            # Meme Generator - Service Temporarily Unavailable
             
-            ## Search Query: "%s"
+            ## Requested Meme: 
+            - **Template**: %s
+            - **Top Text**: %s
+            - **Bottom Text**: %s
+            - **Would Generate URL**: %s
             
             The web automation service is temporarily unavailable. This might be due to:
             - Chrome/Chromium not being installed or accessible
@@ -70,68 +116,104 @@ public class HelloWorldWebTool {
             
             ### What You Can Do:
             1. Try again in a few moments
-            2. Contact support if the issue persists
-            3. Use alternative search methods
+            2. Visit the URL directly in your browser: %s
+            3. Contact support if the issue persists
+            
+            ### Popular Meme Templates:
+            - `drake` - Drake pointing meme
+            - `distracted-boyfriend` - Distracted boyfriend meme  
+            - `woman-yelling-at-cat` - Woman yelling at cat
+            - `this-is-fine` - This is fine dog
+            - `expanding-brain` - Expanding brain levels
+            - `change-my-mind` - Change my mind sign
+            - `two-buttons` - Two buttons choice
+            - `is-this-a-pigeon` - Is this a pigeon?
             
             ### Technical Details:
             - Service: WebBrowsingAction
             - Status: Not initialized
-            - Fallback: Text-only response
+            - Fallback: Text-only response with URL
             
             ---
             *This is an automated fallback response*
-            """, searchTerm);
+            """, template, topText, bottomText, memeUrl, memeUrl);
     }
 
     /**
-     * Formats a successful response with search results.
+     * Formats a successful meme generation response.
      */
-    private String formatSuccessResponse(String searchTerm, String textResult, String screenshotResult) {
+    private String formatMemeResponse(String template, String topText, String bottomText, String memeUrl, String screenshotResult) {
         return String.format("""
-            # Hello World Search Results
+            # 🎭 Meme Generated Successfully!
             
-            ## Search Query: "%s"
+            ## Meme Details:
+            - **Template**: %s
+            - **Top Text**: "%s"
+            - **Bottom Text**: "%s"
+            - **Source URL**: %s
             
-            ### Text Results:
+            ### 📸 Generated Meme:
             %s
             
-            ### Visual Results:
-            %s
-            
-            ### Search Completed Successfully
+            ### ✅ Generation Completed Successfully
             - Timestamp: %s
-            - Service: WebBrowsingAction
+            - Service: WebBrowsingAction + Memegen API
             - Status: Success
+            - Format: PNG screenshot via browser automation
+            
+            ### 💡 Tips for Better Memes:
+            - Keep text short and punchy
+            - Popular templates work best
+            - Try different templates for variety
             
             ---
-            *Powered by automated web search*
-            """, searchTerm, textResult, screenshotResult, java.time.LocalDateTime.now());
+            *🤖 Claude Code Meme Generator - Powered by memegen.link*
+            """, template, topText, bottomText, memeUrl, screenshotResult, java.time.LocalDateTime.now());
     }
 
     /**
      * Generates an error response with helpful information.
      */
-    private String generateErrorResponse(String searchTerm, String errorMessage) {
+    private String generateErrorResponse(String template, String topText, String bottomText, String errorMessage) {
+        String memeUrl = buildMemegenUrl(template, topText, bottomText);
         return String.format("""
-            # Hello World Search - Error Occurred
+            # 🚫 Meme Generation - Error Occurred
             
-            ## Search Query: "%s"
+            ## Requested Meme:
+            - **Template**: %s
+            - **Top Text**: "%s"
+            - **Bottom Text**: "%s"
+            - **Attempted URL**: %s
             
-            ### Error Details:
+            ### ❌ Error Details:
             %s
             
-            ### Troubleshooting:
-            1. Check if Chrome/Chromium is installed
-            2. Verify Playwright browser automation is properly configured
-            3. Check application logs for more details
+            ### 🔧 Troubleshooting:
+            1. **Check Template Name**: Ensure the template exists (try 'drake', 'distracted-boyfriend', etc.)
+            2. **Text Length**: Very long text might cause issues
+            3. **Special Characters**: Some characters might not be supported
+            4. **Browser Issues**: Check if Chrome/Chromium is installed and working
+            5. **Network**: Verify internet connection to memegen.link
             
-            ### Alternative Actions:
-            - Try a simpler search query
+            ### 🔄 Alternative Actions:
+            - Try a different meme template
+            - Shorten the text
+            - Remove special characters
             - Wait a moment and retry
-            - Contact technical support
+            - Visit the URL directly: %s
+            
+            ### 📋 Popular Working Templates:
+            - `drake` - Drake pointing/rejecting
+            - `distracted-boyfriend` - Distracted boyfriend looking back
+            - `woman-yelling-at-cat` - Woman yelling at confused cat
+            - `this-is-fine` - Dog sitting in burning room
+            - `expanding-brain` - Brain expanding through levels
+            - `change-my-mind` - Steven Crowder sign
+            - `two-buttons` - Sweating guy choosing between buttons
+            - `is-this-a-pigeon` - Butterfly identification confusion
             
             ---
-            *Error occurred at: %s*
-            """, searchTerm, errorMessage, java.time.LocalDateTime.now());
+            *❗ Error occurred at: %s*
+            """, template, topText, bottomText, memeUrl, errorMessage, memeUrl, java.time.LocalDateTime.now());
     }
 }

@@ -260,7 +260,7 @@ Since we couldn't access specific information from tastebeforeyouwaste.org, here
         try {
             return webBrowsingAction.browseWebAndReturnImage(
                 "Navigate to https://tastebeforeyouwaste.org and take a high-quality screenshot of the homepage showing food safety guidance and visual guides"
-            );
+            ).getData(); // Extract base64 data from ImageContent
         } catch (Exception e) {
             return String.format("""
 # Taste Before You Waste - Website Screenshot

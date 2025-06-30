@@ -7,6 +7,7 @@ import com.microsoft.playwright.options.LoadState;
 import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
+import io.wingie.a2acore.domain.ImageContent;
 // AI processing imports removed - using a2acore annotations instead
 import io.wingie.CustomScriptResult;
 import lombok.extern.slf4j.Slf4j;
@@ -49,19 +50,28 @@ public class PlaywrightWebBrowsingAction {
     }
 
     @Action(description = "perform actions on the web with Playwright and return image", name = "browseWebAndReturnImage")
-    public String browseWebAndReturnImage(@Parameter(description = "Natural language description of web browsing steps to perform and capture as image") String webBrowsingSteps) {
+    public ImageContent browseWebAndReturnImage(@Parameter(description = "Natural language description of web browsing steps to perform and capture as image") String webBrowsingSteps) {
         
         log.info("Starting Playwright web browsing with image capture: {}", webBrowsingSteps);
         
         try {
             CustomScriptResult result = new CustomScriptResult();
             executeWebBrowsingSteps(webBrowsingSteps, result);
-            return result.getLastScreenshotAsBase64() != null ? 
-                   result.getLastScreenshotAsBase64() : 
-                   "No screenshot captured";
+            
+            String base64Screenshot = result.getLastScreenshotAsBase64();
+            if (base64Screenshot != null) {
+                log.info("Successfully captured screenshot, returning as ImageContent");
+                return ImageContent.png(base64Screenshot);
+            } else {
+                log.warn("No screenshot captured, returning empty ImageContent");
+                return ImageContent.png(""); // Empty base64 data
+            }
         } catch (Exception e) {
             log.error("Error during Playwright web browsing with image", e);
-            return "Error during web browsing: " + e.getMessage();
+            // Return error as text in base64 format for proper MCP response
+            String errorMessage = "Error during web browsing: " + e.getMessage();
+            String errorBase64 = Base64.getEncoder().encodeToString(errorMessage.getBytes());
+            return ImageContent.png(errorBase64);
         }
     }
 
@@ -188,15 +198,24 @@ public class PlaywrightWebBrowsingAction {
 
     private void captureScreenshot(Page page, CustomScriptResult result) {
         try {
-            String screenshotPath = "/app/screenshots/playwright_" + System.currentTimeMillis() + ".png";
-            page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get(screenshotPath)));
+            // Use absolute path resolution for better compatibility
+            String screenshotDir = System.getProperty("app.storage.screenshots", "./screenshots");
+            java.nio.file.Path baseDir = Paths.get(screenshotDir).toAbsolutePath();
+            java.nio.file.Files.createDirectories(baseDir);
+            
+            String filename = "playwright_" + System.currentTimeMillis() + ".png";
+            java.nio.file.Path screenshotPath = baseDir.resolve(filename);
+            
+            // Capture screenshot
+            page.screenshot(new Page.ScreenshotOptions().setPath(screenshotPath));
             
             // Convert to base64 for result
-            byte[] screenshotBytes = java.nio.file.Files.readAllBytes(Paths.get(screenshotPath));
+            byte[] screenshotBytes = java.nio.file.Files.readAllBytes(screenshotPath);
             String base64Screenshot = Base64.getEncoder().encodeToString(screenshotBytes);
             
-            result.addScreenshot(screenshotPath, base64Screenshot);
-            log.info("Screenshot captured: {}", screenshotPath);
+            // Store both absolute path and base64 for compatibility
+            result.addScreenshot(screenshotPath.toString(), base64Screenshot);
+            log.info("Screenshot captured at absolute path: {}", screenshotPath);
             
         } catch (Exception e) {
             log.error("Error capturing screenshot", e);

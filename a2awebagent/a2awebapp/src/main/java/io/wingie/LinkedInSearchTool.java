@@ -54,7 +54,7 @@ public class LinkedInSearchTool {
             // Take a screenshot of Wingston's LinkedIn profile
             String screenshotResult = webBrowsingAction.browseWebAndReturnImage(
                 "Navigate to https://www.linkedin.com/in/wingstonsharon/ and take a high-quality screenshot of the profile page"
-            );
+            ).getData(); // Extract base64 data from ImageContent
             
             return String.format("""
 # Wingston Sharon - LinkedIn Profile Demonstration
@@ -146,7 +146,7 @@ The following screenshot demonstrates the live LinkedIn profile:
             // Take a screenshot of search results
             String searchScreenshot = webBrowsingAction.browseWebAndReturnImage(
                 String.format("Take a screenshot of LinkedIn search results for '%s'", searchQuery)
-            );
+            ).getData(); // Extract base64 data from ImageContent
             
             // Always include Wingston's profile as a reference/comparison
             String wingstonsProfileInfo = getWingstonsProfileSummary();
