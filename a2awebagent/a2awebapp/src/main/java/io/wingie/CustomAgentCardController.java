@@ -32,7 +32,8 @@ public class CustomAgentCardController extends SpringAwareAgentCardController {
         card.setName("Wingston Sharon - Web Automation Agent");
         card.setDescription("AI-powered web automation agent by Wingston Sharon. " +
             "Seeking exciting opportunities in enterprise AI and Machine Learning. " +
-            "Specializes in web automation, travel research, and intelligent agent systems. " +
+            "Specializes in web automation, AI research (Red Teaming and Existential Risk)," + 
+            "and working with enterprise grade intelligent self learning agent systems at scale." +
             "Connect with me on LinkedIn: https://www.linkedin.com/in/wingstonsharon/");
         
         log.info(card.getUrl());
