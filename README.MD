@@ -352,3 +352,7 @@ This project serves as a **living technical resume** that demonstrates:
 - **Professional development** practices and code quality
 
 **Perfect for demonstrating technical capabilities to potential employers, clients, or collaborators.**
+
+Credits
+https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/transform
+@vishalmysore for the amazing work on ^, your code was a joy to read
