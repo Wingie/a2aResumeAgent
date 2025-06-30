@@ -175,15 +175,29 @@ public class PlaywrightWebBrowsingAction {
     }
 
     private void executeDirectSteps(Page page, String steps, CustomScriptResult result) {
-        // Simple fallback execution
-        if (steps.toLowerCase().contains("google.com")) {
+        // Enhanced fallback execution with proper URL extraction and navigation
+        String url = extractUrl(steps.toLowerCase());
+        
+        if (url != null) {
+            log.info("Navigating to extracted URL: {}", url);
+            page.navigate(url);
+            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            result.addData("Navigated to: " + url);
+        } else if (steps.toLowerCase().contains("google")) {
+            log.info("Navigating to Google (keyword detected)");
             page.navigate("https://www.google.com");
+            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
             result.addData("Navigated to Google");
-            captureScreenshot(page, result);
         } else {
-            result.addData("Executed web browsing steps: " + steps);
-            captureScreenshot(page, result);
+            // Always navigate somewhere sensible before screenshot - default to tastebeforeyouwaste.org
+            log.info("No URL detected, defaulting to tastebeforeyouwaste.org for screenshot");
+            page.navigate("https://www.tastebeforeyouwaste.org");
+            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            result.addData("Navigated to tastebeforeyouwaste.org (default for screenshot)");
         }
+        
+        // Always capture screenshot after navigation
+        captureScreenshot(page, result);
     }
 
     private void captureScreenshot(Page page, CustomScriptResult result) {
