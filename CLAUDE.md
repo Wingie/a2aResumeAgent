@@ -7,6 +7,68 @@ to t
 
 This is a Spring Boot-based web automation agent that provides A2A (Agent-to-Agent) and MCP (Model Context Protocol) protocol support using Playwright for web interactions. The system enables AI agents to perform web automation tasks through natural language commands.
 
+## ⚠️ IMPORTANT: Project Structure - Two Separate Projects
+
+### **a2ajava/** vs **a2awebagent/** - Different Projects!
+
+```
+a2aTravelAgent/
+├── a2ajava/          # 📚 LIBRARY PROJECT (tools4ai framework)
+│   ├── pom.xml       # Maven library project
+│   ├── src/main/java/io/github/vishalmysore/
+│   └── README.MD     # Library documentation
+│
+└── a2awebagent/      # 🚀 APPLICATION PROJECT (web automation agent)
+    ├── pom.xml       # Spring Boot application
+    ├── src/main/java/io/wingie/
+    └── README.MD     # Application documentation
+```
+
+### **Key Differences:**
+
+| Aspect | a2ajava | a2awebagent |
+|--------|---------|-------------|
+| **Type** | Maven Library | Spring Boot Application |
+| **Purpose** | tools4ai framework, MCP/A2A protocols | Web automation agent with Playwright |
+| **Package** | `io.github.vishalmysore.*` | `io.wingie.*` |
+| **Runs** | No (library dependency) | Yes (`mvn spring-boot:run`) |
+| **Depends On** | External tools4ai JAR | Local a2ajava + tools4ai |
+| **Git Status** | Now tracked in main repo | Always tracked in main repo |
+
+### **How They're Linked:**
+
+#### **Currently (Maven Central):**
+```xml
+<!-- a2awebagent/pom.xml -->
+<dependency>
+    <groupId>io.github.vishalmysore</groupId>
+    <artifactId>a2ajava</artifactId>
+    <version>0.1.9.6</version>  <!-- From Maven Central -->
+</dependency>
+```
+
+#### **For Local Development:**
+When you need to modify both projects:
+1. **Modify a2ajava**: Make changes to the library
+2. **Build & Install**: `cd a2ajava && mvn clean install`
+3. **Update a2awebagent**: Use local version in pom.xml
+4. **Test Integration**: `cd a2awebagent && mvn spring-boot:run`
+
+### **Working with Both Projects:**
+
+#### **Editing a2ajava (Library):**
+- Contains MCPToolsController, protocol implementations
+- Changes affect all applications using this library
+- Must be built and installed locally for testing
+
+#### **Editing a2awebagent (Application):**
+- Contains PlaywrightProcessor, web automation logic
+- Uses a2ajava as dependency
+- Can extend/override library functionality
+
+#### **Current Integration Challenge:**
+The PostgreSQL caching service is in **a2awebagent**, but the tool description generation happens in **a2ajava**. We're creating bridge interfaces to connect them while maintaining separation of concerns.
+
 ## Architecture
 
 ### Core Components
