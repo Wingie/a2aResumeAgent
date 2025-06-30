@@ -275,124 +275,278 @@ GRANT ALL PRIVILEGES ON DATABASE a2awebagent TO postgres;
 ```
 
 
-## How do I test my A2A Agent?
-You can use Curl command to test if you application is running properly:
+## 6. How do I test the application?
 
+### 6.1 Health Check and Basic Testing
 ```bash
+# Check if application is running
+curl http://localhost:7860/v1/health
+
+# List available tools
 curl -H "Content-Type: application/json" -d '{
     "jsonrpc": "2.0",
     "method": "tools/list",
     "params": {},
     "id": 1
-}' https://vishalmysore-a2amcpspring.hf.space/
-````
-The above one will get the list of tools available in the agent. You can also use the `tools/call` method to call a specific tool.
+}' http://localhost:7860/v1
 
-```json
-{
+# Test web automation tool
+curl -H "Content-Type: application/json" -d '{
+    "jsonrpc": "2.0",
     "method": "tools/call",
     "params": {
-        "name": "whatThisPersonFavFood",
+        "name": "browseWebAndReturnText",
         "arguments": {
-            "provideAllValuesInPlainEnglish": "vishal is coming home what should i cook"
+            "provideAllValuesInPlainEnglish": "Go to Google.com and search for travel to Paris"
         }
     },
-    "jsonrpc": "2.0",
-    "id": 17
-}
+    "id": 2
+}' http://localhost:7860/v1
 ```
 
-## How can i connect to the Claude Desktop?
+### 6.2 Travel Research Testing
+```bash
+# Test complete travel research workflow
+curl -H "Content-Type: application/json" -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "browseWebAndReturnText",
+        "arguments": {
+            "provideAllValuesInPlainEnglish": "Research travel from Amsterdam to Palma on July 6th 2025. Find flights, hotels, and attractions."
+        }
+    },
+    "id": 3
+}' http://localhost:7860/v1
+```
 
-Claude Desktop can be connected to A2A and MCP sever through the pass through server. Please look at the details [here](https://github.com/vishalmysore/mcp-connector/)
+### 6.3 Screenshot Testing
+```bash
+# Test screenshot capabilities
+curl -H "Content-Type: application/json" -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "browseWebAndReturnImage",
+        "arguments": {
+            "provideAllValuesInPlainEnglish": "Take a screenshot of booking.com homepage"
+        }
+    },
+    "id": 4
+}' http://localhost:7860/v1
+```
 
+## 7. What are the available processors and integrations?
 
+### 7.1 Web Automation Processors
+- **`PlaywrightProcessor`**: Modern browser automation (replaces Selenium)
+- **`PlaywrightWebBrowsingAction`**: Main service for web browsing tasks
+- **`PlaywrightScreenshotUtils`**: Screenshot capture and processing
+- **`PlaywrightTaskController`**: Async task management
 
-## What different types of processors are there?
-Available processors include:
-- `GeminiV2ActionProcessor`: For Google's Gemini AI
-- `OpenAiActionProcessor`: For OpenAI integration
-- `SpringGeminiProcessor`: Spring-integrated Gemini processor
-- `SpringOpenAIProcessor`: Spring-integrated OpenAI processor
-- `SeleniumProcessor`: For UI automation integration
-- `AnthropicActionProcessor` : Claude 
-- `LocalAiActionProcessor` : Local AI integration
+### 7.2 AI Provider Integration
+- **OpenRouter**: Cost-effective multi-model provider (primary)
+- **OpenAI**: GPT-4o-mini integration via tools4ai
+- **Gemini**: Google's Gemini Flash via tools4ai  
+- **Claude**: Anthropic Claude Haiku via tools4ai
+- **LocalAI**: Self-hosted model support
 
-## How do I add risk types to agents?
-Use the `riskLevel` parameter in the `@Action` annotation:
+### 7.3 Caching and Performance
+- **`ToolDescriptionCacheService`**: PostgreSQL caching layer
+- **`CachedMCPToolsController`**: Bridge between a2acore and a2awebapp
+- **Redis integration**: Session and response caching
+- **Fast startup**: <5 second target with static tool definitions
 
+## 8. How do I implement risk management?
+
+### 8.1 Risk Level Configuration
 ```java
-@Agent(groupName = "banking")
-public class BankingAgent {
-    @Action(description = "Check balance", riskLevel = ActionRisk.LOW)
-    public String checkBalance(String accountId) {
-        // Implementation
+package io.wingie;
+
+import io.wingie.a2acore.annotations.*;
+import org.springframework.stereotype.Service;
+
+@Service
+@Agent(name = "financial-operations")
+public class FinancialAgent {
+    
+    @Action(description = "Check account balance", riskLevel = ActionRisk.LOW)
+    public String checkBalance(@Parameter(description = "Account ID") String accountId) {
+        // Low-risk operation - no additional validation needed
+        return "Balance: $1,234.56";
     }
     
-    @Action(description = "Transfer funds", riskLevel = ActionRisk.HIGH)
-    public String transferFunds(String from, String to, double amount) {
-        // Implementation with additional validation
-    }
-}
-```
-
-Risk levels: LOW, MEDIUM, HIGH. High-risk actions require human validation.
-
-## How can I do image processing?
-Use the `GeminiImageActionProcessor` for image processing:
-
-```java
-public class ImageProcessor {
-    public void processImage(String imagePath) throws AIProcessingException {
-        GeminiImageActionProcessor processor = new GeminiImageActionProcessor();
-        String imageDescription = processor.imageToText(imagePath);
+    @Action(description = "Transfer funds between accounts", riskLevel = ActionRisk.HIGH)
+    public String transferFunds(
+        @Parameter(description = "Source account") String fromAccount,
+        @Parameter(description = "Destination account") String toAccount,
+        @Parameter(description = "Transfer amount") double amount) {
         
-        // Process the description with an action processor
-        GeminiV2ActionProcessor actionProcessor = new GeminiV2ActionProcessor();
-        Object result = actionProcessor.processSingleAction(imageDescription);
+        // High-risk operation - requires human approval
+        if (actionCallback != null) {
+            actionCallback.sendStatus("Transfer requires approval", ActionState.WAITING_APPROVAL);
+        }
+        return "Transfer pending approval";
     }
 }
 ```
 
-## What are different prompt annotations?
-Key annotations include:
-- `@Agent`: Defines an agent group and description
-- `@Action`: Marks methods as AI-callable actions
-- `@ActionParameter`: Describes parameters for better AI understanding
-- `@Predict`: Used for automatic action prediction
-- `@ListType`: Specifies collection types for serialization
+### 8.2 Risk Levels Available
+- **`ActionRisk.LOW`**: Automated execution, logging only
+- **`ActionRisk.MEDIUM`**: Additional validation, enhanced logging  
+- **`ActionRisk.HIGH`**: Human approval required, audit trail
 
-## How do I handle complex Java types?
-Complex types are handled through:
-1. Automatic parameter mapping:
+## 9. How do I handle image processing and screenshots?
+
+### 9.1 Screenshot Capture with Playwright
 ```java
-@Action(description = "Process customer data")
-public Response processCustomer(@ActionParameter(
-    name = "customer",
-    description = "Customer details including name, age, and preferences"
-) CustomerDTO customer) {
-    // Implementation
+@Service
+@Agent(name = "visual-automation")
+public class VisualAgent {
+    
+    @Autowired
+    private PlaywrightScreenshotUtils screenshotUtils;
+    
+    @Action(description = "Capture website screenshot")
+    public String captureScreenshot(@Parameter(description = "Website URL") String url) {
+        try {
+            String screenshotPath = screenshotUtils.captureScreenshot(url);
+            return "Screenshot saved: " + screenshotPath;
+        } catch (Exception e) {
+            return "Screenshot failed: " + e.getMessage();
+        }
+    }
 }
 ```
 
-2. PromptTransformer for complex type conversion:
+### 9.2 Image Analysis Integration
 ```java
-@Override
-public PromptTransformer getPromptTransformer() {
-    return new GeminiV2PromptTransformer();
+@Action(description = "Analyze image content")
+public String analyzeImage(@Parameter(description = "Image path or URL") String imagePath) {
+    // Use AI provider for image analysis
+    GeminiImageActionProcessor processor = new GeminiImageActionProcessor();
+    String description = processor.imageToText(imagePath);
+    
+    // Store analysis in PostgreSQL
+    ImageAnalysis analysis = new ImageAnalysis();
+    analysis.setImagePath(imagePath);
+    analysis.setDescription(description);
+    analysis.setAnalyzedAt(LocalDateTime.now());
+    
+    imageAnalysisRepository.save(analysis);
+    return description;
 }
 ```
 
-The framework automatically handles JSON serialization/deserialization of complex types.
+## 10. What are the core annotations and their usage?
 
-## How Can i persist the Task?
+### 10.1 Essential Annotations
+- **`@EnableA2ACore`**: Enables the fast MCP framework on main application class
+- **`@Agent`**: Defines an agent with name and description for tool grouping
+- **`@Action`**: Marks methods as MCP-callable tools with automatic schema generation
+- **`@Parameter`**: Provides detailed parameter descriptions for AI understanding
+- **`@Service`**: Spring annotation for dependency injection
 
-By Default the tasks are persisted in memory and not persisted to any database. You can use the property 
-
+### 10.2 Complex Type Handling
+```java
+@Action(description = "Process travel booking request")
+public BookingResponse processBooking(
+    @Parameter(description = "Complete travel booking details") 
+    TravelBookingRequest request) {
+    
+    // Framework automatically handles:
+    // - JSON deserialization of complex objects
+    // - Validation of required fields
+    // - Type conversion and mapping
+    // - Response serialization
+    
+    return new BookingResponse("Booking confirmed", request.getBookingId());
+}
 ```
-a2a.persistence=database
-```
-to save the data in db
 
-## How can I build agentic mesh applications?
- Yes source code for agentic mesh is https://github.com/vishalmysore/agenticmesh
+## 11. How do I enable database persistence?
+
+### 11.1 Database Configuration
+```yaml
+# application.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/a2awebagent
+    username: postgres
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+# Enable database persistence
+a2a:
+  persistence: database
+```
+
+### 11.2 Entity Persistence
+```java
+@Entity
+@Table(name = "tool_descriptions")
+public class ToolDescription {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String providerModel;     // "openrouter/gemma-3n-e4b-it:free"
+    private String toolName;          // "browseWebAndReturnText"
+    private String description;       // AI-generated description
+    private Long generationTimeMs;    // Performance tracking
+    private Integer usageCount;       // Usage analytics
+    
+    // Getters and setters
+}
+```
+
+## 12. How do I build multi-agent applications?
+
+### 12.1 Service Composition Pattern
+```java
+@Service
+@Agent(name = "travel-orchestrator")
+public class TravelOrchestrator {
+    
+    @Autowired
+    private FlightSearchAgent flightAgent;
+    
+    @Autowired 
+    private HotelSearchAgent hotelAgent;
+    
+    @Autowired
+    private AttractionAgent attractionAgent;
+    
+    @Action(description = "Complete travel research workflow")
+    public String orchestrateTravel(
+        @Parameter(description = "Travel destination") String destination,
+        @Parameter(description = "Travel dates") String dates) {
+        
+        // Coordinate multiple agents
+        String flights = flightAgent.searchFlights(destination, dates);
+        String hotels = hotelAgent.searchHotels(destination, dates);
+        String attractions = attractionAgent.findAttractions(destination);
+        
+        return compileReport(flights, hotels, attractions);
+    }
+}
+```
+
+### 12.2 Async Agent Communication
+```java
+@Service
+public class AsyncTravelService {
+    
+    @Async
+    @Action(description = "Start async travel research")
+    public CompletableFuture<String> startResearch(String destination) {
+        // Long-running research process
+        return CompletableFuture.completedFuture("Research completed");
+    }
+}
+```
+
+This FAQ provides a comprehensive foundation for understanding and working with the a2aTravelAgent architecture. For more detailed tutorials, see the numbered guides in this directory.
