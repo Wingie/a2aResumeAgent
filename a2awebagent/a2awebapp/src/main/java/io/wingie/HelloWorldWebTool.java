@@ -5,10 +5,13 @@ import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
 import io.wingie.a2acore.domain.ImageContent;
 import io.wingie.service.ScreenshotService;
+import io.wingie.service.MoodTemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Meme Generator Tool using memegen API for creating memes that Claude can use to communicate with users.
@@ -25,6 +28,9 @@ public class HelloWorldWebTool {
 
     @Autowired
     private ScreenshotService screenshotService;
+
+    @Autowired
+    private MoodTemplateMapper moodTemplateMapper;
 
     /**
      * Generates a meme using the memegen API that Claude can use to communicate with users.
@@ -68,11 +74,13 @@ public class HelloWorldWebTool {
      */
     @Action(description = "Generate memes for communication using memegen API with comprehensive template selection", name = "generateMeme")
     public String generateMeme(
-        @Parameter(description = "Meme template - Use exact API names: 'drake' (preference), 'db' (choices), 'woman-cat' (arguments), 'gb' (brain expansion), 'gru' (plans), 'pooh' (classy vs basic), 'fine' (denial), 'fry' (suspicion), 'pigeon' (confusion), 'stonks' (gains), 'buzz' (everywhere), 'kermit' (sarcasm), 'rollsafe' (clever), 'spongebob' (mocking), 'patrick' (relocate), 'doge' (excitement), 'success' (victory), 'yuno' (frustration), 'fwp' (complaints), 'aag' (aliens), 'blb' (bad luck), 'oag' (clingy), 'cmm' (controversy), 'mordor' (difficulty), 'philosoraptor' (questions), 'bear' (confession)") String template,
+        @Parameter(description = "EXACT API NAME ONLY - Use these exact strings: 'drake', 'db', 'woman-cat', 'gb', 'gru', 'pooh', 'fine', 'fry', 'pigeon', 'stonks', 'buzz', 'kermit', 'rollsafe', 'spongebob', 'patrick', 'doge', 'success', 'yuno', 'fwp', 'aag', 'blb', 'oag', 'cmm', 'mordor', 'philosoraptor', 'bear'. Do NOT use descriptive names - use exact strings only.") String template,
         @Parameter(description = "Top text for the meme") String topText,
         @Parameter(description = "Bottom text for the meme (optional, can be empty)") String bottomText) {
         
         log.info("Generating meme with template: {}, top: {}, bottom: {}", template, topText, bottomText);
+        log.info("🔍 DEBUG: Received template from Claude: '{}'", template);
+        log.info("🔍 DEBUG: Template length: {}, contains spaces: {}", template.length(), template.contains(" "));
         
         try {
             // Check if WebBrowsingAction is available
@@ -109,18 +117,30 @@ public class HelloWorldWebTool {
      * Format: https://api.memegen.link/images/{template}/{top_text}/{bottom_text}.png
      */
     private String buildMemegenUrl(String template, String topText, String bottomText) {
+        log.info("🔍 DEBUG: buildMemegenUrl called with template: '{}'", template);
+        
         // Clean and encode text for URL
         String encodedTop = encodeTextForUrl(topText);
         String encodedBottom = encodeTextForUrl(bottomText);
         
+        log.info("🔍 DEBUG: Encoded texts - top: '{}', bottom: '{}'", encodedTop, encodedBottom);
+        
+        // Clean template name
+        String cleanTemplate = template.toLowerCase().trim();
+        log.info("🔍 DEBUG: Cleaned template name: '{}'", cleanTemplate);
+        
         // Build URL based on whether we have bottom text
+        String finalUrl;
         if (bottomText == null || bottomText.trim().isEmpty()) {
-            return String.format("https://api.memegen.link/images/%s/%s.png", 
-                template.toLowerCase().trim(), encodedTop);
+            finalUrl = String.format("https://api.memegen.link/images/%s/%s.png", 
+                cleanTemplate, encodedTop);
         } else {
-            return String.format("https://api.memegen.link/images/%s/%s/%s.png", 
-                template.toLowerCase().trim(), encodedTop, encodedBottom);
+            finalUrl = String.format("https://api.memegen.link/images/%s/%s/%s.png", 
+                cleanTemplate, encodedTop, encodedBottom);
         }
+        
+        log.info("🔍 DEBUG: Final memegen URL: '{}'", finalUrl);
+        return finalUrl;
     }
     
     /**
@@ -216,7 +236,8 @@ public class HelloWorldWebTool {
      * Gets a description for a meme template.
      */
     private String getTemplateDescription(String template) {
-        return switch (template.toLowerCase()) {
+        log.info("🔍 DEBUG: getTemplateDescription called with template: '{}'", template);
+        String description = switch (template.toLowerCase()) {
             case "drake" -> "Drake pointing/rejecting format";
             case "db" -> "Distracted boyfriend";
             case "woman-cat" -> "Woman yelling at cat";
@@ -245,6 +266,8 @@ public class HelloWorldWebTool {
             case "bear" -> "Confession bear";
             default -> "Custom meme template";
         };
+        log.info("🔍 DEBUG: Template description for '{}': '{}'", template, description);
+        return description;
     }
 
     /**
@@ -291,5 +314,180 @@ public class HelloWorldWebTool {
             ---
             *❗ Error occurred at: %s*
             """, template, topText, bottomText, memeUrl, errorMessage, memeUrl, java.time.LocalDateTime.now());
+    }
+
+    /**
+     * Generates a meme using mood-based template selection.
+     * Claude can specify a mood/emotion and the system will automatically choose an appropriate template.
+     */
+    @Action(description = "Generate memes using mood-based template selection - let Claude express emotions through appropriate meme templates", name = "generateMoodMeme")
+    public String generateMoodMeme(
+        @Parameter(description = "Mood or emotion for template selection. Examples: 'happy', 'frustrated', 'sarcastic', 'confused', 'successful', 'comparing', 'planning', 'accepting'. The system will choose an appropriate template based on this mood.") String mood,
+        @Parameter(description = "Top text for the meme") String topText,
+        @Parameter(description = "Bottom text for the meme (optional, can be empty)") String bottomText) {
+        
+        log.info("Generating mood-based meme with mood: {}, top: {}, bottom: {}", mood, topText, bottomText);
+        
+        try {
+            // Get template suggestions for the mood
+            List<String> templateSuggestions = moodTemplateMapper.getTemplatesForMood(mood);
+            String selectedTemplate = templateSuggestions.isEmpty() ? "drake" : templateSuggestions.get(0);
+            
+            log.info("🎭 Mood '{}' mapped to template suggestions: {}, selected: '{}'", 
+                    mood, templateSuggestions, selectedTemplate);
+            
+            // Check if WebBrowsingAction is available
+            if (webBrowsingAction == null) {
+                log.warn("WebBrowsingAction not available, returning fallback response");
+                return generateMoodFallbackResponse(mood, selectedTemplate, topText, bottomText, templateSuggestions);
+            }
+            
+            // Build memegen URL
+            String memeUrl = buildMemegenUrl(selectedTemplate, topText, bottomText);
+            log.info("Generated memegen URL for mood '{}': {}", mood, memeUrl);
+            
+            // Take a screenshot of the meme
+            ImageContent screenshotImage = webBrowsingAction.browseWebAndReturnImage(
+                String.format("Navigate to %s and take a high-quality screenshot of the meme", memeUrl)
+            );
+            
+            // Save screenshot to static directory and get URL
+            String screenshotUrl = null;
+            if (screenshotImage != null && screenshotImage.getData() != null) {
+                screenshotUrl = screenshotService.saveMemeScreenshot(screenshotImage.getData());
+            }
+            
+            return formatMoodMemeResponse(mood, selectedTemplate, topText, bottomText, memeUrl, screenshotUrl, templateSuggestions);
+            
+        } catch (Exception e) {
+            log.error("Error generating mood-based meme with mood '{}': {}", mood, e.getMessage(), e);
+            return generateMoodErrorResponse(mood, topText, bottomText, e.getMessage());
+        }
+    }
+
+    /**
+     * Gets available mood categories and template mappings for reference.
+     */
+    @Action(description = "Get a guide showing available mood categories for meme generation and their corresponding templates", name = "getMoodGuide")
+    public String getMoodGuide() {
+        try {
+            String guide = moodTemplateMapper.getMoodGuide();
+            log.info("Provided mood guide with {} available mood categories", moodTemplateMapper.getAvailableMoods().size());
+            return guide;
+        } catch (Exception e) {
+            log.error("Error getting mood guide: {}", e.getMessage(), e);
+            return "**Mood Guide Temporarily Unavailable**\\n\\nPlease try again later or use the regular generateMeme method with specific template names.";
+        }
+    }
+
+    /**
+     * Formats a successful mood-based meme generation response.
+     */
+    private String formatMoodMemeResponse(String mood, String selectedTemplate, String topText, String bottomText, 
+                                         String memeUrl, String screenshotUrl, List<String> templateSuggestions) {
+        if (screenshotUrl != null) {
+            return String.format("""
+                ![Generated Meme](%s)
+                
+                **Mood**: %s → **Template**: %s (%s)
+                **Alternative Templates**: %s
+                **Created**: %s
+                
+                *Render this image inline using the markdown above*
+                """, screenshotUrl, mood, selectedTemplate, getTemplateDescription(selectedTemplate), 
+                templateSuggestions.size() > 1 ? templateSuggestions.subList(1, Math.min(4, templateSuggestions.size())) : "none",
+                java.time.LocalDateTime.now());
+        } else {
+            return String.format("""
+                ⚠️ **Mood-Based Meme Generation Failed**
+                
+                **Mood**: %s → **Template**: %s (%s)
+                **Top Text**: "%s" 
+                **Bottom Text**: "%s"
+                **Alternative Templates**: %s
+                
+                Screenshot capture failed. The meme was generated but couldn't be captured.
+                """, mood, selectedTemplate, getTemplateDescription(selectedTemplate), topText, bottomText,
+                templateSuggestions.size() > 1 ? templateSuggestions.subList(1, Math.min(4, templateSuggestions.size())) : "none");
+        }
+    }
+
+    /**
+     * Generates a fallback response for mood-based memes when WebBrowsingAction is not available.
+     */
+    private String generateMoodFallbackResponse(String mood, String selectedTemplate, String topText, String bottomText, List<String> templateSuggestions) {
+        String memeUrl = buildMemegenUrl(selectedTemplate, topText, bottomText);
+        return String.format("""
+            # 🎭 Mood-Based Meme Generator - Service Temporarily Unavailable
+            
+            ## Requested Mood Meme: 
+            - **Mood**: %s
+            - **Selected Template**: %s (%s)
+            - **Top Text**: %s
+            - **Bottom Text**: %s
+            - **Would Generate URL**: %s
+            
+            ### 🎨 Mood Mapping Results:
+            **Template Suggestions for '%s'**: %s
+            
+            The web automation service is temporarily unavailable. This might be due to:
+            - Chrome/Chromium not being installed or accessible
+            - Browser automation initialization issues
+            - Container environment restrictions
+            
+            ### What You Can Do:
+            1. Try again in a few moments
+            2. Visit the URL directly in your browser: %s
+            3. Use a different mood or try the regular generateMeme method
+            
+            ### 🎭 Available Mood Categories:
+            - **Positive**: happy, successful, confident → success, stonks, pooh
+            - **Sarcastic**: sarcastic, mocking, dismissive → kermit, spongebob, rollsafe  
+            - **Confused**: confused, uncertain, suspicious → fry, pigeon, philosoraptor
+            - **Frustrated**: frustrated, annoyed, angry → woman-cat, yuno, blb
+            - **Comparing**: comparing, choosing, preferring → drake, pooh, db
+            
+            ---
+            *This is an automated fallback response*
+            """, mood, selectedTemplate, getTemplateDescription(selectedTemplate), topText, bottomText, memeUrl, 
+            mood, templateSuggestions, memeUrl);
+    }
+
+    /**
+     * Generates an error response for mood-based meme generation.
+     */
+    private String generateMoodErrorResponse(String mood, String topText, String bottomText, String errorMessage) {
+        return String.format("""
+            # 🚫 Mood-Based Meme Generation - Error Occurred
+            
+            ## Requested Mood Meme:
+            - **Mood**: %s
+            - **Top Text**: "%s"
+            - **Bottom Text**: "%s"
+            
+            ### ❌ Error Details:
+            %s
+            
+            ### 🔧 Troubleshooting:
+            1. **Check Mood**: Try a different mood (e.g., 'happy', 'frustrated', 'sarcastic')
+            2. **Text Length**: Very long text might cause issues
+            3. **Service Status**: The mood mapping service might be temporarily unavailable
+            4. **Alternative**: Use the regular generateMeme method with a specific template
+            
+            ### 🎭 Popular Moods to Try:
+            - `happy` or `successful` → success, stonks templates
+            - `frustrated` or `annoyed` → woman-cat, yuno templates
+            - `sarcastic` or `mocking` → kermit, spongebob templates
+            - `confused` or `uncertain` → fry, pigeon templates
+            - `comparing` or `choosing` → drake, pooh templates
+            
+            ### 🔄 Alternative Actions:
+            - Try the getMoodGuide action for complete mood categories
+            - Use generateMeme with a specific template like 'drake' or 'fine'
+            - Wait a moment and retry with a simpler mood description
+            
+            ---
+            *❗ Error occurred at: %s*
+            """, mood, topText, bottomText, errorMessage, java.time.LocalDateTime.now());
     }
 }

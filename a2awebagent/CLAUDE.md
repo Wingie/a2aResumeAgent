@@ -84,18 +84,6 @@ Technical Flow:
 4. Screenshot Capture: Basic PNG capture via browser automation
 5. ImageContent Response: Base64 encoded image returned via MCP protocol
 
-Example Usage:
-generateMeme("drake", "Hello World", "Hello Meme")
-Result: Simple Drake meme demonstrating browser automation
-
-Common Templates:
-- drake: Basic choice demonstration
-- distracted-boyfriend: Simple comparison
-- woman-yelling-at-cat: Basic argument format
-- this-is-fine: Acceptance scenario
-
-Performance: ~1-3 seconds (basic browser automation demo)
-
 Task Guidelines
 Always use Task() for code changes:
 

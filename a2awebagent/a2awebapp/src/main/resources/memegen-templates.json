@@ -1,0 +1,593 @@
+[
+  {
+    "id": "10-guy",
+    "name": "10 Guy",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/10-guy.jpg",
+    "example": {
+      "text": [
+        "Tries to text 911",
+        "Phone is dead"
+      ],
+      "url": "https://api.memegen.link/images/10-guy/Tries_to_text_911/Phone_is_dead.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/10-guy",
+    "keywords": [
+      "stoner",
+      "confused"
+    ],
+    "_self": "https://api.memegen.link/templates/10-guy"
+  },
+  {
+    "id": "aag",
+    "name": "Ancient Aliens Guy",
+    "lines": 1,
+    "blank": "https://api.memegen.link/images/aag.jpg",
+    "example": {
+      "text": [
+        "Aliens"
+      ],
+      "url": "https://api.memegen.link/images/aag/Aliens.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/ancient-aliens",
+    "keywords": [
+      "ancient aliens",
+      "history channel",
+      "giorgio tsoukalos"
+    ],
+    "_self": "https://api.memegen.link/templates/aag"
+  },
+  {
+    "id": "ams",
+    "name": "Am I The Only One Around Here",
+    "lines": 1,
+    "blank": "https://api.memegen.link/images/ams.jpg",
+    "example": {
+      "text": [
+        "Am I the only one around here who gives a damn about the rules?"
+      ],
+      "url": "https://api.memegen.link/images/ams/Am_I_the_only_one_around_here_who_gives_a_damn_about_the_rules~q.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/am-i-the-only-one-around-here",
+    "keywords": [
+      "big lebowski",
+      "walter sobchak"
+    ],
+    "_self": "https://api.memegen.link/templates/ams"
+  },
+  {
+    "id": "bd",
+    "name": "Backup Disk",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/bd.jpg",
+    "example": {
+      "text": [
+        "Backup disk",
+        "Has never been used"
+      ],
+      "url": "https://api.memegen.link/images/bd/Backup_disk/Has_never_been_used.jpg"
+    },
+    "source": "",
+    "keywords": [
+      "computer",
+      "disk"
+    ],
+    "_self": "https://api.memegen.link/templates/bd"
+  },
+  {
+    "id": "bear",
+    "name": "Confession Bear",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/bear.jpg",
+    "example": {
+      "text": [
+        "I browse reddit at work",
+        "And I'm not even sorry"
+      ],
+      "url": "https://api.memegen.link/images/bear/I_browse_reddit_at_work/And_I'm_not_even_sorry.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/confession-bear",
+    "keywords": [
+      "confession",
+      "bear"
+    ],
+    "_self": "https://api.memegen.link/templates/bear"
+  },
+  {
+    "id": "blb",
+    "name": "Bad Luck Brian",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/blb.jpg",
+    "example": {
+      "text": [
+        "Plays russian roulette",
+        "Gun explodes"
+      ],
+      "url": "https://api.memegen.link/images/blb/Plays_russian_roulette/Gun_explodes.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/bad-luck-brian",
+    "keywords": [
+      "bad luck",
+      "brian"
+    ],
+    "_self": "https://api.memegen.link/templates/blb"
+  },
+  {
+    "id": "buzz",
+    "name": "X Everywhere",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/buzz.jpg",
+    "example": {
+      "text": [
+        "Bugs",
+        "Bugs everywhere"
+      ],
+      "url": "https://api.memegen.link/images/buzz/Bugs/Bugs_everywhere.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/x-x-everywhere",
+    "keywords": [
+      "toy story",
+      "buzz lightyear",
+      "everywhere"
+    ],
+    "_self": "https://api.memegen.link/templates/buzz"
+  },
+  {
+    "id": "cmm",
+    "name": "Change My Mind",
+    "lines": 1,
+    "blank": "https://api.memegen.link/images/cmm.jpg",
+    "example": {
+      "text": [
+        "Unit tests are a waste of time. Change my mind."
+      ],
+      "url": "https://api.memegen.link/images/cmm/Unit_tests_are_a_waste_of_time._Change_my_mind..jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/steven-crowders-change-my-mind-campus-sign",
+    "keywords": [
+      "steven crowder",
+      "change my mind",
+      "political"
+    ],
+    "_self": "https://api.memegen.link/templates/cmm"
+  },
+  {
+    "id": "db",
+    "name": "Distracted Boyfriend",
+    "lines": 3,
+    "blank": "https://api.memegen.link/images/db.jpg",
+    "example": {
+      "text": [
+        "Me",
+        "New framework",
+        "My current code"
+      ],
+      "url": "https://api.memegen.link/images/db/Me/New_framework/My_current_code.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/distracted-boyfriend",
+    "keywords": [
+      "distracted boyfriend",
+      "cheating",
+      "temptation"
+    ],
+    "_self": "https://api.memegen.link/templates/db"
+  },
+  {
+    "id": "doge",
+    "name": "Doge",
+    "lines": 5,
+    "blank": "https://api.memegen.link/images/doge.jpg",
+    "example": {
+      "text": [
+        "such code",
+        "many commits",
+        "so git",
+        "much wow",
+        ""
+      ],
+      "url": "https://api.memegen.link/images/doge/such_code/many_commits/so_git/much_wow.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/doge",
+    "keywords": [
+      "doge",
+      "shiba inu",
+      "such wow"
+    ],
+    "_self": "https://api.memegen.link/templates/doge"
+  },
+  {
+    "id": "drake",
+    "name": "Drake",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/drake.jpg",
+    "example": {
+      "text": [
+        "Sleeping on my code",
+        "Pushing code to production"
+      ],
+      "url": "https://api.memegen.link/images/drake/Sleeping_on_my_code/Pushing_code_to_production.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/drakeposting",
+    "keywords": [
+      "drake",
+      "pointing",
+      "preference"
+    ],
+    "_self": "https://api.memegen.link/templates/drake"
+  },
+  {
+    "id": "fine",
+    "name": "This Is Fine",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/fine.jpg",
+    "example": {
+      "text": [
+        "Production is down",
+        "This is fine"
+      ],
+      "url": "https://api.memegen.link/images/fine/Production_is_down/This_is_fine.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/this-is-fine",
+    "keywords": [
+      "this is fine",
+      "dog",
+      "fire",
+      "denial"
+    ],
+    "_self": "https://api.memegen.link/templates/fine"
+  },
+  {
+    "id": "fry",
+    "name": "Futurama Fry",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/fry.jpg",
+    "example": {
+      "text": [
+        "Not sure if feature",
+        "Or bug"
+      ],
+      "url": "https://api.memegen.link/images/fry/Not_sure_if_feature/Or_bug.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/futurama-fry-not-sure-if",
+    "keywords": [
+      "futurama",
+      "fry",
+      "not sure if",
+      "suspicious"
+    ],
+    "_self": "https://api.memegen.link/templates/fry"
+  },
+  {
+    "id": "fwp",
+    "name": "First World Problems",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/fwp.jpg",
+    "example": {
+      "text": [
+        "Wifi is slow",
+        "Can't upload my 4K video"
+      ],
+      "url": "https://api.memegen.link/images/fwp/Wifi_is_slow/Can't_upload_my_4K_video.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/first-world-problems",
+    "keywords": [
+      "first world problems",
+      "privileged",
+      "complaints"
+    ],
+    "_self": "https://api.memegen.link/templates/fwp"
+  },
+  {
+    "id": "gb",
+    "name": "Expanding Brain",
+    "lines": 4,
+    "blank": "https://api.memegen.link/images/gb.jpg",
+    "example": {
+      "text": [
+        "HTML",
+        "CSS",
+        "Javascript",
+        "Node.js"
+      ],
+      "url": "https://api.memegen.link/images/gb/HTML/CSS/Javascript/Node.js.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/expanding-brain",
+    "keywords": [
+      "expanding brain",
+      "galaxy brain",
+      "evolution",
+      "progression"
+    ],
+    "_self": "https://api.memegen.link/templates/gb"
+  },
+  {
+    "id": "gru",
+    "name": "Gru's Plan",
+    "lines": 4,
+    "blank": "https://api.memegen.link/images/gru.jpg",
+    "example": {
+      "text": [
+        "Write unit tests",
+        "Run all tests",
+        "Tests pass",
+        "Tests pass"
+      ],
+      "url": "https://api.memegen.link/images/gru/Write_unit_tests/Run_all_tests/Tests_pass/Tests_pass.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/grus-plan",
+    "keywords": [
+      "gru",
+      "despicable me",
+      "plan",
+      "presentation"
+    ],
+    "_self": "https://api.memegen.link/templates/gru"
+  },
+  {
+    "id": "kermit",
+    "name": "But That's None of My Business",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/kermit.jpg",
+    "example": {
+      "text": [
+        "You deploy on Friday afternoon",
+        "But that's none of my business"
+      ],
+      "url": "https://api.memegen.link/images/kermit/You_deploy_on_Friday_afternoon/But_that's_none_of_my_business.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/but-thats-none-of-my-business",
+    "keywords": [
+      "kermit",
+      "tea",
+      "none of my business",
+      "sarcasm"
+    ],
+    "_self": "https://api.memegen.link/templates/kermit"
+  },
+  {
+    "id": "mordor",
+    "name": "One Does Not Simply",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/mordor.jpg",
+    "example": {
+      "text": [
+        "One does not simply",
+        "Debug production code"
+      ],
+      "url": "https://api.memegen.link/images/mordor/One_does_not_simply/Debug_production_code.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/one-does-not-simply-walk-into-mordor",
+    "keywords": [
+      "lord of the rings",
+      "boromir",
+      "one does not simply",
+      "difficulty"
+    ],
+    "_self": "https://api.memegen.link/templates/mordor"
+  },
+  {
+    "id": "oag",
+    "name": "Overly Attached Girlfriend",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/oag.jpg",
+    "example": {
+      "text": [
+        "I see you liked another girl's photo",
+        "Who is she?"
+      ],
+      "url": "https://api.memegen.link/images/oag/I_see_you_liked_another_girl's_photo/Who_is_she~q.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/overly-attached-girlfriend",
+    "keywords": [
+      "overly attached girlfriend",
+      "obsessive",
+      "clingy"
+    ],
+    "_self": "https://api.memegen.link/templates/oag"
+  },
+  {
+    "id": "patrick",
+    "name": "Push It Somewhere Else Patrick",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/patrick.jpg",
+    "example": {
+      "text": [
+        "Why don't we take this bug",
+        "And push it to production"
+      ],
+      "url": "https://api.memegen.link/images/patrick/Why_don't_we_take_this_bug/And_push_it_to_production.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/push-it-somewhere-else-patrick",
+    "keywords": [
+      "spongebob",
+      "patrick",
+      "push it somewhere else"
+    ],
+    "_self": "https://api.memegen.link/templates/patrick"
+  },
+  {
+    "id": "philosoraptor",
+    "name": "Philosoraptor",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/philosoraptor.jpg",
+    "example": {
+      "text": [
+        "If code review is about quality",
+        "Why does everyone just say 'LGTM'?"
+      ],
+      "url": "https://api.memegen.link/images/philosoraptor/If_code_review_is_about_quality/Why_does_everyone_just_say_'LGTM'~q.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/philosoraptor",
+    "keywords": [
+      "philosoraptor",
+      "dinosaur",
+      "philosophical",
+      "thinking"
+    ],
+    "_self": "https://api.memegen.link/templates/philosoraptor"
+  },
+  {
+    "id": "pigeon",
+    "name": "Is This a Pigeon",
+    "lines": 3,
+    "blank": "https://api.memegen.link/images/pigeon.jpg",
+    "example": {
+      "text": [
+        "Me",
+        "A working feature",
+        "Is this a bug?"
+      ],
+      "url": "https://api.memegen.link/images/pigeon/Me/A_working_feature/Is_this_a_bug~q.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/is-this-a-pigeon",
+    "keywords": [
+      "butterfly",
+      "pigeon",
+      "is this",
+      "confusion"
+    ],
+    "_self": "https://api.memegen.link/templates/pigeon"
+  },
+  {
+    "id": "pooh",
+    "name": "Tuxedo Winnie The Pooh",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/pooh.jpg",
+    "example": {
+      "text": [
+        "Using var in JavaScript",
+        "Using const in JavaScript"
+      ],
+      "url": "https://api.memegen.link/images/pooh/Using_var_in_JavaScript/Using_const_in_JavaScript.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/tuxedo-winnie-the-pooh",
+    "keywords": [
+      "winnie the pooh",
+      "fancy",
+      "classy",
+      "upgrade"
+    ],
+    "_self": "https://api.memegen.link/templates/pooh"
+  },
+  {
+    "id": "rollsafe",
+    "name": "Roll Safe",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/rollsafe.jpg",
+    "example": {
+      "text": [
+        "Can't have memory leaks",
+        "If you restart the server every hour"
+      ],
+      "url": "https://api.memegen.link/images/rollsafe/Can't_have_memory_leaks/If_you_restart_the_server_every_hour.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/roll-safe",
+    "keywords": [
+      "roll safe",
+      "smart",
+      "thinking",
+      "clever"
+    ],
+    "_self": "https://api.memegen.link/templates/rollsafe"
+  },
+  {
+    "id": "spongebob",
+    "name": "Mocking SpongeBob",
+    "lines": 1,
+    "blank": "https://api.memegen.link/images/spongebob.jpg",
+    "example": {
+      "text": [
+        "wE nEeD tO fOlLoW bEsT pRaCtIcEs"
+      ],
+      "url": "https://api.memegen.link/images/spongebob/wE_nEeD_tO_fOlLoW_bEsT_pRaCtIcEs.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/mocking-spongebob",
+    "keywords": [
+      "spongebob",
+      "mocking",
+      "alternating caps"
+    ],
+    "_self": "https://api.memegen.link/templates/spongebob"
+  },
+  {
+    "id": "stonks",
+    "name": "Stonks",
+    "lines": 1,
+    "blank": "https://api.memegen.link/images/stonks.jpg",
+    "example": {
+      "text": [
+        "Stonks"
+      ],
+      "url": "https://api.memegen.link/images/stonks/Stonks.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/stonks",
+    "keywords": [
+      "stonks",
+      "stocks",
+      "money",
+      "finance"
+    ],
+    "_self": "https://api.memegen.link/templates/stonks"
+  },
+  {
+    "id": "success",
+    "name": "Success Kid",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/success.jpg",
+    "example": {
+      "text": [
+        "Code compiles",
+        "On first try"
+      ],
+      "url": "https://api.memegen.link/images/success/Code_compiles/On_first_try.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/success-kid-i-hate-sandcastles",
+    "keywords": [
+      "success kid",
+      "baby",
+      "victory",
+      "achievement"
+    ],
+    "_self": "https://api.memegen.link/templates/success"
+  },
+  {
+    "id": "woman-cat",
+    "name": "Woman Yelling at Cat",
+    "lines": 2,
+    "blank": "https://api.memegen.link/images/woman-cat.jpg",
+    "example": {
+      "text": [
+        "You said it would only take 5 minutes",
+        "That was 3 hours ago"
+      ],
+      "url": "https://api.memegen.link/images/woman-cat/You_said_it_would_only_take_5_minutes/That_was_3_hours_ago.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/woman-yelling-at-a-cat",
+    "keywords": [
+      "woman yelling at cat",
+      "table",
+      "argument",
+      "cat"
+    ],
+    "_self": "https://api.memegen.link/templates/woman-cat"
+  },
+  {
+    "id": "yuno",
+    "name": "Y U No",
+    "lines": 1,
+    "blank": "https://api.memegen.link/images/yuno.jpg",
+    "example": {
+      "text": [
+        "Y U NO write unit tests?"
+      ],
+      "url": "https://api.memegen.link/images/yuno/Y_U_NO_write_unit_tests~q.jpg"
+    },
+    "source": "http://knowyourmeme.com/memes/y-u-no-guy",
+    "keywords": [
+      "y u no",
+      "frustration",
+      "why"
+    ],
+    "_self": "https://api.memegen.link/templates/yuno"
+  }
+]
