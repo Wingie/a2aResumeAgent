@@ -1,4 +1,7 @@
 *.log
+logs/
+**/logs/
+data/neo4j-logs/
 Tools4AI/
 target/
 !.mvn/wrapper/maven-wrapper.jar

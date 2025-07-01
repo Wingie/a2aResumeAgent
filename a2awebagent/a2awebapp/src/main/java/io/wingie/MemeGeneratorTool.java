@@ -4,6 +4,8 @@ import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
 import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.a2acore.domain.TextContent;
+import io.wingie.a2acore.domain.ToolCallResult;
 import io.wingie.service.ScreenshotService;
 import io.wingie.service.MoodTemplateMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
@@ -138,7 +146,7 @@ public class MemeGeneratorTool {
      * generateMeme("woman-cat", "You said 5 minutes!", "That was 3 hours ago!");
      */
     @Action(description = "Generate memes with automatic special character encoding and comprehensive template selection", name = "generateMeme")
-    public String generateMeme(
+    public ToolCallResult generateMeme(
         @Parameter(description = "EXACT API NAME ONLY - Use these exact strings: 'drake', 'db', 'woman-cat', 'gb', 'gru', 'pooh', 'fine', 'fry', 'pigeon', 'stonks', 'buzz', 'kermit', 'rollsafe', 'spongebob', 'patrick', 'doge', 'success', 'yuno', 'fwp', 'aag', 'blb', 'oag', 'cmm', 'mordor', 'philosoraptor', 'bear'. Do NOT use descriptive names - use exact API strings only.") String template,
         @Parameter(description = "Top text for the meme. Special characters (?, &, %, #, /, etc.) will be automatically encoded for URL compatibility. Use natural text - no pre-encoding needed.") String topText,
         @Parameter(description = "Bottom text for the meme (optional, can be empty). Special characters will be automatically encoded. Use natural text - no pre-encoding needed.") String bottomText) {
@@ -151,14 +159,14 @@ public class MemeGeneratorTool {
         String validationError = validateTemplate(template);
         if (validationError != null) {
             log.warn("Template validation failed for '{}': {}", template, validationError);
-            return generateTemplateValidationError(template, topText, bottomText, validationError);
+            return ToolCallResult.error(generateTemplateValidationError(template, topText, bottomText, validationError));
         }
         
         try {
             // Check if WebBrowsingAction is available
             if (webBrowsingAction == null) {
                 log.warn("WebBrowsingAction not available, returning fallback response");
-                return generateFallbackResponse(template, topText, bottomText);
+                return ToolCallResult.error(generateFallbackResponse(template, topText, bottomText));
             }
             
             // Build memegen URL
@@ -176,11 +184,25 @@ public class MemeGeneratorTool {
                 screenshotUrl = screenshotService.saveMemeScreenshot(screenshotImage.getData());
             }
             
-            return formatMemeResponse(template, topText, bottomText, memeUrl, screenshotUrl);
+            // Create text content with current markdown response
+            TextContent textResponse = TextContent.of(formatMemeResponse(template, topText, bottomText, memeUrl, screenshotUrl));
+            
+            // Try to fetch direct image from memegen API
+            ImageContent directImage = fetchMemeImageDirectly(memeUrl);
+            
+            // Return mixed content with both text and image
+            if (directImage != null) {
+                log.info("Returning mixed content: TextContent + ImageContent (base64 length: {})", 
+                    directImage.getData() != null ? directImage.getData().length() : 0);
+                return ToolCallResult.success(List.of(textResponse, directImage));
+            } else {
+                log.warn("Direct image fetch failed, returning text-only response");
+                return ToolCallResult.success(textResponse);
+            }
             
         } catch (Exception e) {
             log.error("Error generating meme with template '{}': {}", template, e.getMessage(), e);
-            return generateErrorResponse(template, topText, bottomText, e.getMessage());
+            return ToolCallResult.error(generateErrorResponse(template, topText, bottomText, e.getMessage()));
         }
     }
 
@@ -266,6 +288,73 @@ public class MemeGeneratorTool {
         // Ensure we don't return empty string
         return encoded.isEmpty() ? "_" : encoded;
     }
+    
+    /**
+     * Fetches meme image directly from memegen.link API and returns as ImageContent.
+     * 
+     * This method bypasses browser automation and directly fetches the PNG image
+     * from the memegen API, converts it to base64, and returns as ImageContent.
+     * 
+     * @param memeUrl The memegen.link URL to fetch
+     * @return ImageContent with base64 PNG data, or null if fetch fails
+     */
+    private ImageContent fetchMemeImageDirectly(String memeUrl) {
+        try {
+            log.info("Fetching meme image directly from: {}", memeUrl);
+            
+            HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+                
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(memeUrl))
+                .timeout(Duration.ofSeconds(30))
+                .GET()
+                .build();
+                
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            
+            if (response.statusCode() == 200) {
+                byte[] imageBytes = response.body();
+                String base64Data = Base64.getEncoder().encodeToString(imageBytes);
+                
+                log.info("Successfully fetched meme image: {} bytes, base64 length: {}", 
+                    imageBytes.length, base64Data.length());
+                
+                // Check if image might be too large for Claude Desktop (1MB limit)
+                if (imageBytes.length > 1_000_000) {
+                    log.warn("Image size {} bytes exceeds 1MB - may cause truncation in Claude Desktop", imageBytes.length);
+                } else {
+                    log.info("Image size {} bytes is within acceptable range for Claude Desktop", imageBytes.length);
+                }
+                    
+                return ImageContent.png(base64Data);
+            } else {
+                log.warn("Failed to fetch meme image, HTTP status: {}", response.statusCode());
+                return null;
+            }
+            
+        } catch (Exception e) {
+            log.error("Error fetching meme image directly from {}: {}", memeUrl, e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    /**
+     * Formats template suggestions for display in responses.
+     */
+    private String formatTemplateSuggestions(List<String> templateSuggestions) {
+        if (templateSuggestions == null || templateSuggestions.isEmpty()) {
+            return "- Try different moods like: 'sarcastic', 'confused', 'successful', 'comparing'";
+        }
+        
+        StringBuilder suggestions = new StringBuilder();
+        for (String template : templateSuggestions.subList(0, Math.min(5, templateSuggestions.size()))) {
+            suggestions.append("- **").append(template).append("**: ").append(getTemplateDescription(template)).append("\n");
+        }
+        
+        return suggestions.toString();
+    }
 
     /**
      * Generates a fallback response when WebBrowsingAction is not available.
@@ -321,19 +410,35 @@ public class MemeGeneratorTool {
                 
                 **Template**: %s (%s)
                 **Created**: %s
+                **Direct API URL**: [Open Full Size](%s) ↗️
                 
-                *Render this image inline using the markdown above*
-                """, screenshotUrl, template, getTemplateDescription(template), java.time.LocalDateTime.now());
+                ### 📋 Response Format
+                This response includes **dual content**:
+                1. **Markdown Image**: Screenshot displayed above (click for full size)
+                2. **Direct Base64**: Raw meme image included as ImageContent for direct viewing
+                
+                💡 **For Claude Desktop**: The base64 ImageContent allows direct image viewing without truncation
+                🔗 **For Users**: Click the "Open Full Size" link above to view in browser
+                
+                *Both the markdown screenshot and direct base64 image show the same meme content*
+                """, screenshotUrl, template, getTemplateDescription(template), java.time.LocalDateTime.now(), memeUrl);
         } else {
             return String.format("""
-                ⚠️ **Meme Generation Failed**
-                
                 **Template**: %s (%s)
                 **Top Text**: "%s" 
                 **Bottom Text**: "%s"
+                **Direct API URL**: [View Meme](%s) ↗️
                 
-                Screenshot capture failed. The meme was generated but couldn't be captured.
-                """, template, getTemplateDescription(template), topText, bottomText);
+                ### 📋 Response Format
+                This response includes **dual content**:
+                1. **Direct Base64**: Raw meme image included as ImageContent for direct viewing
+                2. **Fallback URL**: Click link above to view meme in browser
+                
+                💡 **For Claude Desktop**: The base64 ImageContent allows direct image viewing
+                🔗 **For Users**: Click the "View Meme" link above to open in new tab
+                
+                ⚠️ *Screenshot capture failed, but direct API image is available*
+                """, template, getTemplateDescription(template), topText, bottomText, memeUrl);
         }
     }
 
@@ -469,7 +574,7 @@ public class MemeGeneratorTool {
      * generateMoodMeme("successful", "Code works first try!", "");
      */
     @Action(description = "Generate memes using intelligent mood-based template selection with automatic special character encoding - express emotions naturally", name = "generateMoodMeme")
-    public String generateMoodMeme(
+    public ToolCallResult generateMoodMeme(
         @Parameter(description = "Mood or emotion for intelligent template selection. Use natural language: 'happy', 'frustrated', 'sarcastic', 'confused', 'successful', 'comparing', 'planning', 'accepting', 'clever', 'difficult', 'everywhere', 'obsessive', 'wow', etc. The system maps moods to optimal templates automatically.") String mood,
         @Parameter(description = "Top text for the meme. Special characters (?, &, %, #, /, etc.) will be automatically encoded for URL compatibility. Use natural text - no pre-encoding needed.") String topText,
         @Parameter(description = "Bottom text for the meme (optional, can be empty). Special characters will be automatically encoded. Use natural text - no pre-encoding needed.") String bottomText) {
@@ -487,7 +592,7 @@ public class MemeGeneratorTool {
             // Check if WebBrowsingAction is available
             if (webBrowsingAction == null) {
                 log.warn("WebBrowsingAction not available, returning fallback response");
-                return generateMoodFallbackResponse(mood, selectedTemplate, topText, bottomText, templateSuggestions);
+                return ToolCallResult.error(generateMoodFallbackResponse(mood, selectedTemplate, topText, bottomText, templateSuggestions));
             }
             
             // Build memegen URL
@@ -505,11 +610,25 @@ public class MemeGeneratorTool {
                 screenshotUrl = screenshotService.saveMemeScreenshot(screenshotImage.getData());
             }
             
-            return formatMoodMemeResponse(mood, selectedTemplate, topText, bottomText, memeUrl, screenshotUrl, templateSuggestions);
+            // Create text content with current markdown response
+            TextContent textResponse = TextContent.of(formatMoodMemeResponse(mood, selectedTemplate, topText, bottomText, memeUrl, screenshotUrl, templateSuggestions));
+            
+            // Try to fetch direct image from memegen API
+            ImageContent directImage = fetchMemeImageDirectly(memeUrl);
+            
+            // Return mixed content with both text and image
+            if (directImage != null) {
+                log.info("Returning mood-based mixed content: TextContent + ImageContent (base64 length: {})", 
+                    directImage.getData() != null ? directImage.getData().length() : 0);
+                return ToolCallResult.success(List.of(textResponse, directImage));
+            } else {
+                log.warn("Direct image fetch failed for mood-based meme, returning text-only response");
+                return ToolCallResult.success(textResponse);
+            }
             
         } catch (Exception e) {
             log.error("Error generating mood-based meme with mood '{}': {}", mood, e.getMessage(), e);
-            return generateMoodErrorResponse(mood, topText, bottomText, e.getMessage());
+            return ToolCallResult.error(generateMoodErrorResponse(mood, topText, bottomText, e.getMessage()));
         }
     }
     
@@ -610,23 +729,48 @@ public class MemeGeneratorTool {
                 **Mood**: %s → **Template**: %s (%s)
                 **Alternative Templates**: %s
                 **Created**: %s
+                **Direct API URL**: [Open Full Size](%s) ↗️
                 
-                *Render this image inline using the markdown above*
+                ### 📋 Response Format
+                This response includes **dual content**:
+                1. **Markdown Image**: Screenshot displayed above (click for full size)
+                2. **Direct Base64**: Raw meme image included as ImageContent for direct viewing
+                
+                💡 **For Claude Desktop**: The base64 ImageContent allows direct image viewing without truncation
+                🔗 **For Users**: Click the "Open Full Size" link above to view in browser
+                
+                ### 🎨 Template Suggestions
+                Try these alternative moods and templates:
+                %s
+                
+                *Both the markdown screenshot and direct base64 image show the same meme content*
                 """, screenshotUrl, mood, selectedTemplate, getTemplateDescription(selectedTemplate), 
                 templateSuggestions.size() > 1 ? templateSuggestions.subList(1, Math.min(4, templateSuggestions.size())) : "none",
-                java.time.LocalDateTime.now());
+                java.time.LocalDateTime.now(), memeUrl, formatTemplateSuggestions(templateSuggestions));
         } else {
             return String.format("""
-                ⚠️ **Mood-Based Meme Generation Failed**
-                
                 **Mood**: %s → **Template**: %s (%s)
                 **Top Text**: "%s" 
                 **Bottom Text**: "%s"
                 **Alternative Templates**: %s
+                **Direct API URL**: [View Meme](%s) ↗️
                 
-                Screenshot capture failed. The meme was generated but couldn't be captured.
+                ### 📋 Response Format
+                This response includes **dual content**:
+                1. **Direct Base64**: Raw meme image included as ImageContent for direct viewing
+                2. **Fallback URL**: Click link above to view meme in browser
+                
+                💡 **For Claude Desktop**: The base64 ImageContent allows direct image viewing
+                🔗 **For Users**: Click the "View Meme" link above to open in new tab
+                
+                ### 🎨 Template Suggestions
+                Try these alternative moods and templates:
+                %s
+                
+                ⚠️ *Screenshot capture failed, but direct API image is available*
                 """, mood, selectedTemplate, getTemplateDescription(selectedTemplate), topText, bottomText,
-                templateSuggestions.size() > 1 ? templateSuggestions.subList(1, Math.min(4, templateSuggestions.size())) : "none");
+                templateSuggestions.size() > 1 ? templateSuggestions.subList(1, Math.min(4, templateSuggestions.size())) : "none",
+                memeUrl, formatTemplateSuggestions(templateSuggestions));
         }
     }
 
