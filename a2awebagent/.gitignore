@@ -1,3 +1,4 @@
+*.log
 .serena/cache/
 target/
 !.mvn/wrapper/maven-wrapper.jar
