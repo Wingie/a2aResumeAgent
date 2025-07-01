@@ -1,10 +1,10 @@
-# a2aResumeAgent: AI-Powered Intelligent Research Automation
+# a2aWebAgent: MCP Web Automation Demo
 
--This project serves as:
--- A technical portfolio demonstration (resume.html at localhost:7840/ because i need a reason to pay hosting)
--- An educational example of MCP protocol implementation  
--- A showcase of web automation capabilities
--- A personal resume tool with interactive features 
+This project serves as:
+- **MCP Protocol Implementation** - Educational example of Model Context Protocol integration
+- **Web Automation Tools** - Practical browser automation with Playwright
+- **Multi-Tool Demo** - Food safety, LinkedIn search, simple meme generation, and general web browsing
+- **Real-time Processing** - Async task execution with progress tracking 
 
 [![Java](https://img.shields.io/badge/Java-18-orange.svg)](https://openjdk.java.net/projects/jdk/18/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.4-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -13,35 +13,40 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://docs.docker.com/compose/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-> **Revolutionary Personal AI Agent Framework.**
+> **Educational MCP implementation with practical web automation tools.**
 
-Transform natural language queries into comprehensive research with intelligent web automation, real-time progress tracking, and professional documentation generation.
+Demonstrates natural language to web automation using the Model Context Protocol, including basic browser automation, screenshot capture, and simple tool integration.
 
-## 🚀 WIP - Personal Demo
+## 🚀 Example Usage
 
-**Input**: *"Research travel options from Amsterdam to Palma on July 6th 2025, then from Palma to Ibiza via a ferry on the same day with a hotel in Ibize. Include flights, hotels, and attractions and generate a plan to execute this trip."*
+**Simple Meme Generation** (HelloWorld replacement):
+```bash
+curl -X POST http://localhost:7860 \
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generateMeme","arguments":{"template":"drake","topText":"Regular responses","bottomText":"Meme responses"}},"id":1}'
+```
 
-**Output**: 
-- Job Id for Create a "Job" i.e. multiday workflow -> Complete travel research report with:
-  - ✈️ Flight options with pricing and schedules
-  - 🏨 Hotels sorted by rating and price
-  - 🎯 Attractions, museums, and tour recommendations
-  - 📸 Screenshots of all search results
-  - 📊 Structured dataset for easy comparison in neo4j and postgres with a travel_queries_cheatsheet.pdf  
+**Other Available Tools**:
+- 🍽️ **Food Safety Lookup**: Basic tastebeforeyouwaste.org integration
+- 💼 **LinkedIn Demo**: Simple profile search example
+- 🌐 **Web Automation**: General browsing with screenshot capture
+- ⚡ **Async Processing**: Background task execution
 
-**Time**: ~90 seconds (vs 4+ hours manual research)
+**Response Time**: ~1-3 seconds for most operations
 
 ## 🌟 Key Features
 
-### 🤖 **AI-Powered Automation**
-- **Natural Language Interface**: Describe your travel needs in plain English
-- **Multi-Provider AI**: Integrated with OpenAI GPT-4, Google Gemini, and Anthropic Claude
-- **Intelligent Decision Making**: AI determines optimal search strategies and data extraction
+### 🛠️ **Web Automation Tools**
+- **Simple Meme Generation**: Basic memegen.link integration as HelloWorld demo
+- **Screenshot Capture**: Browser automation for visual documentation
+- **Natural Language Interface**: Describe automation tasks in plain English
+- **Multi-Provider Support**: Works with OpenAI, Google Gemini, and Anthropic Claude
+- **Basic Web Interaction**: Navigate, click, type, and capture content
 
 ### 🔄 **Real-Time Processing**
-- **Async Task Management**: Non-blocking execution with live progress updates
-- **Server-Sent Events**: Real-time dashboard showing automation progress
-- **Parallel Processing**: Simultaneous search across multiple travel platforms
+- **Fast Response**: Quick tool execution for basic automation
+- **Async Task Management**: Non-blocking execution with progress updates
+- **Server-Sent Events**: Real-time status updates
+- **ImageContent Support**: MCP image handling with base64 encoding
 
 ### 🌐 **Advanced Web Automation**
 - **Microsoft Playwright 1.51.0**: Next-generation browser automation with headless Chrome
@@ -49,15 +54,17 @@ Transform natural language queries into comprehensive research with intelligent 
 - **Dynamic Content Handling**: Adaptive automation for modern web applications
 - **Production Ready**: Playwright-based architecture with comprehensive test coverage
 
-### 📊 **Enterprise-Grade Architecture**
-- **Multi-Database Support**: PostgreSQL + Redis + Neo4j for different data types
-- **Docker Deployment**: Complete containerized infrastructure
-- **Monitoring & Observability**: Comprehensive health checks and metrics
+### 📊 **Technical Architecture**
+- **a2acore Framework**: Simple MCP framework for tool discovery
+- **Database Support**: PostgreSQL + Redis for basic persistence
+- **Docker Deployment**: Containerized setup with browser dependencies
+- **Health Monitoring**: Basic health checks and status endpoints
 
-### 🔌 **Protocol Standardization**
-- **A2A (Agent-to-Agent)**: Google's standard for agent interoperability
-- **MCP (Model Context Protocol)**: Anthropic's standard for AI-application integration
-- **JSON-RPC 2.0**: Standardized communication protocol
+### 🔌 **Protocol Implementation**
+- **MCP (Model Context Protocol)**: Basic Anthropic standard implementation
+- **JSON-RPC 2.0**: Standard communication protocol
+- **Tool Discovery**: Simple @Action method registration
+- **Parameter Validation**: Basic input validation
 
 ## 📋 Table of Contents
 
@@ -127,7 +134,45 @@ docker-compose logs -f a2awebagent
 - **Redis Monitor**: http://localhost:8081 (Redis Commander)
 - **Neo4j Browser**: http://localhost:7474
 
-### 5. Test with Example Query
+### 5. Test with Example Queries
+
+#### Basic Meme Generation
+```bash
+curl -X POST http://localhost:7860 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "generateMeme",
+      "arguments": {
+        "template": "drake",
+        "topText": "Hello World", 
+        "bottomText": "Hello Meme"
+      }
+    },
+    "id": 1
+  }'
+```
+
+#### Food Safety Query
+```bash
+curl -X POST http://localhost:7860 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "askTasteBeforeYouWaste",
+      "arguments": {
+        "foodQuestion": "Is week-old milk still safe to drink?"
+      }
+    },
+    "id": 2
+  }'
+```
+
+#### General Web Automation
 ```bash
 curl -X POST http://localhost:7860 \
   -H "Content-Type: application/json" \
@@ -137,12 +182,54 @@ curl -X POST http://localhost:7860 \
     "params": {
       "name": "browseWebAndReturnText",
       "arguments": {
-        "provideAllValuesInPlainEnglish": "Find flights from New York to Paris next month, include hotel recommendations and top attractions"
+        "webBrowsingSteps": "Navigate to google.com and search for ai memes"
       }
     },
-    "id": 1
+    "id": 3
   }'
 ```
+
+## 🛠️ Current Tools Available
+
+| Tool Name | Description | Input | Output |
+|-----------|-------------|--------|--------|
+| `generateMeme` | Simple meme generation demo (HelloWorld replacement) | Template, top text, bottom text | Screenshot of generated meme |
+| `browseWebAndReturnText` | Basic web automation with text extraction | Natural language browsing instructions | Extracted text content |
+| `browseWebAndReturnImage` | Web automation with screenshot capture | Natural language browsing instructions | Base64 encoded screenshot |
+| `askTasteBeforeYouWaste` | Food safety information lookup | Food safety question | Safety guidance from tastebeforeyouwaste.org |
+| `getTasteBeforeYouWasteScreenshot` | Screenshot of food safety website | None | Visual food safety guide |
+| `searchLinkedInProfile` | LinkedIn profile search demo | Name or professional details | Profile information with screenshots |
+| `getWingstonsProjectsExpertiseResume` | Technical portfolio example | None | Project showcase |
+
+## 🛠️ Simple Meme Generation (HelloWorld Demo)
+
+### Basic Implementation
+Replaces traditional "Hello World" with a simple meme generator that demonstrates MCP ImageContent handling.
+
+### How It Works
+1. **URL Building**: Creates memegen.link URL with text parameters
+2. **Browser Navigation**: Uses Playwright to visit the meme URL
+3. **Screenshot**: Captures the rendered meme as PNG
+4. **MCP Response**: Returns as ImageContent with base64 encoding
+
+### Available Templates
+Basic meme templates from memegen.link:
+- `drake` - Choice preferences
+- `distracted-boyfriend` - Dilemma scenarios  
+- `woman-yelling-at-cat` - Arguments
+- `this-is-fine` - Acceptance of chaos
+- `expanding-brain` - Levels of understanding
+- Plus others available from [memegen.link](https://memegen.link/templates)
+
+### Example Usage
+```json
+{
+  "template": "drake",
+  "topText": "Hello World",
+  "bottomText": "Hello Meme"
+}
+```
+Simple demonstration of browser automation and image capture.
 
 ## 🏗️ Architecture Overview
 
@@ -150,17 +237,30 @@ curl -X POST http://localhost:7860 \
 
 ```mermaid
 graph TB
-    User[User Query] --> API[REST/JSON-RPC API]
-    API --> TaskMgr[Task Manager]
-    TaskMgr --> Queue[Redis Queue]
-    Queue --> Worker[Async Worker]
-    Worker --> AI[AI Provider]
-    Worker --> Browser[Playwright Browser]
-    Browser --> Web[Travel Websites]
-    Worker --> DB[(PostgreSQL)]
-    Worker --> Cache[(Redis Cache)]
-    Worker --> Graph[(Neo4j Graph)]
-    Worker --> SSE[Server-Sent Events]
+    User[User/AI Query] --> API[MCP JSON-RPC API]
+    API --> Tools[a2acore Tool Discovery]
+    Tools --> Meme[Meme Generator]
+    Tools --> Food[Food Safety Tool]
+    Tools --> LinkedIn[LinkedIn Tool]
+    Tools --> WebAuto[Web Automation]
+    
+    Meme --> Playwright[Playwright Browser]
+    WebAuto --> Playwright
+    Food --> Playwright
+    LinkedIn --> Playwright
+    
+    Playwright --> Memegen[memegen.link]
+    Playwright --> FoodSite[tastebeforeyouwaste.org]
+    Playwright --> LI[LinkedIn.com]
+    Playwright --> GeneralWeb[Any Website]
+    
+    Playwright --> Screenshots[Screenshot Capture]
+    Screenshots --> ImageContent[MCP ImageContent]
+    ImageContent --> Base64[Base64 Response]
+    
+    Tools --> DB[(PostgreSQL)]
+    Tools --> Cache[(Redis Cache)]
+    Tools --> SSE[Server-Sent Events]
     SSE --> Dashboard[Real-time Dashboard]
 ```
 
@@ -173,9 +273,10 @@ graph TB
 - **Lombok**: Automatic code generation for cleaner POJOs
 
 #### **AI Integration Layer**
+- **a2acore Framework**: Lightweight MCP framework with fast startup and tool auto-discovery
 - **tools4ai 1.1.6.2**: AI tool integration framework with annotation-based configuration
-- **a2ajava 0.1.9.6**: Agent-to-agent communication framework
 - **Multi-Provider Support**: OpenRouter (recommended), OpenAI GPT-4o-mini, Google Gemini 2.0, Anthropic Claude-3
+- **ImageContent Protocol**: Advanced MCP image handling for meme generation and screenshots
 
 #### **Web Automation Engine**
 - **Microsoft Playwright 1.51.0**: Next-generation browser automation with Chrome DevTools Protocol
@@ -184,10 +285,11 @@ graph TB
 - **Docker Optimized**: Ready-to-run containerized deployment with pre-installed browser dependencies
 
 #### **Data Persistence**
-- **PostgreSQL 15**: ACID-compliant relational database for task management
+- **PostgreSQL 15**: ACID-compliant relational database for task management and tool caching
 - **Redis 7**: High-performance caching and real-time message passing
-- **Neo4j 5**: Graph database for travel knowledge representation
+- **Neo4j 5**: Graph database for knowledge representation (travel, professional networks)
 - **H2**: In-memory database for testing and development
+- **File System**: Screenshot storage with content-based naming and absolute path management
 
 #### **Real-time Communication**
 - **Server-Sent Events (SSE)**: Live progress updates to web dashboard

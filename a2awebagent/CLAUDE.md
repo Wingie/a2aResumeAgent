@@ -1,5 +1,7 @@
-CLAUDE.md - a2aTravelAgent
-AI-Powered Travel Research Agent using Spring Boot + Playwright web automation with A2A/MCP protocol support.
+CLAUDE.md - a2aWebAgent
+MCP Web Automation Demo using Spring Boot + Playwright with basic tool examples.
+
+🛠️ **Educational MCP Implementation** - Demonstrates browser automation, ImageContent handling, and simple tool integration.
 
 ⚠️ Critical: Project Structure - Three Components
 a2aTravelAgent/
@@ -53,12 +55,46 @@ Configuration
 Port: 7860 (change via application.properties) Database: PostgreSQL + Redis AI Keys: Set via env vars or -DopenAiKey=key
 
 Web Automation APIs
-Main Tools:
+Current Tools (7 available):
 
-Web browsing with text/image extraction
-Travel research via template system
-LinkedIn search, screenshot utilities
+🛠️ generateMeme: Simple meme generation demo (HelloWorld replacement) using memegen.link
+🍽️ askTasteBeforeYouWaste: Food safety research from tastebeforeyouwaste.org
+📸 getTasteBeforeYouWasteScreenshot: Visual food safety guide capture
+💼 searchLinkedInProfile: LinkedIn profile discovery with screenshots (features Wingston Sharon)
+📝 getWingstonsProjectsExpertiseResume: Technical portfolio showcase
+🌐 browseWebAndReturnText: General web automation with text extraction
+📷 browseWebAndReturnImage: Web automation with ImageContent screenshot capture
+
+Key Features:
+- ImageContent MCP protocol support for all screenshot-based tools
+- Base64 encoding for seamless image transfer
+- Content-based screenshot naming with absolute paths
+- Real-time browser automation via Playwright
+- Automatic tool discovery via @Action annotations
+
 Playwright Actions: Navigate, click, type, fill, screenshot, wait for selectors
+
+🛠️ HelloWorld Meme Demo
+The generateMeme tool is a simple HelloWorld replacement demonstrating basic MCP ImageContent:
+
+Technical Flow:
+1. Input: template (e.g., "drake"), topText, bottomText
+2. URL Building: https://api.memegen.link/images/{template}/{topText}/{bottomText}.png
+3. Browser Navigation: Playwright visits the meme URL
+4. Screenshot Capture: Basic PNG capture via browser automation
+5. ImageContent Response: Base64 encoded image returned via MCP protocol
+
+Example Usage:
+generateMeme("drake", "Hello World", "Hello Meme")
+Result: Simple Drake meme demonstrating browser automation
+
+Common Templates:
+- drake: Basic choice demonstration
+- distracted-boyfriend: Simple comparison
+- woman-yelling-at-cat: Basic argument format
+- this-is-fine: Acceptance scenario
+
+Performance: ~1-3 seconds (basic browser automation demo)
 
 Task Guidelines
 Always use Task() for code changes:
