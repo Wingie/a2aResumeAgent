@@ -3,6 +3,7 @@ package io.wingie;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -12,6 +13,7 @@ import io.wingie.a2acore.annotation.EnableA2ACore;
 @SpringBootApplication
 @EnableScheduling
 @EnableA2ACore
+@EnableAspectJAutoProxy
 @ComponentScan(basePackages = {
     "io.wingie",
     "io.wingie.a2acore"

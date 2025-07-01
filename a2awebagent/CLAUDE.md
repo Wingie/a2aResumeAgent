@@ -1,101 +1,219 @@
-CLAUDE.md - a2aWebAgent
-MCP Web Automation Demo using Spring Boot + Playwright with basic tool examples.
+# CLAUDE.md - a2aTravelAgent Web Automation Agent
 
-🛠️ **Educational MCP Implementation** - Demonstrates browser automation, ImageContent handling, and simple tool integration.
+## Repository Overview
 
-⚠️ Critical: Project Structure - Three Components
+This is a sophisticated Spring Boot-based web automation agent providing AI-powered travel research through MCP (Model Context Protocol) and A2A (Agent-to-Agent) protocols using Playwright for intelligent web interactions.
+
+## ⚠️ IMPORTANT: Actual Project Architecture
+
+### **Current Reality** (Updated Based on Code Review)
+
+```
 a2aTravelAgent/
-├── a2ajava/              # Maven Library (A2A/MCP protocols)
-│   └── io.github.vishalmysore.*
-└── a2awebagent/          # Multi-module Spring Boot App
-    ├── a2acore/          # (NEW) Fast MCP Framework Library
+├── a2ajava/              # 📚 MINIMAL/UNUSED - Legacy reference only
+│   └── (Empty Maven project)
+└── a2awebagent/          # 🚀 ACTIVE Multi-module Spring Boot Application
+    ├── a2acore/          # 🔧 MCP Framework Library (NEW - Primary Framework)
     │   └── io.wingie.a2acore.*
-    └── a2awebapp/        # Web Automation Application  
+    └── a2awebapp/        # 🌐 Web Automation Application
         └── io.wingie.*
-Key Architecture:
+```
 
-a2ajava: Standalone library for A2A/MCP protocols (Maven Central: v0.1.9.6)
-a2acore: Fast-starting MCP framework (replaces heavy a2ajava dependency)
-a2awebapp: Spring Boot app with Playwright, uses a2acore framework
-Build Structure:
+### **Key Architecture Correction**
 
-a2awebagent is a multi-module Maven aggregator (parent POM)
-a2acore: Library module with MCP framework
-a2awebapp: Application module depends on a2acore
-Development Workflow
-Working Directory: /Users/wingston/code/a2aTravelAgent/a2awebagent
+**Previous Documentation Said:** External dependency on a2ajava Maven Central library  
+**Actual Implementation:** Self-contained a2acore framework embedded within the project
 
-bash
-# Build entire project
+- **a2ajava**: Currently unused/minimal - NOT the active dependency
+- **a2acore**: Primary MCP framework with custom annotations and discovery system
+- **a2awebapp**: Spring Boot application using internal a2acore framework
+### **Maven Multi-Module Structure**
+
+```xml
+<!-- Parent POM: a2awebagent/pom.xml -->
+<groupId>io.wingie</groupId>
+<artifactId>a2awebagent</artifactId>
+<packaging>pom</packaging>
+<modules>
+    <module>a2acore</module>    <!-- MCP Framework Library -->
+    <module>a2awebapp</module>  <!-- Spring Boot Application -->
+</modules>
+```
+
+**Module Dependencies:**
+- `a2acore`: Standalone MCP framework library (internal)
+- `a2awebapp`: Depends on `a2acore` version 0.0.1 (local)
+## Development Workflow
+
+**Working Directory:** `/Users/wingston/code/a2aTravelAgent/a2awebagent`
+
+### **Build Commands**
+```bash
+# Build entire multi-module project
 mvn clean compile
 
-# Run the application (from a2awebagent root)
+# Run tests
+mvn test
+
+# Package application
+mvn package
+
+# Run Spring Boot application (from a2awebagent root)
 mvn spring-boot:run -pl a2awebapp
 
-# Docker single container rebuild
+# Alternative: Run packaged JAR
+java -jar a2awebapp/target/a2awebapp-0.0.1.jar
+```
+
+### **Docker Commands**
+```bash
+# Single container rebuild
 docker-compose down a2awebagent && docker-compose up --build a2awebagent -d
-Core Components
-a2acore Framework:
 
-A2aCoreController: MCP JSON-RPC endpoint
-ToolDiscoveryService: Auto-discovery of @Action methods
-JsonRpcHandler: Protocol message processing
-Annotations: @EnableA2ACore, @Action, @Parameter
-a2awebapp Application:
+# Full rebuild
+docker-compose down && docker-compose up --build -d
+```
+## Core Components
 
-Application.java: Spring Boot main class
-PlaywrightProcessor: Web automation interface
-PlaywrightActions: Data model with AI annotations
-CachedMCPToolsController: Performance optimization bridge
-PostgreSQL + Redis caching services
-Key Dependencies
-a2acore: Spring 6.1.6, Jackson 2.16.2 (lightweight) a2awebapp: Spring Boot 3.2.4, Playwright 1.51.0, tools4ai 1.1.6.2
+### **a2acore Framework** (Internal MCP Library)
+- **A2aCoreController**: MCP JSON-RPC endpoint handling
+- **ToolDiscoveryService**: Fast <100ms auto-discovery of @Action methods
+- **ToolExecutor**: Method invocation with timeout protection
+- **StaticToolRegistry**: Bean and tool mapping consistency
+- **Custom Annotations**: @EnableA2ACore, @Action, @Parameter, @Agent
 
-Configuration
-Port: 7860 (change via application.properties) Database: PostgreSQL + Redis AI Keys: Set via env vars or -DopenAiKey=key
+### **a2awebapp Application** (Spring Boot Web App)
+- **Application.java**: Main class with @EnableA2ACore annotation
+- **MemeGeneratorTool**: Advanced meme generation (HelloWorld replacement)
+- **LinkedInSearchTool**: Professional profile discovery and demonstration
+- **ToolDescriptionCacheService**: PostgreSQL-backed AI description caching
+- **Multi-database Integration**: PostgreSQL + Redis + Neo4j
+- **Web Automation**: Playwright-based intelligent browser control
+## Key Dependencies
 
-Web Automation APIs
-Current Tools (7 available):
+### **a2acore Module** (Lightweight Framework)
+- Spring Framework 6.1.6
+- Jackson 2.16.2 (JSON processing)
+- SLF4J + Logback (logging)
+- Custom reflection-based tool discovery
 
-🛠️ generateMeme: Simple meme generation demo (HelloWorld replacement) using memegen.link
-🍽️ askTasteBeforeYouWaste: Food safety research from tastebeforeyouwaste.org
-📸 getTasteBeforeYouWasteScreenshot: Visual food safety guide capture
-💼 searchLinkedInProfile: LinkedIn profile discovery with screenshots (features Wingston Sharon)
-📝 getWingstonsProjectsExpertiseResume: Technical portfolio showcase
-🌐 browseWebAndReturnText: General web automation with text extraction
-📷 browseWebAndReturnImage: Web automation with ImageContent screenshot capture
+### **a2awebapp Module** (Full Application)
+- Spring Boot 3.2.4 (web framework)
+- Microsoft Playwright 1.51.0 (web automation)
+- PostgreSQL Driver (primary database)
+- Redis Starter (caching and pub/sub)
+- Neo4j Starter (future knowledge graph)
+- Micrometer + Prometheus (metrics)
+- **Note**: No external tools4ai dependency - functionality embedded in a2acore
 
-Key Features:
-- ImageContent MCP protocol support for all screenshot-based tools
-- Base64 encoding for seamless image transfer
-- Content-based screenshot naming with absolute paths
-- Real-time browser automation via Playwright
-- Automatic tool discovery via @Action annotations
+## Configuration
 
-Playwright Actions: Navigate, click, type, fill, screenshot, wait for selectors
+### **Application Settings**
+- **Port**: 7860 (configurable via `application.properties`)
+- **Databases**: PostgreSQL (primary) + Redis (cache) + Neo4j (future)
+- **AI Provider Keys**: Set via environment variables or JVM properties
+  ```bash
+  -DopenAiKey=your_key
+  -DclaudeKey=your_key
+  -DserperKey=your_key
+  ```
 
-🛠️ HelloWorld Meme Demo
-The generateMeme tool is a simple HelloWorld replacement demonstrating basic MCP ImageContent:
+### **Environment Profiles**
+- `application.yml` (default/local development)
+- `application-docker.yml` (containerized deployment)
+- `application-test.yml` (testing configuration)
 
-Technical Flow:
-1. Input: template (e.g., "drake"), topText, bottomText
-2. URL Building: https://api.memegen.link/images/{template}/{topText}/{bottomText}.png
-3. Browser Navigation: Playwright visits the meme URL
-4. Screenshot Capture: Basic PNG capture via browser automation
-5. ImageContent Response: Base64 encoded image returned via MCP protocol
+## Available MCP Tools
 
-Task Guidelines
-Always use Task() for code changes:
+### **Current Tools** (Auto-discovered via @Action annotations)
 
-bash
+1. **🎨 generateMeme** - Advanced meme generation with 73 mood mappings
+   - Template discovery and validation
+   - Special character encoding for URLs
+   - Mixed content response (text + base64 image)
+   - Mood-to-template intelligent mapping
+
+2. **💼 searchLinkedInProfile** - Professional profile discovery
+   - Features Wingston Sharon's profile demonstration
+   - Screenshot capabilities with fallback patterns
+   - International experience showcase (Amsterdam/Booking.com)
+
+3. **🌐 browseWebAndReturnText** - General web automation
+   - Natural language to web action translation
+   - Text extraction and content analysis
+
+4. **📷 browseWebAndReturnImage** - Visual content capture
+   - ImageContent MCP protocol compliance
+   - Base64 encoding optimization
+   - Screenshot naming with absolute paths
+
+### **Key Technical Features**
+- **Performance**: <100ms tool discovery time
+- **Protocol Compliance**: MCP JSON-RPC 2.0 with proper error handling
+- **Mixed Content**: TextContent + ImageContent responses
+- **Caching**: PostgreSQL-backed AI description caching
+- **Safety**: URL validation and error boundaries
+- **Async Support**: Non-blocking task execution
+
+## MemeGeneratorTool - Advanced Implementation
+
+**Far Beyond HelloWorld** - This is a sophisticated 855-line production tool:
+
+### **Technical Architecture**
+1. **Mood Intelligence**: 73 mood categories mapped to 29 verified templates
+2. **Template Validation**: Real-time template existence checking
+3. **Special Character Encoding**: Comprehensive URL encoding rules
+   - Spaces → underscores or dashes
+   - Special chars: ?→~q, &→~a, %→~p, #→~h, /→~s
+4. **Direct API Integration**: Fetches base64 images directly from memegen.link
+5. **Mixed Content Response**: Combines markdown explanation + base64 image
+6. **Error Handling**: Multiple fallback strategies and user guidance
+
+### **Key Features**
+- **MoodTemplateMapper**: Intelligent mood-to-template selection
+- **Template Discovery**: 29 templates with keywords and examples
+- **Production Ready**: Comprehensive error handling and validation
+- **MCP Compliant**: Proper ToolCallResult with List<Content> structure
+
+## Development Guidelines
+
+### **Code Modification Pattern**
+Always use Task() agents for analysis and changes:
+
+```bash
 Task(
-  description="Debug MCP integration", 
-  prompt="Use find_symbol, read_file, analyze implementation"
+  description="Debug MCP integration",
+  prompt="Use find_symbol, read_file, analyze @Action annotations and tool discovery"
 )
-Project-specific patterns:
+```
 
-Bridge pattern: a2acore handles MCP, a2awebapp provides caching
-Multi-module builds require -pl a2awebapp for running
-Tool descriptions cached in PostgreSQL via ToolDescriptionCacheService
-Protocols
-MCP: Fast JSON-RPC via a2acore framework A2A: Legacy support via a2ajava integration
+### **Project-Specific Patterns**
+- **Bridge Architecture**: a2acore handles MCP protocol, a2awebapp provides business logic
+- **Multi-module Builds**: Use `-pl a2awebapp` for running specific modules
+- **Performance Caching**: Tool descriptions cached in PostgreSQL via ToolDescriptionCacheService
+- **Async Processing**: CompletableFuture-based non-blocking execution
+- **Discovery Pattern**: Reflection-based @Action method discovery with <100ms target
+## Protocol Support
+
+### **MCP (Model Context Protocol)** - Primary
+- **JSON-RPC 2.0**: Complete message format compliance
+- **Tool Registration**: Automatic discovery and registration
+- **Error Handling**: Proper error codes and messages
+- **Content Types**: TextContent and ImageContent support
+- **Performance**: <100ms tool discovery, method caching
+
+### **A2A (Agent-to-Agent)** - Secondary
+- **Legacy Integration**: Basic compatibility maintained
+- **Natural Language**: Command processing for human-friendly interaction
+
+## Database Architecture
+
+### **Multi-Database Integration**
+- **PostgreSQL**: Primary data storage, tool description caching
+- **Redis**: Session management, pub/sub, quick caching
+- **Neo4j**: Future knowledge graph and relationship mapping
+
+### **Performance Optimizations**
+- **Connection Pooling**: HikariCP with optimized settings
+- **Query Caching**: JPA second-level cache
+- **Async Processing**: Non-blocking database operations

@@ -73,6 +73,9 @@ public class TaskExecutorService {
         String taskId = task.getTaskId();
         
         try {
+            // Set task context for LLM call tracking
+            TaskContext.setContext(taskId, "web-agent-session", task.getRequesterId());
+            
             // Mark task as started
             updateTaskProgress(task, TaskStatus.RUNNING, "Task execution started", 0);
             
@@ -108,6 +111,9 @@ public class TaskExecutorService {
         } catch (Exception e) {
             log.error("Task {} failed with error", taskId, e);
             handleTaskFailure(task, e.getMessage());
+        } finally {
+            // Always clear task context when task execution completes
+            TaskContext.clear();
         }
     }
 

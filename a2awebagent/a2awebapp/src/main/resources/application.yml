@@ -85,6 +85,14 @@ app:
     fallback:
       enabled: true          # Enable fallback to basic mode if cache fails
 
+# LLM Call Tracking Configuration
+llm:
+  tracking:
+    enabled: true            # Enable LLM call tracking via AOP
+    log-payloads: false      # Log request/response payloads (for debugging only)
+    cost-estimation: true    # Enable cost calculation
+    cache-correlation: true  # Track cache hit/miss correlation
+
 # Cache configuration
 cache:
   warming:
