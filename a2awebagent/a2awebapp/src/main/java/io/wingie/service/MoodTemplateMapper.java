@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -215,7 +216,9 @@ public class MoodTemplateMapper {
 
     /**
      * Inner class representing a meme template from the JSON file.
+     * Ignores unknown properties like "_self" that may be present in the API response.
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MemeTemplate {
         public String id;
         public String name;

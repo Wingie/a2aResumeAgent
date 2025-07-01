@@ -12,15 +12,46 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 /**
- * Meme Generator Tool using memegen API for creating memes that Claude can use to communicate with users.
- * Generates memes by visiting the memegen website and taking screenshots via browser automation.
+ * Professional Meme Generator Tool using memegen.link API for creating memes that AI agents can use to communicate with users.
+ * 
+ * This tool provides comprehensive meme generation capabilities with:
+ * - 26+ verified meme templates with proper API names
+ * - Intelligent mood-based template selection
+ * - Robust special character encoding for URLs
+ * - Full ImageContent MCP protocol support
+ * - Automatic screenshot capture and serving
+ * - Graceful fallback handling
+ * 
+ * Key Features:
+ * - Template-based generation: Use exact API names like 'drake', 'db', 'woman-cat'
+ * - Mood-based generation: Specify emotions like 'happy', 'sarcastic', 'confused'
+ * - Special character handling: Automatic URL encoding for memegen.link compatibility
+ * - Image delivery: Base64 encoded screenshots via MCP ImageContent protocol
+ * 
+ * Usage Examples:
+ * {@code
+ * // Direct template usage
+ * generateMeme("drake", "Writing bugs", "Writing features");
+ * 
+ * // Mood-based selection
+ * generateMoodMeme("sarcastic", "Code reviews", "Just approve it");
+ * 
+ * // Special characters handled automatically
+ * generateMeme("fry", "Not sure if feature?", "Or bug...");
+ * }
+ * 
+ * @see MoodTemplateMapper for mood-to-template mappings
+ * @see ScreenshotService for image handling
+ * @author a2awebagent
+ * @version 2.0
  */
 @Service
 @Slf4j
-@Agent(name = "meme", description = "Generate memes for communication using memegen API")
-public class HelloWorldWebTool {
+@Agent(name = "memeGenerator", description = "Professional meme generator with template and mood-based selection, special character encoding, and MCP ImageContent support")
+public class MemeGeneratorTool {
 
     @Autowired
     @Lazy
@@ -31,16 +62,45 @@ public class HelloWorldWebTool {
 
     @Autowired
     private MoodTemplateMapper moodTemplateMapper;
+    
+    /**
+     * Set of all valid template names for validation.
+     * These are the exact API names that memegen.link accepts.
+     */
+    private static final Set<String> VALID_TEMPLATES = Set.of(
+        "10-guy", "aag", "ams", "bd", "bear", "blb", "buzz", "cmm", "db", "doge",
+        "drake", "fine", "fry", "fwp", "gb", "gru", "kermit", "mordor", "oag", 
+        "patrick", "philosoraptor", "pigeon", "pooh", "rollsafe", "spongebob", 
+        "stonks", "success", "woman-cat", "yuno"
+    );
 
     /**
-     * Generates a meme using the memegen API that Claude can use to communicate with users.
-     * Takes meme template, top text, and bottom text to create custom memes.
+     * Generates a meme using the memegen.link API with automatic special character encoding.
+     * 
+     * CRITICAL: This tool automatically handles special characters in text according to memegen.link URL encoding rules.
+     * Agents do NOT need to pre-encode text - the tool handles all encoding automatically.
+     * 
+     * Special Character Encoding (handled automatically):
+     * - Spaces → underscores (_)
+     * - Question marks (?) → ~q
+     * - Ampersands (&) → ~a  
+     * - Percentages (%) → ~p
+     * - Hashtags (#) → ~h
+     * - Forward slashes (/) → ~s
+     * - Double quotes (") → two single quotes ('')
+     * - Other special chars → removed for URL safety
+     * 
+     * Reserved Multi-Character Patterns (for advanced usage):
+     * - Double underscores (__) → single underscore (_)
+     * - Double dashes (--) → single dash (-)
+     * - Tilde + N (~n) → newline character
+     * - Other tilde patterns: ~q, ~a, ~p, ~h, ~s, ~b, ~l, ~g (reserved)
      * 
      * Available verified meme templates (use exact API names):
      * 
      * **Popular Choice Templates:**
      * - drake: Drake pointing/rejecting format - preferences (top=reject, bottom=prefer)
-     * - db: Distracted boyfriend - temptation/choices
+     * - db: Distracted boyfriend - temptation/choices  
      * - woman-cat: Woman yelling at cat - arguments/confusion
      * - gb: Galaxy brain (expanding brain) - progression of ideas from simple to complex
      * - gru: Gru's plan - multi-step plans that go wrong
@@ -71,16 +131,28 @@ public class HelloWorldWebTool {
      * - mordor: One does not simply - expressing difficulty
      * - philosoraptor: Thinking raptor - philosophical questions
      * - bear: Confession bear - admitting something awkward
+     * 
+     * Usage Examples:
+     * generateMeme("drake", "Using var in JS", "Using const in JS");
+     * generateMeme("fry", "Not sure if feature?", "Or bug...");  // Special chars handled automatically
+     * generateMeme("woman-cat", "You said 5 minutes!", "That was 3 hours ago!");
      */
-    @Action(description = "Generate memes for communication using memegen API with comprehensive template selection", name = "generateMeme")
+    @Action(description = "Generate memes with automatic special character encoding and comprehensive template selection", name = "generateMeme")
     public String generateMeme(
-        @Parameter(description = "EXACT API NAME ONLY - Use these exact strings: 'drake', 'db', 'woman-cat', 'gb', 'gru', 'pooh', 'fine', 'fry', 'pigeon', 'stonks', 'buzz', 'kermit', 'rollsafe', 'spongebob', 'patrick', 'doge', 'success', 'yuno', 'fwp', 'aag', 'blb', 'oag', 'cmm', 'mordor', 'philosoraptor', 'bear'. Do NOT use descriptive names - use exact strings only.") String template,
-        @Parameter(description = "Top text for the meme") String topText,
-        @Parameter(description = "Bottom text for the meme (optional, can be empty)") String bottomText) {
+        @Parameter(description = "EXACT API NAME ONLY - Use these exact strings: 'drake', 'db', 'woman-cat', 'gb', 'gru', 'pooh', 'fine', 'fry', 'pigeon', 'stonks', 'buzz', 'kermit', 'rollsafe', 'spongebob', 'patrick', 'doge', 'success', 'yuno', 'fwp', 'aag', 'blb', 'oag', 'cmm', 'mordor', 'philosoraptor', 'bear'. Do NOT use descriptive names - use exact API strings only.") String template,
+        @Parameter(description = "Top text for the meme. Special characters (?, &, %, #, /, etc.) will be automatically encoded for URL compatibility. Use natural text - no pre-encoding needed.") String topText,
+        @Parameter(description = "Bottom text for the meme (optional, can be empty). Special characters will be automatically encoded. Use natural text - no pre-encoding needed.") String bottomText) {
         
         log.info("Generating meme with template: {}, top: {}, bottom: {}", template, topText, bottomText);
-        log.info("🔍 DEBUG: Received template from Claude: '{}'", template);
+        log.info("🔍 DEBUG: Received template from agent: '{}'", template);
         log.info("🔍 DEBUG: Template length: {}, contains spaces: {}", template.length(), template.contains(" "));
+        
+        // Validate template name first
+        String validationError = validateTemplate(template);
+        if (validationError != null) {
+            log.warn("Template validation failed for '{}': {}", template, validationError);
+            return generateTemplateValidationError(template, topText, bottomText, validationError);
+        }
         
         try {
             // Check if WebBrowsingAction is available
@@ -144,22 +216,55 @@ public class HelloWorldWebTool {
     }
     
     /**
-     * Encodes text for use in memegen URLs - replaces spaces with underscores and handles special characters.
+     * Encodes text for use in memegen URLs with comprehensive special character handling.
+     * 
+     * This method implements the full memegen.link URL encoding specification:
+     * - Basic characters: spaces → underscores
+     * - Reserved URL chars: ?, &, %, #, / → tilde patterns
+     * - Quotes: double quotes → two single quotes
+     * - Multi-char patterns: __, -- → single char
+     * - Newlines: ~n pattern support
+     * - Safety: removes unsafe characters for URL compatibility
+     * 
+     * @param text The text to encode for URL usage
+     * @return URL-safe encoded text suitable for memegen.link API
      */
     private String encodeTextForUrl(String text) {
         if (text == null || text.trim().isEmpty()) {
             return "_";
         }
         
-        return text.trim()
+        String encoded = text.trim()
+            // Handle newlines first (before other processing)
+            .replace("\n", "~n")
+            .replace("\r\n", "~n")
+            .replace("\r", "~n")
+            
+            // Basic space replacement
             .replace(" ", "_")
+            
+            // Reserved URL characters → tilde patterns
             .replace("?", "~q")
+            .replace("&", "~a")
             .replace("%", "~p")
             .replace("#", "~h")
             .replace("/", "~s")
+            .replace("\\", "~b")
+            .replace("<", "~l")
+            .replace(">", "~g")
+            
+            // Quote handling
             .replace("\"", "''")
-            .replace("&", "~a")
-            .replaceAll("[^a-zA-Z0-9_~']", "");
+            
+            // Multi-character pattern normalization
+            .replace("__", "_")   // Double underscore → single
+            .replace("--", "-")   // Double dash → single
+            
+            // Remove remaining unsafe characters (keep alphanumeric, _, ~, ', -)
+            .replaceAll("[^a-zA-Z0-9_~'-]", "");
+            
+        // Ensure we don't return empty string
+        return encoded.isEmpty() ? "_" : encoded;
     }
 
     /**
@@ -317,14 +422,57 @@ public class HelloWorldWebTool {
     }
 
     /**
-     * Generates a meme using mood-based template selection.
-     * Claude can specify a mood/emotion and the system will automatically choose an appropriate template.
+     * Generates a meme using intelligent mood-based template selection with automatic special character encoding.
+     * 
+     * This method allows agents to express emotions naturally without needing to know specific template names.
+     * The system intelligently maps moods to appropriate meme templates based on emotional context.
+     * 
+     * CRITICAL: Like generateMeme, this tool automatically handles all special character encoding.
+     * Agents should use natural text - no pre-encoding needed.
+     * 
+     * Available Mood Categories:
+     * 
+     * **Positive Emotions:**
+     * - happy, excited, successful, proud, confident, winning → success, stonks, pooh templates
+     * 
+     * **Negative Emotions:**
+     * - sad, frustrated, unlucky, annoyed, angry, upset → blb, fwp, woman-cat, yuno templates
+     * 
+     * **Sarcastic/Ironic:**
+     * - sarcastic, ironic, mocking, dismissive, petty, sassy → kermit, spongebob, rollsafe templates
+     * 
+     * **Confused/Uncertain:**
+     * - confused, uncertain, suspicious, questioning, doubtful, skeptical → fry, pigeon, philosoraptor templates
+     * 
+     * **Preferences/Choices:**
+     * - comparing, choosing, preferring, upgrading, deciding, tempted → drake, pooh, db templates
+     * 
+     * **Plans/Progression:**
+     * - planning, evolving, progression, step-by-step, developing, growing → gru, gb templates
+     * 
+     * **Acceptance/Denial:**
+     * - accepting, denying, coping, resigned, fine, whatever, dealing → fine, bear templates
+     * 
+     * **Clever/Smart:**
+     * - clever, smart, thinking, philosophical, wise, insightful → rollsafe, philosoraptor templates
+     * 
+     * **Special Moods:**
+     * - difficult, challenging, hard, impossible → mordor template
+     * - everywhere, abundant, all-around, pervasive → buzz template
+     * - aliens, conspiracy, mysterious, unexplained → aag template
+     * - obsessive, clingy, attached, possessive → oag template
+     * - wow, such, much, very, doge-style → doge template
+     * 
+     * Usage Examples:
+     * generateMoodMeme("sarcastic", "Code reviews", "Just approve it");
+     * generateMoodMeme("frustrated", "When the build fails", "Again...");
+     * generateMoodMeme("successful", "Code works first try!", "");
      */
-    @Action(description = "Generate memes using mood-based template selection - let Claude express emotions through appropriate meme templates", name = "generateMoodMeme")
+    @Action(description = "Generate memes using intelligent mood-based template selection with automatic special character encoding - express emotions naturally", name = "generateMoodMeme")
     public String generateMoodMeme(
-        @Parameter(description = "Mood or emotion for template selection. Examples: 'happy', 'frustrated', 'sarcastic', 'confused', 'successful', 'comparing', 'planning', 'accepting'. The system will choose an appropriate template based on this mood.") String mood,
-        @Parameter(description = "Top text for the meme") String topText,
-        @Parameter(description = "Bottom text for the meme (optional, can be empty)") String bottomText) {
+        @Parameter(description = "Mood or emotion for intelligent template selection. Use natural language: 'happy', 'frustrated', 'sarcastic', 'confused', 'successful', 'comparing', 'planning', 'accepting', 'clever', 'difficult', 'everywhere', 'obsessive', 'wow', etc. The system maps moods to optimal templates automatically.") String mood,
+        @Parameter(description = "Top text for the meme. Special characters (?, &, %, #, /, etc.) will be automatically encoded for URL compatibility. Use natural text - no pre-encoding needed.") String topText,
+        @Parameter(description = "Bottom text for the meme (optional, can be empty). Special characters will be automatically encoded. Use natural text - no pre-encoding needed.") String bottomText) {
         
         log.info("Generating mood-based meme with mood: {}, top: {}, bottom: {}", mood, topText, bottomText);
         
@@ -363,6 +511,76 @@ public class HelloWorldWebTool {
             log.error("Error generating mood-based meme with mood '{}': {}", mood, e.getMessage(), e);
             return generateMoodErrorResponse(mood, topText, bottomText, e.getMessage());
         }
+    }
+    
+    /**
+     * Validates that the template name is supported by memegen.link API.
+     * 
+     * @param template The template name to validate
+     * @return null if valid, error message if invalid
+     */
+    private String validateTemplate(String template) {
+        if (template == null || template.trim().isEmpty()) {
+            return "Template name cannot be null or empty";
+        }
+        
+        String cleanTemplate = template.toLowerCase().trim();
+        
+        if (!VALID_TEMPLATES.contains(cleanTemplate)) {
+            return String.format("Template '%s' is not supported. Valid templates: %s", 
+                    template, getPopularTemplatesSuggestion());
+        }
+        
+        return null; // Valid template
+    }
+    
+    /**
+     * Gets a suggestion of popular templates for error messages.
+     */
+    private String getPopularTemplatesSuggestion() {
+        return "drake, db, woman-cat, fine, fry, pigeon, success, gb, gru, pooh, kermit, rollsafe";
+    }
+    
+    /**
+     * Generates an error response for template validation failures.
+     */
+    private String generateTemplateValidationError(String template, String topText, String bottomText, String validationError) {
+        return String.format("""
+            # 🙅 Template Validation Error
+            
+            ## Invalid Template Request:
+            - **Template**: '%s'
+            - **Top Text**: "%s"
+            - **Bottom Text**: "%s"
+            
+            ### ⚠️ Validation Error:
+            %s
+            
+            ### 📝 Popular Templates to Try:
+            - **drake** - Drake pointing/rejecting format
+            - **db** - Distracted boyfriend
+            - **woman-cat** - Woman yelling at cat
+            - **fine** - This is fine dog
+            - **fry** - Futurama Fry "Not sure if"
+            - **pigeon** - Is this a pigeon
+            - **success** - Success kid
+            - **gb** - Galaxy brain (expanding brain)
+            - **gru** - Gru's plan
+            - **pooh** - Tuxedo Winnie the Pooh
+            - **kermit** - But that's none of my business
+            - **rollsafe** - Roll Safe
+            
+            ### 💡 Alternative Options:
+            1. **Use getMoodGuide()** to see mood-based selection
+            2. **Try generateMoodMeme()** with emotions like 'happy', 'sarcastic', 'confused'
+            3. **Use exact template names** from the list above
+            
+            ### 🔗 Template Reference:
+            All templates use exact memegen.link API names. Use the exact strings shown above.
+            
+            ---
+            *Template validation failed at: %s*
+            """, template, topText, bottomText, validationError, java.time.LocalDateTime.now());
     }
 
     /**
