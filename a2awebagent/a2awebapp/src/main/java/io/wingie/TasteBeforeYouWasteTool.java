@@ -3,6 +3,8 @@ package io.wingie;
 import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
+import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.service.ScreenshotService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -21,6 +23,9 @@ public class TasteBeforeYouWasteTool {
     @Autowired
     @Lazy
     private io.wingie.playwright.PlaywrightWebBrowsingAction webBrowsingAction;
+
+    @Autowired
+    private ScreenshotService screenshotService;
 
     @Action(description = "Search tastebeforeyouwaste.org for food safety information and consumption guidance", name = "askTasteBeforeYouWaste")
     public String askTasteBeforeYouWaste(@Parameter(description = "Question about food safety, expiration, or consumption guidance") String foodQuestion) {
@@ -258,9 +263,47 @@ Since we couldn't access specific information from tastebeforeyouwaste.org, here
     @Action(description = "Get screenshot of tastebeforeyouwaste.org homepage with visual food safety guide", name = "getTasteBeforeYouWasteScreenshot")
     public String getTasteBeforeYouWasteScreenshot() throws java.io.IOException {
         try {
-            return webBrowsingAction.browseWebAndReturnImage(
+            ImageContent screenshotImage = webBrowsingAction.browseWebAndReturnImage(
                 "Navigate to https://tastebeforeyouwaste.org and take a high-quality screenshot of the homepage showing food safety guidance and visual guides"
-            ).getData(); // Extract base64 data from ImageContent
+            );
+            
+            // Save screenshot to static directory and get URL
+            String screenshotUrl = null;
+            if (screenshotImage != null && screenshotImage.getData() != null) {
+                screenshotUrl = screenshotService.saveGeneralScreenshot(screenshotImage.getData());
+            }
+            
+            if (screenshotUrl != null) {
+                return String.format("""
+                    # 📸 Taste Before You Waste - Homepage Screenshot
+                    
+                    ![Taste Before You Waste Homepage](%s)
+                    
+                    **Website**: https://tastebeforeyouwaste.org
+                    **Screenshot URL**: %s
+                    **Captured**: %s
+                    
+                    This screenshot shows the food safety guidance and visual guides available on the Taste Before You Waste website.
+                    
+                    ---
+                    *Screenshot captured by a2aTravelAgent web automation system*
+                    """, screenshotUrl, screenshotUrl, java.time.LocalDateTime.now());
+            } else {
+                return """
+                    # 📸 Taste Before You Waste - Screenshot Capture Failed
+                    
+                    **Website**: https://tastebeforeyouwaste.org
+                    **Status**: Screenshot capture encountered technical difficulties
+                    
+                    **Alternative**: Visit https://tastebeforeyouwaste.org directly to view:
+                    - Visual food safety guides
+                    - Interactive food database
+                    - Storage recommendations
+                    - Expiration date guidance
+                    
+                    *Screenshot attempt performed by a2aTravelAgent web automation system*
+                    """;
+            }
         } catch (Exception e) {
             return String.format("""
 # Taste Before You Waste - Website Screenshot
