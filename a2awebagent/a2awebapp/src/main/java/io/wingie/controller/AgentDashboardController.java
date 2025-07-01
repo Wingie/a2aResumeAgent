@@ -243,6 +243,41 @@ public class AgentDashboardController {
         }
     }
 
+    /**
+     * Broadcasts a specific task update with event type for real-time monitoring.
+     * Used by TaskExecutionIntegrationService for immediate SSE updates.
+     */
+    public void broadcastTaskUpdate(TaskExecution task, String eventType) {
+        if (emitters.isEmpty()) {
+            return;
+        }
+        
+        try {
+            // Create specific task update event
+            Map<String, Object> taskUpdateData = Map.of(
+                "type", eventType,
+                "task", TaskExecutionDTO.fromEntityMinimal(task),
+                "stats", getSystemStats(),
+                "timestamp", LocalDateTime.now()
+            );
+            
+            // Send to all connected clients with specific event name
+            emitters.forEach(emitter -> {
+                try {
+                    emitter.send(SseEmitter.event().name(eventType).data(taskUpdateData));
+                } catch (Exception e) {
+                    log.debug("Failed to send task update SSE, removing client", e);
+                    emitters.remove(emitter);
+                }
+            });
+            
+            log.debug("📡 Broadcasted {} event for task {}", eventType, task.getTaskId());
+            
+        } catch (Exception e) {
+            log.error("Error broadcasting task update", e);
+        }
+    }
+
     // Scheduled method to broadcast periodic updates
     @org.springframework.scheduling.annotation.Scheduled(fixedRate = 10000) // Every 10 seconds
     public void scheduledBroadcast() {

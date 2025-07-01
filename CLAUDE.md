@@ -7,85 +7,109 @@ to t
 
 This is a Spring Boot-based web automation agent that provides A2A (Agent-to-Agent) and MCP (Model Context Protocol) protocol support using Playwright for web interactions. The system enables AI agents to perform web automation tasks through natural language commands.
 
-## ⚠️ IMPORTANT: Project Structure - Two Separate Projects
+## ⚠️ IMPORTANT: Actual Project Architecture (CORRECTED)
 
-### **a2ajava/** vs **a2awebagent/** - Different Projects!
+### **Real Implementation vs Previous Documentation**
+
+**❌ What Documentation Previously Claimed:**
+- Two separate projects: a2ajava (library) and a2awebagent (application)
+- External dependency on a2ajava from Maven Central
+- tools4ai framework as external dependency
+
+**✅ Actual Current Architecture:**
 
 ```
 a2aTravelAgent/
-├── a2ajava/          # 📚 LIBRARY PROJECT (tools4ai framework)
-│   ├── pom.xml       # Maven library project
-│   ├── src/main/java/io/github/vishalmysore/
-│   └── README.MD     # Library documentation
+├── a2ajava/              # 📁 MINIMAL/UNUSED (legacy reference only)
+│   └── (Empty Maven project, not actively used)
 │
-└── a2awebagent/      # 🚀 APPLICATION PROJECT (web automation agent)
-    ├── pom.xml       # Spring Boot application
-    ├── src/main/java/io/wingie/
-    └── README.MD     # Application documentation
+└── a2awebagent/          # 🚀 ACTIVE Multi-module Spring Boot Project
+    ├── pom.xml           # Parent aggregator POM
+    ├── a2acore/          # 🔧 MCP Framework Library (Internal)
+    │   ├── pom.xml
+    │   └── src/main/java/io/wingie/a2acore/
+    └── a2awebapp/        # 🌐 Spring Boot Web Application
+        ├── pom.xml
+        └── src/main/java/io/wingie/
 ```
 
-### **Key Differences:**
+### **Key Architecture Facts:**
 
-| Aspect | a2ajava | a2awebagent |
-|--------|---------|-------------|
-| **Type** | Maven Library | Spring Boot Application |
-| **Purpose** | tools4ai framework, MCP/A2A protocols | Web automation agent with Playwright |
-| **Package** | `io.github.vishalmysore.*` | `io.wingie.*` |
-| **Runs** | No (library dependency) | Yes (`mvn spring-boot:run`) |
-| **Depends On** | External tools4ai JAR | Local a2ajava + tools4ai |
-| **Git Status** | Now tracked in main repo | Always tracked in main repo |
+| Component | Status | Purpose | Package |
+|-----------|--------|---------|----------|
+| **a2ajava** | UNUSED | Legacy reference | `io.github.vishalmysore.*` |
+| **a2acore** | ACTIVE | Internal MCP framework | `io.wingie.a2acore.*` |
+| **a2awebapp** | ACTIVE | Web automation application | `io.wingie.*` |
 
-### **How They're Linked:**
+### **Actual Module Dependencies:**
 
-#### **Currently (Maven Central):**
+#### **Multi-Module Maven Structure:**
 ```xml
-<!-- a2awebagent/pom.xml -->
+<!-- a2awebagent/pom.xml (Parent) -->
+<groupId>io.wingie</groupId>
+<artifactId>a2awebagent</artifactId>
+<packaging>pom</packaging>
+<modules>
+    <module>a2acore</module>    <!-- Framework Library -->
+    <module>a2awebapp</module>  <!-- Spring Boot App -->
+</modules>
+
+<!-- a2awebapp/pom.xml -->
 <dependency>
-    <groupId>io.github.vishalmysore</groupId>
-    <artifactId>a2ajava</artifactId>
-    <version>0.1.9.6</version>  <!-- From Maven Central -->
+    <groupId>io.wingie</groupId>
+    <artifactId>a2acore</artifactId>
+    <version>0.0.1</version>  <!-- Local dependency, NOT Maven Central -->
 </dependency>
 ```
 
-#### **For Local Development:**
-When you need to modify both projects:
-1. **Modify a2ajava**: Make changes to the library
-2. **Build & Install**: `cd a2ajava && mvn clean install`
-3. **Update a2awebagent**: Use local version in pom.xml
-4. **Test Integration**: `cd a2awebagent && mvn spring-boot:run`
+### **Development Workflow:**
 
-### **Working with Both Projects:**
+#### **Working Directory:** `/Users/wingston/code/a2aTravelAgent/a2awebagent`
 
-#### **Editing a2ajava (Library):**
-- Contains MCPToolsController, protocol implementations
-- Changes affect all applications using this library
-- Must be built and installed locally for testing
+```bash
+# Build entire multi-module project
+mvn clean compile
 
-#### **Editing a2awebagent (Application):**
-- Contains PlaywrightProcessor, web automation logic
-- Uses a2ajava as dependency
-- Can extend/override library functionality
+# Run the Spring Boot application
+mvn spring-boot:run -pl a2awebapp
 
-#### **Current Integration Challenge:**
-The PostgreSQL caching service is in **a2awebagent**, but the tool description generation happens in **a2ajava**. We're creating bridge interfaces to connect them while maintaining separation of concerns.
+# Package all modules
+mvn package
+
+# Run packaged application
+java -jar a2awebapp/target/a2awebapp-0.0.1.jar
+```
+
+#### **Module Responsibilities:**
+- **a2acore**: MCP protocol implementation, tool discovery, annotations
+- **a2awebapp**: Web automation, PostgreSQL caching, business logic
+- **Integration**: Clean separation with internal framework dependency
 
 ## Architecture
 
 ### Core Components
 
-- **Application.java**: Spring Boot main class with `@EnableAgent` annotation for tools4ai framework
-- **PlaywrightProcessor**: Interface defining web automation operations (navigate, click, type, screenshot, etc.)
-- **PlaywrightActions**: Data model for web actions with AI prompt annotations
-- **Callback System**: Multiple callback implementations for different AI providers (OpenAI, Gemini, Claude)
-- **URL Safety**: Built-in URL validation to prevent navigation to unsafe sites
+### **a2acore Framework** (Internal MCP Library)
+- **A2aCoreController**: MCP JSON-RPC endpoint handling
+- **ToolDiscoveryService**: Fast <100ms auto-discovery of @Action methods
+- **ToolExecutor**: Method invocation with timeout protection
+- **StaticToolRegistry**: Bean and tool mapping consistency
+- **Custom Annotations**: @EnableA2ACore, @Action, @Parameter, @Agent
 
-### Key Dependencies
+### **a2awebapp Application** (Spring Boot Web App)
+- **Application.java**: Main class with `@EnableA2ACore` annotation
+- **MemeGeneratorTool**: Advanced meme generation (855 lines, not HelloWorld)
+- **LinkedInSearchTool**: Professional profile discovery
+- **ToolDescriptionCacheService**: PostgreSQL-backed AI description caching
+- **Multi-database Integration**: PostgreSQL + Redis + Neo4j
+
+### Key Dependencies (CORRECTED)
 
 - **Spring Boot 3.2.4**: Web framework and application container
 - **Microsoft Playwright 1.51.0**: Web automation engine
-- **a2ajava 0.1.9.3**: Agent-to-agent communication framework
-- **tools4ai 1.1.6.1**: AI tool integration framework with prompt annotations
-- **Lombok**: Code generation for POJOs
+- **a2acore 0.0.1**: Internal MCP framework (NOT external a2ajava)
+- **PostgreSQL + Redis + Neo4j**: Multi-database architecture
+- **No external tools4ai**: Functionality embedded in a2acore
 
 ## Serena Code Intelligence Integration
 
@@ -144,19 +168,20 @@ For complete Serena usage patterns, debugging workflows, and integration example
 
 ### Build and Run
 ```bash
-# Build the project
+# Build multi-module project
 mvn clean compile
 
 # Run tests
 mvn test
 
-# Package application
+# Package all modules
 mvn package
 
-# Run Spring Boot application
-mvn spring-boot:run
-# OR
-java -jar target/a2aPlaywright-0.2.3.jar
+# Run Spring Boot application (from a2awebagent root)
+mvn spring-boot:run -pl a2awebapp
+
+# OR run packaged JAR
+java -jar a2awebapp/target/a2awebapp-0.0.1.jar
 ```
 
 ### Docker Support
@@ -170,21 +195,29 @@ docker run -p 7860:7860 a2a-playwright
 
 ## Configuration
 
-### Application Properties
+### Application Configuration
 - **Server Port**: 7860 (configurable via `application.properties`)
-- **A2A Persistence**: Cache-based storage
-- **AI Provider Settings**: Configured in `tools4ai.properties`
+- **Multi-Database**: PostgreSQL (primary) + Redis (cache) + Neo4j (future)
+- **Environment Profiles**: application.yml, application-docker.yml, application-test.yml
+- **Performance**: <100ms tool discovery, async task processing
 
-### Supported AI Providers
-- **OpenAI**: GPT-4o-mini (default)
-- **Google Gemini**: gemini-2.0-flash-001
-- **Anthropic Claude**: claude-3-haiku-20240307
+### AI Provider Integration
+- **Multiple Providers**: OpenAI, Anthropic Claude, Google Gemini
+- **Intelligent Fallback**: Provider switching with error handling
+- **Rate Limiting**: Built-in request throttling
+- **Caching**: PostgreSQL-backed description caching for performance
 
 ### API Keys Configuration
-Set via system properties or environment variables:
-- `-DopenAiKey=your_key`
-- `-DclaudeKey=your_key`
-- `-DserperKey=your_key` (for Google search)
+**⚠️ Security Note**: Remove hardcoded credentials before production
+```bash
+# Environment variables (recommended)
+export OPENAI_KEY=your_key
+export CLAUDE_KEY=your_key
+
+# JVM properties (development)
+-DopenAiKey=your_key
+-DclaudeKey=your_key
+```
 
 ## Web Automation Features
 
@@ -297,23 +330,26 @@ java -Dloader.path=/path/to/conf -jar a2aPlaywright-0.2.3.jar
 
 ## Protocol Support
 
-### A2A Protocol
-- Agent registration via a2ajava framework
-- JSON-RPC tool calling capabilities
-- Natural language command processing
+### MCP Protocol (Primary)
+- **JSON-RPC 2.0**: Complete compliance via a2acore framework
+- **Tool Discovery**: Automatic @Action method registration
+- **Performance**: <100ms discovery, method caching
+- **Content Types**: TextContent and ImageContent support
+- **Error Handling**: Proper error codes and messages
 
-### MCP Protocol
-- Direct integration with MCP network
-- Standardized message format
-- Tool registration and discovery
+### A2A Protocol (Legacy)
+- **Basic Support**: Natural language command processing
+- **Integration**: Bridge pattern with MCP protocol
+- **Compatibility**: Maintained for backward compatibility
 
 ## Project Execution Notes
 
-### a2awebagent Project Execution
-- To build and run the a2awebagent project:
-  * Run `mvn clean package test` in `/Users/wingston/code/a2aTravelAgent/a2awebagent`
-  * Execute the jar with `java -jar target/a2awebagent-0.0.1.jar`
-  * This is the parent project for auth/SSO/SSE and webAgent for async job handling
+### Multi-Module Project Execution
+- **Working Directory**: `/Users/wingston/code/a2aTravelAgent/a2awebagent`
+- **Build Command**: `mvn clean package` (builds both a2acore and a2awebapp)
+- **Run Command**: `mvn spring-boot:run -pl a2awebapp`
+- **JAR Location**: `a2awebapp/target/a2awebapp-0.0.1.jar`
+- **Features**: MCP protocol, PostgreSQL caching, async task processing
 
 ## Personal Development Preferences
 

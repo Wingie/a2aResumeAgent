@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.wingie.a2acore.domain.*;
 import io.wingie.a2acore.execution.ToolExecutor;
 import io.wingie.a2acore.execution.ToolExecutionException;
+import io.wingie.a2acore.integration.ToolExecutionAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,10 +26,12 @@ public class JsonRpcHandler {
     private static final Logger log = LoggerFactory.getLogger(JsonRpcHandler.class);
     
     private final ToolExecutor toolExecutor;
+    private final ToolExecutionAdapter toolExecutionAdapter;
     private final ObjectMapper objectMapper;
     
-    public JsonRpcHandler(ToolExecutor toolExecutor) {
+    public JsonRpcHandler(ToolExecutor toolExecutor, ToolExecutionAdapter toolExecutionAdapter) {
         this.toolExecutor = toolExecutor;
+        this.toolExecutionAdapter = toolExecutionAdapter;
         this.objectMapper = new ObjectMapper();
     }
     
@@ -70,13 +73,13 @@ public class JsonRpcHandler {
             log.debug("Processing tools/call request for tool: {}", toolCall.getName());
             
             // Validate tool exists
-            if (!toolExecutor.hasToolImpl(toolCall.getName())) {
+            if (!toolExecutionAdapter.hasToolImpl(toolCall.getName())) {
                 return JsonRpcResponse.error(request.getId(), 
                     JsonRpcError.toolNotFound(toolCall.getName()));
             }
             
-            // Execute the tool
-            Object result = toolExecutor.execute(toolCall);
+            // Execute the tool with real-time tracking and SSE broadcasting
+            Object result = toolExecutionAdapter.executeWithIntegration(toolCall);
             
             return JsonRpcResponse.success(request.getId(), result);
             

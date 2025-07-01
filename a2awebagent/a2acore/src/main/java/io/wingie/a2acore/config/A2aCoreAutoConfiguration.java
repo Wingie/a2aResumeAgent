@@ -7,6 +7,7 @@ import io.wingie.a2acore.discovery.SchemaGenerator;
 import io.wingie.a2acore.execution.ToolExecutor;
 import io.wingie.a2acore.execution.ParameterMapper;
 import io.wingie.a2acore.execution.ResultSerializer;
+import io.wingie.a2acore.integration.ToolExecutionAdapter;
 import io.wingie.a2acore.server.A2aCoreController;
 import io.wingie.a2acore.server.JsonRpcHandler;
 import org.slf4j.Logger;
@@ -103,8 +104,8 @@ public class A2aCoreAutoConfiguration {
     
     @Bean
     @ConditionalOnMissingBean
-    public JsonRpcHandler jsonRpcHandler(ToolExecutor toolExecutor) {
-        return new JsonRpcHandler(toolExecutor);
+    public JsonRpcHandler jsonRpcHandler(ToolExecutor toolExecutor, ToolExecutionAdapter toolExecutionAdapter) {
+        return new JsonRpcHandler(toolExecutor, toolExecutionAdapter);
     }
     
     @Bean

@@ -127,6 +127,189 @@
             0% { background-color: rgba(100, 255, 218, 0.3); }
             100% { background-color: transparent; }
         }
+
+        /* Phase 1 Day 2: Enhanced CSS for Live Progress and Screenshots */
+        
+        .live-screenshot-gallery {
+            min-height: 50px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .live-screenshot-gallery:empty::before {
+            content: "No screenshots yet...";
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+            font-size: 0.9em;
+        }
+
+        .screenshot-thumbnail {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .screenshot-thumbnail:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(100, 255, 218, 0.3);
+        }
+
+        .progress-bar-animated {
+            background: linear-gradient(-45deg, 
+                var(--accent-color), 
+                var(--accent-purple), 
+                var(--accent-color), 
+                var(--accent-purple));
+            background-size: 400% 400%;
+            animation: progressShimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes progressShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .progress-bar-striped {
+            background-image: linear-gradient(45deg, 
+                rgba(255, 255, 255, 0.15) 25%, 
+                transparent 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.15) 50%, 
+                rgba(255, 255, 255, 0.15) 75%, 
+                transparent 75%, 
+                transparent);
+            background-size: 1rem 1rem;
+            animation: progressStripes 1s linear infinite;
+        }
+
+        @keyframes progressStripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 1rem 0; }
+        }
+
+        .task-card.border-primary {
+            border-color: var(--accent-color) !important;
+            background: linear-gradient(135deg, 
+                rgba(100, 255, 218, 0.05), 
+                rgba(124, 58, 237, 0.05));
+        }
+
+        .notification-slide-in {
+            animation: slideInFromRight 0.3s ease-out;
+        }
+
+        .notification-slide-out {
+            animation: slideOutToRight 0.3s ease-in;
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutToRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        .progress-message-update {
+            background: linear-gradient(135deg, 
+                rgba(100, 255, 218, 0.2), 
+                rgba(124, 58, 237, 0.2)) !important;
+            transition: all 0.3s ease;
+        }
+
+        .status-live::after {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            margin-left: 5px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .modal.show {
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .task-card-live {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-card-live::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--accent-color), 
+                transparent);
+            animation: loadingLine 2s linear infinite;
+        }
+
+        @keyframes loadingLine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .live-badge {
+            background: linear-gradient(45deg, 
+                var(--accent-color), 
+                var(--accent-purple));
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 12px;
+            animation: liveBadgePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes liveBadgePulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(100, 255, 218, 0.7);
+            }
+            50% { 
+                box-shadow: 0 0 0 8px rgba(100, 255, 218, 0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -391,6 +574,52 @@
                 }
             });
             
+            // Enhanced SSE event handlers for Phase 1 Day 2
+            eventSource.addEventListener('tool-started', function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleToolStarted(data);
+                } catch (e) {
+                    console.error('Error parsing tool-started event:', e);
+                }
+            });
+            
+            eventSource.addEventListener('tool-progress', function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleToolProgress(data);
+                } catch (e) {
+                    console.error('Error parsing tool-progress event:', e);
+                }
+            });
+            
+            eventSource.addEventListener('tool-completed', function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleToolCompleted(data);
+                } catch (e) {
+                    console.error('Error parsing tool-completed event:', e);
+                }
+            });
+            
+            eventSource.addEventListener('screenshot-captured', function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleScreenshotCaptured(data);
+                } catch (e) {
+                    console.error('Error parsing screenshot-captured event:', e);
+                }
+            });
+            
+            eventSource.addEventListener('tool-failed', function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleToolFailed(data);
+                } catch (e) {
+                    console.error('Error parsing tool-failed event:', e);
+                }
+            });
+            
             eventSource.onerror = function() {
                 connectionIndicator.className = 'badge bg-danger';
                 connectionIndicator.innerHTML = '<i class="fas fa-circle me-1"></i> Disconnected';
@@ -498,6 +727,314 @@
             const params = new URLSearchParams(window.location.search);
             params.set('status', filter === 'all' ? '' : filter);
             window.location.search = params.toString();
+        }
+        
+        // Phase 1 Day 2: Enhanced SSE Event Handlers
+        
+        function handleToolStarted(data) {
+            console.log('🚀 Tool started:', data.task.taskId);
+            
+            // Create or update task card with live progress
+            createOrUpdateTaskCard(data.task, 'started');
+            
+            // Add real-time notification
+            showNotification('info', `Started: ${data.task.originalQuery}`, 3000);
+        }
+        
+        function handleToolProgress(data) {
+            console.log('📊 Tool progress:', data.task.taskId, data.task.progressPercent + '%');
+            
+            // Update progress bar with smooth animation
+            updateTaskProgress(data.task.taskId, data.task.progressPercent, data.task.progressMessage);
+            
+            // Update task card if visible
+            updateTaskCard(data.task);
+        }
+        
+        function handleToolCompleted(data) {
+            console.log('✅ Tool completed:', data.task.taskId);
+            
+            // Update task card and progress
+            updateTaskCard(data.task);
+            
+            // Add completion notification
+            const duration = data.task.completedAt && data.task.startedAt ? 
+                calculateDuration(data.task.startedAt, data.task.completedAt) : 'unknown';
+            showNotification('success', `Completed in ${duration}`, 5000);
+            
+            // Auto-refresh stats
+            updateStats(data.stats);
+        }
+        
+        function handleScreenshotCaptured(data) {
+            console.log('📸 Screenshot captured for task:', data.task.taskId);
+            
+            // Add screenshot to live gallery
+            addScreenshotToGallery(data.task.taskId, data.task.screenshots);
+            
+            // Update task card
+            updateTaskCard(data.task);
+        }
+        
+        function handleToolFailed(data) {
+            console.log('❌ Tool failed:', data.task.taskId);
+            
+            // Update task card with error state
+            updateTaskCard(data.task);
+            
+            // Show error notification
+            showNotification('error', `Failed: ${data.task.progressMessage || 'Unknown error'}`, 7000);
+        }
+        
+        function createOrUpdateTaskCard(task, eventType) {
+            let container = document.getElementById('active-tasks-container');
+            if (!container) return;
+            
+            let taskCard = document.querySelector(`[data-task-id="${task.taskId}"]`);
+            
+            if (!taskCard) {
+                // Create new task card for live tasks
+                taskCard = document.createElement('div');
+                taskCard.className = 'card task-card mb-3 border-primary';
+                taskCard.setAttribute('data-task-id', task.taskId);
+                taskCard.innerHTML = createTaskCardHTML(task);
+                container.appendChild(taskCard);
+                
+                // Animate card appearance
+                taskCard.style.opacity = '0';
+                taskCard.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    taskCard.style.transition = 'all 0.3s ease';
+                    taskCard.style.opacity = '1';
+                    taskCard.style.transform = 'translateY(0)';
+                }, 100);
+            } else {
+                // Update existing card
+                updateTaskCard(task);
+            }
+        }
+        
+        function createTaskCardHTML(task) {
+            const progressClass = getProgressClass(task.status);
+            const statusBadge = getStatusBadge(task.status);
+            
+            return `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">${escapeHtml(task.originalQuery.substring(0, 60))}...</h6>
+                        <span class="${statusBadge}">${task.status}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Progress</span>
+                            <span id="progress-text-${task.taskId}">${task.progressPercent || 0}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar ${progressClass}" 
+                                 id="progress-bar-${task.taskId}"
+                                 role="progressbar" 
+                                 style="width: ${task.progressPercent || 0}%; transition: width 0.5s ease;"
+                                 aria-valuenow="${task.progressPercent || 0}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small class="text-muted" id="progress-message-${task.taskId}">
+                            ${task.progressMessage || 'Initializing...'}
+                        </small>
+                    </div>
+                    
+                    <div class="live-screenshot-gallery" id="gallery-${task.taskId}">
+                        <!-- Screenshots will be added here dynamically -->
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center small text-muted">
+                        <span>Started: ${formatTimestamp(task.startedAt || task.created)}</span>
+                        <span class="text-info">● Live</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateTaskProgress(taskId, progressPercent, progressMessage) {
+            const progressBar = document.getElementById(`progress-bar-${taskId}`);
+            const progressText = document.getElementById(`progress-text-${taskId}`);
+            const progressMessageEl = document.getElementById(`progress-message-${taskId}`);
+            
+            if (progressBar) {
+                // Smooth progress bar animation
+                progressBar.style.width = progressPercent + '%';
+                progressBar.setAttribute('aria-valuenow', progressPercent);
+                
+                // Add progress bar color based on completion
+                progressBar.className = 'progress-bar ' + getProgressClass(progressPercent);
+            }
+            
+            if (progressText) {
+                progressText.textContent = progressPercent + '%';
+            }
+            
+            if (progressMessageEl && progressMessage) {
+                progressMessageEl.textContent = progressMessage;
+                
+                // Flash animation for message updates
+                progressMessageEl.style.transition = 'background-color 0.3s ease';
+                progressMessageEl.style.backgroundColor = '#e3f2fd';
+                setTimeout(() => {
+                    progressMessageEl.style.backgroundColor = 'transparent';
+                }, 300);
+            }
+        }
+        
+        function addScreenshotToGallery(taskId, screenshots) {
+            const gallery = document.getElementById(`gallery-${taskId}`);
+            if (!gallery || !screenshots || screenshots.length === 0) return;
+            
+            const lastScreenshot = screenshots[screenshots.length - 1];
+            
+            // Check if screenshot already exists
+            if (gallery.querySelector(`[data-screenshot="${lastScreenshot}"]`)) return;
+            
+            const thumbnailDiv = document.createElement('div');
+            thumbnailDiv.className = 'screenshot-thumbnail d-inline-block me-2 mb-2';
+            thumbnailDiv.setAttribute('data-screenshot', lastScreenshot);
+            thumbnailDiv.style.opacity = '0';
+            thumbnailDiv.style.transform = 'scale(0.8)';
+            
+            thumbnailDiv.innerHTML = `
+                <img src="${lastScreenshot}" 
+                     alt="Screenshot" 
+                     class="rounded border"
+                     style="width: 60px; height: 40px; object-fit: cover; cursor: pointer;"
+                     onclick="openScreenshotModal('${lastScreenshot}')">
+                <div class="small text-muted text-center mt-1">
+                    ${formatTimestamp(new Date().toISOString())}
+                </div>
+            `;
+            
+            gallery.appendChild(thumbnailDiv);
+            
+            // Animate thumbnail appearance
+            setTimeout(() => {
+                thumbnailDiv.style.transition = 'all 0.3s ease';
+                thumbnailDiv.style.opacity = '1';
+                thumbnailDiv.style.transform = 'scale(1)';
+            }, 100);
+        }
+        
+        function updateTaskCard(task) {
+            const taskCard = document.querySelector(`[data-task-id="${task.taskId}"]`);
+            if (!taskCard) return;
+            
+            // Update progress
+            updateTaskProgress(task.taskId, task.progressPercent, task.progressMessage);
+            
+            // Update status badge
+            const statusBadge = taskCard.querySelector('.badge');
+            if (statusBadge) {
+                statusBadge.className = getStatusBadge(task.status);
+                statusBadge.textContent = task.status;
+            }
+            
+            // Add update animation
+            taskCard.classList.add('real-time-update');
+            setTimeout(() => taskCard.classList.remove('real-time-update'), 1000);
+        }
+        
+        // Helper functions
+        function getProgressClass(status) {
+            if (typeof status === 'number') {
+                if (status < 25) return 'bg-info';
+                if (status < 75) return 'bg-warning';
+                return 'bg-success';
+            }
+            
+            switch (status) {
+                case 'RUNNING': return 'bg-primary progress-bar-animated progress-bar-striped';
+                case 'COMPLETED': return 'bg-success';
+                case 'FAILED': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function getStatusBadge(status) {
+            switch (status) {
+                case 'RUNNING': return 'badge bg-primary';
+                case 'COMPLETED': return 'badge bg-success';
+                case 'FAILED': return 'badge bg-danger';
+                case 'QUEUED': return 'badge bg-secondary';
+                default: return 'badge bg-light text-dark';
+            }
+        }
+        
+        function showNotification(type, message, duration = 3000) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed`;
+            notification.style.cssText = `
+                top: 20px; right: 20px; z-index: 9999; max-width: 400px;
+                opacity: 0; transform: translateX(100%); transition: all 0.3s ease;
+            `;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'info' ? 'info-circle' : type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Auto-remove
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, duration);
+        }
+        
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'Unknown';
+            return new Date(timestamp).toLocaleTimeString();
+        }
+        
+        function calculateDuration(start, end) {
+            const duration = new Date(end) - new Date(start);
+            const seconds = Math.floor(duration / 1000);
+            if (seconds < 60) return `${seconds}s`;
+            const minutes = Math.floor(seconds / 60);
+            return `${minutes}m ${seconds % 60}s`;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function openScreenshotModal(screenshotUrl) {
+            // Simple modal implementation
+            const modal = document.createElement('div');
+            modal.className = 'modal show d-block';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Screenshot</h5>
+                            <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img src="${screenshotUrl}" class="img-fluid" alt="Screenshot">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
         }
         
         // Initialize SSE connection
