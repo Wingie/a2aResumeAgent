@@ -2,6 +2,8 @@ package io.wingie.controller;
 
 import io.wingie.service.ToolDescriptionCacheService;
 import io.wingie.service.ModelManagementService;
+import io.wingie.service.AdminStatisticsService;
+import io.wingie.dto.AdminStatisticsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,9 @@ public class StartupController {
     @Autowired
     private ModelManagementService modelManagementService;
     
+    @Autowired
+    private AdminStatisticsService adminStatisticsService;
+    
     /**
      * Display the startup admin dashboard with model management and cache statistics
      */
@@ -33,12 +38,24 @@ public class StartupController {
         log.info("Startup admin dashboard accessed");
         
         try {
-            // Add model management data
-            model.addAttribute("currentModel", modelManagementService.getCurrentModel());
+            // Get comprehensive admin statistics
+            AdminStatisticsDTO adminStats = adminStatisticsService.getCompleteStatistics();
+            
+            // Add comprehensive statistics to model
+            model.addAttribute("adminStats", adminStats);
+            model.addAttribute("systemHealth", adminStats.getSystemHealth());
+            model.addAttribute("modelPerformance", adminStats.getModelPerformance());
+            model.addAttribute("toolMetrics", adminStats.getToolMetrics());
+            model.addAttribute("activityFeed", adminStats.getActivityFeed());
+            model.addAttribute("cacheMetrics", adminStats.getCacheMetrics());
+            model.addAttribute("realTimeStats", adminStats.getRealTimeStats());
+            
+            // Keep legacy model data for backward compatibility
+            model.addAttribute("currentModel", adminStats.getModelPerformance().getCurrentModel());
             model.addAttribute("availableModels", modelManagementService.getAvailableModels());
             model.addAttribute("modelStatistics", modelManagementService.getModelStatistics());
             
-            // Add cache statistics
+            // Keep legacy cache data for backward compatibility
             model.addAttribute("cacheReport", cacheService.getCacheReport());
             model.addAttribute("providerStats", cacheService.getProviderStatistics());
             
