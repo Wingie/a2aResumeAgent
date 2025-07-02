@@ -115,12 +115,82 @@
             margin-bottom: 10px; 
             background: rgba(0, 0, 0, 0.2);
             border-radius: 4px;
+            transition: all 0.3s ease;
         }
         .activity-success { border-left-color: var(--success-color); }
         .activity-error { border-left-color: var(--danger-color); }
         .activity-warning { border-left-color: var(--warning-color); }
         .activity-info { border-left-color: var(--accent-purple); }
         .activity-timestamp { font-size: 0.8em; color: #adb5bd; }
+        
+        /* Enhanced styles for interactive activity items */
+        .activity-clickable {
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        
+        .activity-clickable:hover {
+            background: rgba(33, 150, 243, 0.1);
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+        }
+        
+        .activity-expanded {
+            background: rgba(33, 150, 243, 0.05);
+            border-color: var(--accent-color);
+        }
+        
+        .activity-actions {
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+        }
+        
+        .activity-details {
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        .activity-screenshot {
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .activity-screenshot:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
+        }
+        
+        .activity-screenshot-container {
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                padding: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 300px;
+                padding: 0.5rem 0;
+            }
+        }
+        
+        /* Badge enhancements for activity items */
+        .activity-item .badge {
+            font-size: 0.75em;
+            margin-right: 4px;
+        }
+        
+        /* Button styling in activity items */
+        .activity-item .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+        }
         
         .error-pattern { 
             background: rgba(255, 193, 7, 0.1); 
@@ -709,6 +779,7 @@ Agent Evaluation System
         let sseEnabled = false;
         let lastStatistics = null;
         let availableTools = [];
+        let currentActivityData = []; // Store current activity feed data for detailed access
         
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -798,34 +869,373 @@ Agent Evaluation System
             document.getElementById('avg-generation-time').textContent = `${cache.averageGenerationTimeMs.toFixed(0)}ms`;
         }
         
-        // Update activity feed
+        // Update activity feed with enhanced interactivity
         function updateActivityFeed(activityFeed) {
             const feedDiv = document.getElementById('activity-feed');
             
             if (!activityFeed.recentActivities || activityFeed.recentActivities.length === 0) {
                 feedDiv.innerHTML = '<div class="text-center text-muted">No recent activity</div>';
+                currentActivityData = []; // Clear stored data
                 return;
             }
             
+            // Store activity data globally for detailed access
+            currentActivityData = activityFeed.recentActivities.slice(0, 20);
+            
             let feedHtml = '';
-            activityFeed.recentActivities.slice(0, 20).forEach(activity => {
+            currentActivityData.forEach((activity, index) => {
                 const timeAgo = getTimeAgo(new Date(activity.timestamp));
+                const isClickable = isActivityClickable(activity);
+                const hasScreenshot = hasActivityScreenshot(activity);
+                const hasResults = hasActivityResults(activity);
+                
                 feedHtml += `
-                    <div class="activity-item activity-${activity.severity}">
-                        <div class="d-flex justify-content-between">
-                            <strong>${activity.title}</strong>
+                    <div class="activity-item activity-${activity.severity} ${isClickable ? 'activity-clickable' : ''}" 
+                         ${isClickable ? `data-activity-id="${activity.id || index}" onclick="handleActivityClick(this, ${index})"` : ''}>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <strong>${activity.title}</strong>
+                                ${isClickable ? '<i class="fas fa-external-link-alt ms-2 text-primary" style="font-size: 0.8em;"></i>' : ''}
+                            </div>
                             <small class="activity-timestamp">${timeAgo}</small>
                         </div>
                         <div class="mt-1">${activity.description}</div>
                         ${activity.errorDetails ? `<small class="text-danger mt-1">${activity.errorDetails}</small>` : ''}
-                        <div class="mt-1">
+                        
+                        <!-- Interactive elements for completed MCP tool executions -->
+                        ${renderActivityInteractiveElements(activity, index)}
+                        
+                        <div class="mt-2">
                             <span class="badge bg-secondary">${activity.taskType}</span>
                             ${activity.duration ? `<span class="badge bg-info">${activity.duration}</span>` : ''}
+                            ${hasScreenshot ? '<span class="badge bg-success"><i class="fas fa-camera"></i> Screenshot</span>' : ''}
+                            ${hasResults ? '<span class="badge bg-primary"><i class="fas fa-file-alt"></i> Results</span>' : ''}
                         </div>
                     </div>
                 `;
             });
             feedDiv.innerHTML = feedHtml;
+        }
+        
+        // Check if activity is clickable (completed MCP tool execution)
+        function isActivityClickable(activity) {
+            return activity.severity === 'success' && 
+                   activity.taskType && 
+                   (activity.taskType.toLowerCase().includes('mcp') || 
+                    activity.taskType.toLowerCase().includes('tool') ||
+                    activity.taskType.toLowerCase().includes('agent')) &&
+                   (activity.results || activity.screenshot || activity.toolResult);
+        }
+        
+        // Check if activity has screenshot
+        function hasActivityScreenshot(activity) {
+            return activity.screenshot || 
+                   (activity.results && activity.results.screenshot) ||
+                   (activity.toolResult && activity.toolResult.screenshot) ||
+                   (activity.description && activity.description.toLowerCase().includes('screenshot'));
+        }
+        
+        // Check if activity has results
+        function hasActivityResults(activity) {
+            return activity.results || 
+                   activity.toolResult || 
+                   (activity.taskType && activity.taskType.toLowerCase().includes('tool'));
+        }
+        
+        // Render interactive elements for activity items
+        function renderActivityInteractiveElements(activity, index) {
+            if (!isActivityClickable(activity)) {
+                return '';
+            }
+            
+            let html = '<div class="activity-actions mt-2">';
+            
+            // Screenshot display
+            if (hasActivityScreenshot(activity)) {
+                const screenshotUrl = getActivityScreenshotUrl(activity);
+                if (screenshotUrl) {
+                    html += `
+                        <div class="activity-screenshot-container mb-2" style="display: none;" id="screenshot-${index}">
+                            <img src="${screenshotUrl}" alt="Activity Screenshot" 
+                                 class="img-fluid activity-screenshot" 
+                                 style="max-height: 200px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        </div>
+                    `;
+                }
+                
+                html += `
+                    <button class="btn btn-outline-primary btn-sm me-2" onclick="toggleActivityScreenshot(${index}); event.stopPropagation();">
+                        <i class="fas fa-image"></i> <span id="screenshot-btn-text-${index}">View Screenshot</span>
+                    </button>
+                `;
+            }
+            
+            // Results display
+            if (hasActivityResults(activity)) {
+                html += `
+                    <button class="btn btn-outline-info btn-sm me-2" onclick="showActivityResults(${index}); event.stopPropagation();">
+                        <i class="fas fa-file-text"></i> View Results
+                    </button>
+                `;
+            }
+            
+            // Tool execution details
+            if (activity.toolResult || activity.taskType.toLowerCase().includes('tool')) {
+                html += `
+                    <button class="btn btn-outline-secondary btn-sm" onclick="showToolExecutionDetails(${index}); event.stopPropagation();">
+                        <i class="fas fa-cogs"></i> Tool Details
+                    </button>
+                `;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // Get screenshot URL from activity
+        function getActivityScreenshotUrl(activity) {
+            if (activity.screenshot) {
+                return activity.screenshot;
+            }
+            if (activity.results && activity.results.screenshot) {
+                return activity.results.screenshot;
+            }
+            if (activity.toolResult && activity.toolResult.screenshot) {
+                return activity.toolResult.screenshot;
+            }
+            
+            // Try to extract screenshot from description or other fields
+            const description = activity.description || '';
+            const screenshotMatch = description.match(/screenshot[s]?[:\s]*([^\s]+\.(?:png|jpg|jpeg|gif))/i);
+            if (screenshotMatch) {
+                return screenshotMatch[1];
+            }
+            
+            // Default screenshot path pattern
+            if (activity.taskType && activity.taskType.toLowerCase().includes('screenshot')) {
+                return `/screenshots/activity_${activity.id || 'default'}.png`;
+            }
+            
+            return null;
+        }
+        
+        // Handle activity item click
+        function handleActivityClick(element, index) {
+            const activityData = getCurrentActivityData(index);
+            if (!activityData) return;
+            
+            // Toggle expanded view
+            element.classList.toggle('activity-expanded');
+            
+            // Show/hide detailed information
+            const detailsId = `activity-details-${index}`;
+            let detailsDiv = document.getElementById(detailsId);
+            
+            if (!detailsDiv) {
+                // Create details container
+                detailsDiv = document.createElement('div');
+                detailsDiv.id = detailsId;
+                detailsDiv.className = 'activity-details mt-2 p-2 border-top';
+                element.appendChild(detailsDiv);
+                
+                // Populate details
+                detailsDiv.innerHTML = generateActivityDetails(activityData, index);
+            } else {
+                // Toggle visibility
+                detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        // Generate detailed activity information
+        function generateActivityDetails(activity, index) {
+            let html = '<div class="activity-full-details">';
+            
+            // Timestamp details
+            html += `<div class="mb-2"><strong>Executed:</strong> ${new Date(activity.timestamp).toLocaleString()}</div>`;
+            
+            // Task details
+            if (activity.originalQuery) {
+                html += `<div class="mb-2"><strong>Original Query:</strong> <code class="small">${activity.originalQuery}</code></div>`;
+            }
+            
+            // Tool execution details
+            if (activity.toolName) {
+                html += `<div class="mb-2"><strong>Tool:</strong> ${activity.toolName}</div>`;
+            }
+            
+            // Parameters
+            if (activity.parameters) {
+                html += `<div class="mb-2"><strong>Parameters:</strong> <pre class="small bg-light p-2 rounded">${JSON.stringify(activity.parameters, null, 2)}</pre></div>`;
+            }
+            
+            // Results preview
+            if (activity.results) {
+                html += `<div class="mb-2"><strong>Results Preview:</strong> <pre class="small bg-light p-2 rounded" style="max-height: 150px; overflow-y: auto;">${JSON.stringify(activity.results, null, 2)}</pre></div>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // Toggle screenshot visibility
+        function toggleActivityScreenshot(index) {
+            const screenshotDiv = document.getElementById(`screenshot-${index}`);
+            const btnText = document.getElementById(`screenshot-btn-text-${index}`);
+            
+            if (screenshotDiv) {
+                const isVisible = screenshotDiv.style.display !== 'none';
+                screenshotDiv.style.display = isVisible ? 'none' : 'block';
+                btnText.textContent = isVisible ? 'View Screenshot' : 'Hide Screenshot';
+            }
+        }
+        
+        // Show activity results in modal
+        function showActivityResults(index) {
+            const activityData = getCurrentActivityData(index);
+            if (!activityData) return;
+            
+            const results = activityData.results || activityData.toolResult || {};
+            
+            // Create modal content
+            const modalContent = `
+                <div class="modal fade" id="activity-results-modal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Activity Results: ${activityData.title}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <pre class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto;">${JSON.stringify(results, null, 2)}</pre>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal and add new one
+            const existingModal = document.getElementById('activity-results-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('activity-results-modal'));
+            modal.show();
+        }
+        
+        // Show tool execution details
+        function showToolExecutionDetails(index) {
+            const activityData = getCurrentActivityData(index);
+            if (!activityData) return;
+            
+            // Create modal with tool execution details
+            const modalContent = `
+                <div class="modal fade" id="tool-details-modal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Tool Execution Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${generateToolExecutionDetails(activityData)}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal and add new one
+            const existingModal = document.getElementById('tool-details-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('tool-details-modal'));
+            modal.show();
+        }
+        
+        // Generate tool execution details HTML
+        function generateToolExecutionDetails(activity) {
+            let html = '<div class="tool-execution-details">';
+            
+            // Basic info
+            html += `
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Tool Name:</strong> ${activity.toolName || activity.taskType}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Status:</strong> <span class="badge bg-${activity.severity === 'success' ? 'success' : 'danger'}">${activity.severity}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Execution time
+            if (activity.duration) {
+                html += `<div class="mb-3"><strong>Execution Time:</strong> ${activity.duration}</div>`;
+            }
+            
+            // Original query
+            if (activity.originalQuery) {
+                html += `<div class="mb-3"><strong>Original Query:</strong><br><code class="d-block p-2 bg-light rounded">${activity.originalQuery}</code></div>`;
+            }
+            
+            // Parameters
+            if (activity.parameters) {
+                html += `<div class="mb-3"><strong>Parameters:</strong><pre class="bg-light p-2 rounded">${JSON.stringify(activity.parameters, null, 2)}</pre></div>`;
+            }
+            
+            // Tool result
+            if (activity.toolResult) {
+                html += `<div class="mb-3"><strong>Tool Result:</strong><pre class="bg-light p-2 rounded" style="max-height: 300px; overflow-y: auto;">${JSON.stringify(activity.toolResult, null, 2)}</pre></div>`;
+            }
+            
+            // Error details
+            if (activity.errorDetails) {
+                html += `<div class="mb-3"><strong>Error Details:</strong><pre class="bg-danger-subtle p-2 rounded text-danger">${activity.errorDetails}</pre></div>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // Get current activity data (from global state)
+        function getCurrentActivityData(index) {
+            // Use the stored global activity data
+            if (currentActivityData && index >= 0 && index < currentActivityData.length) {
+                return currentActivityData[index];
+            }
+            
+            // Fallback: try to extract from DOM if global data not available
+            const activityElement = document.querySelectorAll('.activity-item')[index];
+            if (!activityElement) return null;
+            
+            // Extract basic info from DOM
+            const title = activityElement.querySelector('strong')?.textContent || 'Unknown Activity';
+            const description = activityElement.querySelector('.mt-1')?.textContent || '';
+            const timestamp = new Date().toISOString(); // Fallback
+            
+            return {
+                title,
+                description,
+                timestamp,
+                severity: activityElement.classList.contains('activity-success') ? 'success' : 'info',
+                taskType: 'MCP Tool',
+                // Additional properties would be populated from actual data source
+            };
         }
         
         // Update error analysis panel
