@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Evaluation System - Tools Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #f5f7fa;
+            --secondary-color: #ffffff;
+            --surface-color: #ffffff;
+            --accent-color: #2196f3;
+            --accent-light: #e3f2fd;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-disabled: #bdbdbd;
+            --border-color: #e0e0e0;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-links a {
+            display: inline-block;
+            margin: 0 15px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-card.success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+
+        .metric-card.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .metric-card h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .metric-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .filters-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tools-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tools-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .tools-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tools-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .tools-table tr:hover {
+            background: #e3f2fd;
+            transition: background 0.3s ease;
+        }
+
+        .usage-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .usage-high { background: #4caf50; }
+        .usage-medium { background: #ff9800; }
+        .usage-low { background: #f44336; }
+        .usage-none { background: #9e9e9e; }
+
+        .generation-time {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .generation-fast { color: #4caf50; }
+        .generation-medium { color: #ff9800; }
+        .generation-slow { color: #f44336; }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .pagination-controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .pagination-controls button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .sort-link {
+            color: white;
+            text-decoration: none;
+        }
+
+        .sort-link:hover {
+            color: #ccc;
+        }
+
+        .description-preview {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Tool Cache Management</h1>
+            <p class="subtitle">PostgreSQL Tool Description Cache with AI Provider Analytics</p>
+        </div>
+        
+        <div class="nav-links">
+            <a href="/startup">📊 Dashboard</a>
+            <a href="/agents">🤖 Evaluations</a>
+            <a href="/cache">💾 Cache Analytics</a>
+            <a href="/tools">🔧 Tools</a>
+        </div>
+        
+        <div th:if="${error}" class="error-message">
+            ⚠️ <span th:text="${error}">Error loading tools data</span>
+        </div>
+        
+        <!-- Statistics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>🎯 Total Tools</h3>
+                <div class="value" th:text="${statistics?.totalTools ?: 0}">0</div>
+                <div class="unit">cached tools</div>
+            </div>
+            
+            <div class="metric-card success">
+                <h3>🏢 AI Providers</h3>
+                <div class="value" th:text="${statistics?.totalProviders ?: 0}">0</div>
+                <div class="unit">unique models</div>
+            </div>
+            
+            <div class="metric-card warning">
+                <h3>⚡ Avg Generation</h3>
+                <div class="value" th:text="${statistics?.averageGenerationTime ?: 0}">0</div>
+                <div class="unit">milliseconds</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>📈 Total Usage</h3>
+                <div class="value" th:text="${statistics?.totalUsage ?: 0}">0</div>
+                <div class="unit">cache hits</div>
+            </div>
+        </div>
+
+        <!-- Performance Highlights -->
+        <div th:if="${statistics != null and statistics.totalTools > 0 and statistics.fastestTool != null}" class="filters-panel">
+            <h4>🚀 Performance Highlights</h4>
+            <p><strong>Fastest Generation:</strong> 
+                <span th:text="${statistics.fastestTool.toolName}">tool</span> 
+                (<span th:text="${statistics.fastestTool.generationTimeMs}">0</span>ms)
+            </p>
+            <p th:if="${statistics.mostUsedTool != null}"><strong>Most Used Tool:</strong> 
+                <span th:text="${statistics.mostUsedTool.toolName}">None</span> 
+                (<span th:text="${statistics.mostUsedTool.usageCount}">0</span> uses)
+            </p>
+        </div>
+
+        <!-- Filters Panel -->
+        <div class="filters-panel">
+            <h4>🔍 Filters & Search</h4>
+            <form method="get" th:action="@{/tools}">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="providerFilter" class="form-label">AI Provider:</label>
+                        <select name="providerFilter" id="providerFilter" class="form-select">
+                            <option value="">All Providers</option>
+                            <option th:each="provider : ${availableProviders}" 
+                                    th:value="${provider}" 
+                                    th:text="${provider}"
+                                    th:selected="${currentFilters.provider == provider}">Provider</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="toolFilter" class="form-label">Tool Name:</label>
+                        <input type="text" name="toolFilter" id="toolFilter" class="form-control" 
+                               th:value="${currentFilters.tool}" placeholder="Search tools...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="performanceFilter" class="form-label">Performance:</label>
+                        <select name="performanceFilter" id="performanceFilter" class="form-select">
+                            <option value="">All Performance</option>
+                            <option value="fast" th:selected="${currentFilters.performance == 'fast'}">Fast (&lt; 20s)</option>
+                            <option value="medium" th:selected="${currentFilters.performance == 'medium'}">Medium (20-35s)</option>
+                            <option value="slow" th:selected="${currentFilters.performance == 'slow'}">Slow (&gt; 35s)</option>
+                            <option value="unknown" th:selected="${currentFilters.performance == 'unknown'}">Unknown</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">🔍 Filter</button>
+                        <a href="/tools" class="btn btn-secondary">🔄 Reset</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Results Summary -->
+        <div th:if="${filteredStats != null}" class="filters-panel">
+            <p><strong>Showing:</strong> 
+                <span th:text="${filteredStats.totalTools}">0</span> tools
+                <span th:if="${filteredStats.totalTools != statistics.totalTools}">
+                    (filtered from <span th:text="${statistics.totalTools}">0</span> total)
+                </span>
+            </p>
+        </div>
+
+        <!-- Tools Table -->
+        <div th:if="${tools != null and !tools.isEmpty()}">
+            <table class="tools-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <a th:href="@{/tools(sortBy='toolName', sortDir=${sortInfo.sortBy == 'toolName' and sortInfo.sortDir == 'asc' ? 'desc' : 'asc'})}" 
+                               class="sort-link">
+                                🔧 Tool Name
+                                <i th:if="${sortInfo.sortBy == 'toolName'}" 
+                                   th:class="${sortInfo.sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                        <th>📝 Description</th>
+                        <th>
+                            <a th:href="@{/tools(sortBy='providerModel', sortDir=${sortInfo.sortBy == 'providerModel' and sortInfo.sortDir == 'asc' ? 'desc' : 'asc'})}" 
+                               class="sort-link">
+                                🤖 Provider
+                                <i th:if="${sortInfo.sortBy == 'providerModel'}" 
+                                   th:class="${sortInfo.sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a th:href="@{/tools(sortBy='generationTime', sortDir=${sortInfo.sortBy == 'generationTime' and sortInfo.sortDir == 'asc' ? 'desc' : 'asc'})}" 
+                               class="sort-link">
+                                ⚡ Generation Time
+                                <i th:if="${sortInfo.sortBy == 'generationTime'}" 
+                                   th:class="${sortInfo.sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a th:href="@{/tools(sortBy='usageCount', sortDir=${sortInfo.sortBy == 'usageCount' and sortInfo.sortDir == 'asc' ? 'desc' : 'asc'})}" 
+                               class="sort-link">
+                                📊 Usage Count
+                                <i th:if="${sortInfo.sortBy == 'usageCount'}" 
+                                   th:class="${sortInfo.sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a th:href="@{/tools(sortBy='createdAt', sortDir=${sortInfo.sortBy == 'createdAt' and sortInfo.sortDir == 'asc' ? 'desc' : 'asc'})}" 
+                               class="sort-link">
+                                📅 Created
+                                <i th:if="${sortInfo.sortBy == 'createdAt'}" 
+                                   th:class="${sortInfo.sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="tool : ${tools}">
+                        <td>
+                            <strong th:text="${tool.toolName}">Tool Name</strong>
+                        </td>
+                        <td>
+                            <div class="description-preview" th:text="${tool.description}" th:title="${tool.description}">
+                                Description
+                            </div>
+                        </td>
+                        <td>
+                            <small th:text="${tool.providerModel}">Provider</small>
+                        </td>
+                        <td>
+                            <span th:if="${tool.generationTimeMs != null}" 
+                                  th:class="'generation-time ' + 
+                                           (${tool.generationTimeMs < 20000} ? 'generation-fast' : 
+                                            ${tool.generationTimeMs < 35000} ? 'generation-medium' : 'generation-slow')"
+                                  th:text="${#numbers.formatDecimal(tool.generationTimeMs/1000.0, 1, 1)} + 's'">
+                                0.0s
+                            </span>
+                            <span th:unless="${tool.generationTimeMs != null}" class="generation-time">
+                                Unknown
+                            </span>
+                        </td>
+                        <td>
+                            <span th:class="'usage-badge ' + 
+                                           (${tool.usageCount > 3} ? 'usage-high' : 
+                                            ${tool.usageCount > 1} ? 'usage-medium' : 
+                                            ${tool.usageCount > 0} ? 'usage-low' : 'usage-none')"
+                                  th:text="${tool.usageCount}">
+                                0
+                            </span>
+                        </td>
+                        <td th:text="${tool.createdAt != null ? #temporals.format(tool.createdAt, 'MMM dd, HH:mm') : 'Unknown'}">
+                            Date
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div th:if="${pagination.totalPages > 1}" class="pagination-controls">
+                <button th:disabled="${!pagination.hasPrev}" 
+                        onclick="window.location.href='?page=' + [[${pagination.prevPage}]]">
+                    ⬅ Previous
+                </button>
+                
+                <span>Page [[${pagination.currentPage + 1}]] of [[${pagination.totalPages}]]</span>
+                
+                <button th:disabled="${!pagination.hasNext}" 
+                        onclick="window.location.href='?page=' + [[${pagination.nextPage}]]">
+                    Next ➡
+                </button>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${tools == null or tools.isEmpty()}" class="text-center" style="padding: 40px; color: #666;">
+            <h3>📭 No tools found</h3>
+            <p th:if="${currentFilters.provider or currentFilters.tool or currentFilters.performance}">
+                Try adjusting your filters or <a href="/tools">reset all filters</a>.
+            </p>
+            <p th:unless="${currentFilters.provider or currentFilters.tool or currentFilters.performance}">
+                Tools will appear here after MCP tool calls trigger AI description generation.
+            </p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-refresh every 60 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 60000);
+    </script>
+</body>
+</html>

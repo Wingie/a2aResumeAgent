@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PostgreSQL Tool Description Cache Dashboard</title>
+    <title>Agent Evaluation System - Tool Cache Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -239,14 +239,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🗄️ PostgreSQL Tool Cache Dashboard</h1>
-            <p class="subtitle">Phase 1 Success: Incremental AI Tool Description Caching</p>
+            <h1>🗄️ Tool Performance Cache Dashboard</h1>
+            <p class="subtitle">AI Model Tool Performance Analysis & Caching</p>
         </div>
         
         <div class="nav-links">
-            <a href="/evaluations">📈 Model Evaluations</a>
-            <a href="/agents">📊 Agent Dashboard</a>
-            <a href="/startup">🚀 Startup Status</a>
+            <a href="/evaluations">📈 Evaluations</a>
+            <a href="/agents">📊 Evaluations Dashboard</a>
+            <a href="/startup">🚀 System Dashboard</a>
             <a href="/api/cache/descriptions">📋 Raw Cache API</a>
             <a href="/api/cache/report">📈 Cache Report</a>
         </div>
@@ -286,16 +286,22 @@
             </div>
         </div>
         
-        <div th:if="${metrics?.fastestTool}" class="highlight-card">
+        <div th:if="${metrics != null and metrics.totalTools > 0 and metrics.fastestTool != null}" class="highlight-card">
             <h4>🚀 Performance Highlights</h4>
             <p><strong>Fastest Generation:</strong> 
                 <span th:text="${metrics.fastestTool.toolName}">tool</span> 
                 (<span th:text="${metrics.fastestTool.generationTimeMs}">0</span>ms)
             </p>
-            <p><strong>Most Used Tool:</strong> 
-                <span th:text="${metrics.mostUsedTool?.toolName ?: 'None'}">tool</span> 
-                (<span th:text="${metrics.mostUsedTool?.usageCount ?: 0}">0</span> uses)
+            <p th:if="${metrics.mostUsedTool != null}"><strong>Most Used Tool:</strong> 
+                <span th:text="${metrics.mostUsedTool.toolName}">None</span> 
+                (<span th:text="${metrics.mostUsedTool.usageCount}">0</span> uses)
             </p>
+        </div>
+        
+        <!-- Fallback message for empty state -->
+        <div th:if="${metrics != null and metrics.totalTools == 0}" class="highlight-card">
+            <h4>📊 Performance Data</h4>
+            <p><em>No performance data available yet. Performance metrics will appear after tool generation and usage.</em></p>
         </div>
         
         <div class="tools-section">
@@ -342,7 +348,7 @@
                                 0
                             </span>
                         </td>
-                        <td th:text="${#temporals.format(tool.createdAt, 'MMM dd, HH:mm')}">
+                        <td th:text="${tool.createdAt != null ? #temporals.format(tool.createdAt, 'MMM dd, HH:mm') : 'Unknown'}">
                             Date
                         </td>
                         <td>

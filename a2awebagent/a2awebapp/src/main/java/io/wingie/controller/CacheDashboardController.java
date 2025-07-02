@@ -64,6 +64,9 @@ public class CacheDashboardController {
             metrics.put("averageGenerationTime", 0);
             metrics.put("totalUsage", 0);
             metrics.put("cacheEfficiency", 0);
+            metrics.put("fastestTool", null);
+            metrics.put("slowestTool", null);
+            metrics.put("mostUsedTool", null);
             return metrics;
         }
         

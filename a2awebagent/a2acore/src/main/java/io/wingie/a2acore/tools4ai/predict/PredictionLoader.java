@@ -299,9 +299,9 @@ public class PredictionLoader {
             log.debug("projectId: " + projectId);
             log.debug("location: " + location);
             log.debug("modelName: " + modelName);
-            log.debug("serperKey: " + serperKey);
-            log.debug("openAiKey: " + openAiKey);
-            log.debug("claudeKey: " + claudeKey);
+            log.debug("serperKey: " + (serperKey != null && !serperKey.isEmpty() ? "configured" : "not set"));
+            log.debug("openAiKey: " + (openAiKey != null && !openAiKey.isEmpty() ? "configured" : "not set"));
+            log.debug("claudeKey: " + (claudeKey != null && !claudeKey.isEmpty() ? "configured" : "not set"));
         } catch (IOException e) {
             log.warn(e.getMessage());
         }

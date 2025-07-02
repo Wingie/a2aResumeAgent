@@ -4,8 +4,11 @@ import io.wingie.controller.AgentDashboardController;
 import io.wingie.entity.TaskExecution;
 import io.wingie.entity.TaskStatus;
 import io.wingie.repository.TaskExecutionRepository;
+import io.wingie.service.neo4j.TaskGraphService;
+import io.wingie.service.neo4j.ScreenshotEmbeddingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,6 +29,12 @@ public class TaskExecutionIntegrationService {
     
     private final TaskExecutionRepository taskRepository;
     private final AgentDashboardController dashboardController;
+    
+    @Autowired(required = false) // Optional dependency - graceful degradation if Neo4j unavailable
+    private TaskGraphService taskGraphService;
+    
+    @Autowired(required = false) // Optional dependency
+    private ScreenshotEmbeddingService screenshotEmbeddingService;
     
     /**
      * Wraps a tool execution with TaskExecution tracking and real-time SSE broadcasting.
@@ -67,10 +76,28 @@ public class TaskExecutionIntegrationService {
             task.setProgressMessage("Completed successfully");
             task.setCompletedAt(LocalDateTime.now());
             task.setExtractedResults(result != null ? result.toString() : "");
+            
+            // Calculate and store actual duration
+            if (task.getStartedAt() != null && task.getCompletedAt() != null) {
+                long durationSeconds = java.time.Duration.between(task.getStartedAt(), task.getCompletedAt()).toSeconds();
+                task.setActualDurationSeconds((int) durationSeconds);
+            }
+            
             task = taskRepository.save(task);
             
             // Trigger immediate SSE broadcast for completion
             broadcastTaskUpdate(task, "tool-completed");
+            
+            // 🔗 Neo4j Knowledge Graph Integration - Async logging
+            if (taskGraphService != null) {
+                final TaskExecution finalTask = task; // Make effectively final for lambda
+                taskGraphService.logTaskToGraph(finalTask)
+                    .thenRun(() -> log.debug("🔗 Neo4j graph logging initiated for task {}", finalTask.getTaskId()))
+                    .exceptionally(ex -> {
+                        log.warn("⚠️ Neo4j graph logging failed for task {}: {}", finalTask.getTaskId(), ex.getMessage());
+                        return null;
+                    });
+            }
             
             long durationMs = task.getStartedAt() != null ? 
                 java.time.Duration.between(task.getStartedAt(), task.getCompletedAt()).toMillis() : 0;
@@ -85,6 +112,13 @@ public class TaskExecutionIntegrationService {
             task.setProgressMessage("Failed: " + e.getMessage());
             task.setCompletedAt(LocalDateTime.now());
             task.setErrorDetails(e.getMessage());
+            
+            // Calculate and store actual duration even for failed tasks
+            if (task.getStartedAt() != null && task.getCompletedAt() != null) {
+                long durationSeconds = java.time.Duration.between(task.getStartedAt(), task.getCompletedAt()).toSeconds();
+                task.setActualDurationSeconds((int) durationSeconds);
+            }
+            
             task = taskRepository.save(task);
             
             // Trigger immediate SSE broadcast for failure
@@ -116,15 +150,27 @@ public class TaskExecutionIntegrationService {
     
     /**
      * Adds a screenshot to the task and triggers real-time SSE broadcast.
+     * Also initiates async screenshot embedding processing for knowledge graph.
      */
     public void addTaskScreenshot(String taskId, String screenshotPath) {
         taskRepository.findById(taskId).ifPresent(task -> {
             task.getScreenshots().add(screenshotPath);
             task.setUpdated(LocalDateTime.now());
-            taskRepository.save(task);
+            task = taskRepository.save(task);
             
             // Trigger immediate SSE broadcast for new screenshot
             broadcastTaskUpdate(task, "screenshot-captured");
+            
+            // 📸 Screenshot Embedding Processing - Async
+            if (screenshotEmbeddingService != null) {
+                String screenshotId = taskId + "_" + System.currentTimeMillis();
+                screenshotEmbeddingService.processScreenshotEmbedding(screenshotId, screenshotPath)
+                    .thenAccept(result -> log.debug("📊 Screenshot embedding processing completed: {}", result))
+                    .exceptionally(ex -> {
+                        log.warn("⚠️ Screenshot embedding failed for {}: {}", screenshotPath, ex.getMessage());
+                        return null;
+                    });
+            }
             
             log.info("📸 Screenshot added to task {}: {}", taskId, screenshotPath);
         });

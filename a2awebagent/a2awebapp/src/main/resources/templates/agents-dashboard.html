@@ -3,91 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>a2aTravelAgent - Agents Dashboard</title>
+    <title>Agent Evaluation System - Evaluation Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #0a0e27;
-            --secondary-color: #1a1f3a;
-            --accent-color: #64ffda;
-            --accent-purple: #7c3aed;
-            --success-color: #28a745;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
+            --primary-color: #f5f7fa;
+            --secondary-color: #ffffff;
+            --surface-color: #ffffff;
+            --accent-color: #2196f3;
+            --accent-light: #e3f2fd;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-disabled: #bdbdbd;
+            --border-color: #e0e0e0;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.12);
+            --shadow-strong: rgba(0, 0, 0, 0.16);
         }
 
         body {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: #ffffff;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-primary);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+            font-weight: 400;
         }
 
         .navbar {
-            background: rgba(26, 31, 58, 0.95) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--accent-color);
+            background: var(--surface-color) !important;
+            box-shadow: 0 2px 4px var(--shadow-light);
+            border-bottom: none;
         }
 
         .card {
-            background: rgba(26, 31, 58, 0.8);
-            border: 1px solid rgba(100, 255, 218, 0.2);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px var(--shadow-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .card:hover {
-            border-color: var(--accent-color);
-            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.15);
+            box-shadow: 0 4px 16px var(--shadow-medium);
+            transform: translateY(-2px);
         }
 
         .stat-card {
-            background: linear-gradient(135deg, rgba(100, 255, 218, 0.1), rgba(124, 58, 237, 0.1));
-            border: 1px solid rgba(100, 255, 218, 0.3);
+            background: linear-gradient(135deg, var(--accent-light) 0%, rgba(33, 150, 243, 0.05) 100%);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-color);
         }
 
         .task-card {
             margin-bottom: 1rem;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
         }
 
         .task-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--shadow-medium);
         }
 
         .status-badge {
-            font-size: 0.8rem;
-            padding: 0.4rem 0.8rem;
-            border-radius: 20px;
-            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .status-queued { background: #6c757d; }
+        .status-queued { background: var(--text-disabled); color: white; }
         .status-running { 
-            background: linear-gradient(45deg, #007bff, var(--accent-color)); 
-            animation: pulse 2s infinite;
+            background: var(--accent-color);
+            color: white;
+            position: relative;
+            overflow: hidden;
         }
-        .status-completed { background: var(--success-color); }
-        .status-failed { background: var(--danger-color); }
-        .status-cancelled { background: var(--warning-color); color: #000; }
+        .status-running::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+        .status-completed { background: var(--success-color); color: white; }
+        .status-failed { background: var(--danger-color); color: white; }
+        .status-cancelled { background: var(--warning-color); color: white; }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
         .progress-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
+            background: var(--border-color);
+            border-radius: 4px;
             overflow: hidden;
-            height: 8px;
+            height: 6px;
         }
 
         .progress-bar-custom {
-            background: linear-gradient(90deg, var(--accent-color), var(--accent-purple));
+            background: linear-gradient(90deg, var(--accent-color), #1976d2);
             height: 100%;
-            transition: width 0.5s ease;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 4px;
         }
 
         .screenshot-thumbnail {
@@ -120,28 +149,29 @@
         }
 
         .real-time-update {
-            animation: highlight 1s ease-in-out;
+            animation: highlightMaterial 1s ease-in-out;
         }
 
-        @keyframes highlight {
-            0% { background-color: rgba(100, 255, 218, 0.3); }
+        @keyframes highlightMaterial {
+            0% { background-color: var(--accent-light); }
             100% { background-color: transparent; }
         }
 
-        /* Phase 1 Day 2: Enhanced CSS for Live Progress and Screenshots */
+        /* Phase 1 Day 2: Enhanced Material CSS for Live Progress and Screenshots */
         
         .live-screenshot-gallery {
             min-height: 50px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            background: var(--accent-light);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             margin-bottom: 15px;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .live-screenshot-gallery:empty::before {
             content: "No screenshots yet...";
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-secondary);
             font-style: italic;
             font-size: 0.9em;
         }
@@ -314,24 +344,24 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/agents">
+            <a class="navbar-brand" href="/agents" style="color: var(--text-primary); font-weight: 500;">
                 <i class="fas fa-robot me-2" style="color: var(--accent-color);"></i>
-                a2aTravelAgent Dashboard
+Agent Evaluation Dashboard
             </a>
             <div class="navbar-nav ms-auto">
                 <a href="/tools-test" class="btn btn-outline-primary btn-sm me-2">
-                    <i class="fas fa-tools me-1"></i> Tool Testing
+                    <i class="fas fa-tools me-1"></i> Test Tools
                 </a>
                 <a href="/evaluations" class="btn btn-outline-success btn-sm me-2">
-                    <i class="fas fa-chart-line me-1"></i> Model Evaluations
+                    <i class="fas fa-chart-line me-1"></i> Evaluations
                 </a>
                 <a href="/cache" class="btn btn-outline-info btn-sm me-2">
-                    <i class="fas fa-database me-1"></i> Cache Dashboard
+                    <i class="fas fa-database me-1"></i> Cache
                 </a>
                 <a href="/startup" class="btn btn-outline-warning btn-sm me-3">
-                    <i class="fas fa-rocket me-1"></i> Startup
+                    <i class="fas fa-chart-line me-1"></i> Dashboard
                 </a>
                 <span class="navbar-text me-3">
                     <i class="fas fa-clock me-1"></i>
@@ -359,7 +389,7 @@
                     <div class="card-body">
                         <i class="fas fa-play-circle fa-2x mb-2" style="color: var(--accent-color);"></i>
                         <h4 class="card-title mb-1" id="active-tasks" th:text="${stats.activeTasks}">0</h4>
-                        <p class="card-text small">Active Tasks</p>
+                        <p class="card-text small">Active Evaluations</p>
                     </div>
                 </div>
             </div>
@@ -404,7 +434,7 @@
                     <div class="card-body">
                         <i class="fas fa-database fa-2x mb-2" style="color: var(--accent-purple);"></i>
                         <h4 class="card-title mb-1" id="total-tasks" th:text="${stats.totalTasks}">0</h4>
-                        <p class="card-text small">Total Tasks</p>
+                        <p class="card-text small">Total Evaluations</p>
                     </div>
                 </div>
             </div>
@@ -416,7 +446,7 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
-                            <i class="fas fa-running me-2"></i>Active Tasks
+                            <i class="fas fa-running me-2"></i>Active Evaluations
                             <span class="badge bg-primary ms-2" id="active-count" th:text="${#lists.size(activeTasks)}">0</span>
                         </h5>
                         <div>
@@ -428,7 +458,7 @@
                         <div id="active-tasks-container">
                             <div th:if="${#lists.isEmpty(activeTasks)}" class="text-center text-muted py-4">
                                 <i class="fas fa-sleep fa-2x mb-2"></i>
-                                <p>No active tasks running</p>
+                                <p>No active evaluations running</p>
                             </div>
                             <div th:each="task : ${activeTasks}" class="task-card card">
                                 <div class="card-body">
@@ -438,7 +468,7 @@
                                     </div>
                                     <p class="card-text small mb-2" th:text="${#strings.abbreviate(task.originalQuery, 80)}">Query...</p>
                                     <div class="progress-container mb-2">
-                                        <div class="progress-bar-custom" th:style="'width: ' + ${task.progressPercent} + '%'"></div>
+                                        <div class="progress-bar-custom" th:style="|width: ${task.progressPercent}%|"></div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <small class="text-muted" th:text="${task.progressMessage}">Progress message</small>
@@ -448,7 +478,9 @@
                                         <small class="text-muted">
                                             Started: <span th:text="${#temporals.format(task.startedAt, 'HH:mm:ss')}">--:--:--</span>
                                         </small>
-                                        <button class="btn btn-sm btn-outline-danger ms-2" th:onclick="'cancelTask(\'' + ${task.taskId} + '\')'">
+                                        <button class="btn btn-sm btn-outline-danger ms-2" 
+                                                th:data-task-id="${task.taskId}" 
+                                                onclick="cancelTask(this.dataset.taskId)">
                                             <i class="fas fa-stop"></i> Cancel
                                         </button>
                                     </div>
@@ -464,7 +496,7 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
-                            <i class="fas fa-history me-2"></i>Recent Tasks
+                            <i class="fas fa-history me-2"></i>Recent Evaluations
                             <span class="badge bg-secondary ms-2" th:text="${recentTasks.totalElements}">0</span>
                         </h5>
                         <div class="btn-group btn-group-sm">
@@ -495,7 +527,7 @@
                                             <img th:each="screenshot : ${task.screenshots}" 
                                                  th:src="'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='" 
                                                  class="screenshot-thumbnail"
-                                                 th:alt="'Screenshot ' + ${screenshot}"
+                                                 th:alt="|Screenshot ${screenshot}|"
                                                  th:title="${screenshot}">
                                         </div>
                                     </div>
@@ -514,7 +546,8 @@
                                             </a>
                                             <button th:if="${task.canRetry()}" 
                                                     class="btn btn-sm btn-outline-warning ms-1" 
-                                                    th:onclick="'retryTask(\'' + ${task.taskId} + '\')'">
+                                                    th:data-task-id="${task.taskId}" 
+                                                    onclick="retryTask(this.dataset.taskId)">
                                                 <i class="fas fa-redo"></i> Retry
                                             </button>
                                         </div>
@@ -527,14 +560,14 @@
                         <nav th:if="${recentTasks.totalPages > 1}" class="mt-3">
                             <ul class="pagination pagination-sm justify-content-center">
                                 <li class="page-item" th:classappend="${recentTasks.first} ? 'disabled'">
-                                    <a class="page-link" th:href="'/agents?page=' + ${currentPage - 1}">Previous</a>
+                                    <a class="page-link" th:href="|/agents?page=${currentPage - 1}|">Previous</a>
                                 </li>
                                 <li th:each="i : ${#numbers.sequence(0, recentTasks.totalPages - 1)}" 
                                     class="page-item" th:classappend="${i == currentPage} ? 'active'">
-                                    <a class="page-link" th:href="'/agents?page=' + ${i}" th:text="${i + 1}">1</a>
+                                    <a class="page-link" th:href="|/agents?page=${i}|" th:text="${i + 1}">1</a>
                                 </li>
                                 <li class="page-item" th:classappend="${recentTasks.last} ? 'disabled'">
-                                    <a class="page-link" th:href="'/agents?page=' + ${currentPage + 1}">Next</a>
+                                    <a class="page-link" th:href="|/agents?page=${currentPage + 1}|">Next</a>
                                 </li>
                             </ul>
                         </nav>
@@ -907,7 +940,8 @@
                      alt="Screenshot" 
                      class="rounded border"
                      style="width: 60px; height: 40px; object-fit: cover; cursor: pointer;"
-                     onclick="openScreenshotModal('${lastScreenshot}')">
+                     data-screenshot-url="${lastScreenshot}"
+                     onclick="openScreenshotModal(this.dataset.screenshotUrl)">
                 <div class="small text-muted text-center mt-1">
                     ${formatTimestamp(new Date().toISOString())}
                 </div>

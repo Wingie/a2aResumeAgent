@@ -217,3 +217,280 @@ Task(
 - **Connection Pooling**: HikariCP with optimized settings
 - **Query Caching**: JPA second-level cache
 - **Async Processing**: Non-blocking database operations
+
+## MCP Protocol Testing
+
+### **Correct MCP Endpoints**
+
+The application provides complete MCP (Model Context Protocol) JSON-RPC 2.0 support via the A2aCoreController:
+
+- **Primary MCP JSON-RPC**: `POST http://localhost:7860/v1` ✅ **WORKING**
+- **Tools List**: `GET http://localhost:7860/v1/tools` ✅ **WORKING**
+- **Health Check**: `GET http://localhost:7860/v1/health` ✅ **WORKING**
+- **Metrics**: `GET http://localhost:7860/v1/metrics` ✅ **WORKING**
+- **Tool Execution**: `POST http://localhost:7860/v1/tools/call` ❌ **HAS BUG** - Use `/v1` instead
+
+### **Testing MCP Tools**
+
+#### **1. List Available Tools**
+```bash
+# Get all available tools via JSON-RPC
+curl -X POST http://localhost:7860/v1 \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "method": "tools/list", "id": 1}'
+
+# Alternative REST endpoint
+curl -s http://localhost:7860/v1/tools | jq .
+```
+
+#### **2. Execute Web Automation Tools**
+
+**Text Extraction Example:**
+```bash
+curl -X POST http://localhost:7860/v1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0", 
+    "method": "tools/call", 
+    "params": {
+      "name": "browseWebAndReturnText",
+      "arguments": {
+        "provideAllValuesInPlainEnglish": "Go to example.com and extract the page title"
+      }
+    }, 
+    "id": 2
+  }'
+```
+
+**Screenshot Capture Example:**
+```bash
+curl -X POST http://localhost:7860/v1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0", 
+    "method": "tools/call", 
+    "params": {
+      "name": "browseWebAndReturnImage", 
+      "arguments": {
+        "provideAllValuesInPlainEnglish": "Navigate to https://dev.to and take a screenshot"
+      }
+    }, 
+    "id": 3
+  }'
+```
+
+#### **3. Meme Generation Example**
+```bash
+curl -X POST http://localhost:7860/v1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0", 
+    "method": "tools/call", 
+    "params": {
+      "name": "generateMeme",
+      "arguments": {
+        "mood": "excited", 
+        "text": "MCP Protocol Working!"
+      }
+    }, 
+    "id": 4
+  }'
+```
+
+#### **4. LinkedIn Profile Search**
+```bash
+curl -X POST http://localhost:7860/v1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0", 
+    "method": "tools/call", 
+    "params": {
+      "name": "searchLinkedInProfile",
+      "arguments": {
+        "searchQuery": "software engineer Amsterdam"
+      }
+    }, 
+    "id": 5
+  }'
+```
+
+### **Automated Testing Script**
+
+Use the comprehensive test script for full MCP integration testing:
+
+```bash
+# Run automated MCP testing suite
+./test_mcp_server.sh
+
+# Generate detailed test report
+./test_mcp_server.sh --report
+```
+
+The test script validates:
+- All 9 MCP tools functionality
+- JSON-RPC 2.0 compliance
+- Error handling and timeouts
+- Mixed content responses (text + images)
+- Tool discovery performance (<100ms)
+
+### **Interactive Testing Interface**
+
+Access the web-based tool testing interface:
+- **URL**: `http://localhost:7860/tools-test`
+- **Features**: Interactive forms for each tool
+- **Tool Categories**: Web automation, content generation, data extraction
+- **Response Preview**: Real-time JSON-RPC response display
+
+### **Neo4j Knowledge Graph Integration Testing**
+
+Test the Neo4j knowledge graph analytics endpoints:
+
+```bash
+# Knowledge graph overview
+curl -s http://localhost:7860/api/graph/overview | jq .
+
+# Screenshot analytics
+curl -s http://localhost:7860/api/graph/screenshots/stats | jq .
+
+# Task performance analytics  
+curl -s http://localhost:7860/api/graph/tasks/performance | jq .
+```
+
+### **Real-Time Task Monitoring**
+
+Monitor task execution via Server-Sent Events:
+- **SSE Endpoint**: `http://localhost:7860/agents/stream`
+- **Dashboard**: `http://localhost:7860/agents`
+- **Events**: tool-started, tool-progress, tool-completed, screenshot-captured
+
+### **Expected Response Format**
+
+All MCP tools return standardized JSON-RPC 2.0 responses:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Task completed successfully..."
+      },
+      {
+        "type": "image", 
+        "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+        "mimeType": "image/png"
+      }
+    ]
+  },
+  "id": 1
+}
+```
+
+### **Error Handling**
+
+MCP protocol errors follow JSON-RPC 2.0 specification:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32603,
+    "message": "Internal error", 
+    "data": "Detailed error information"
+  },
+  "id": 1
+}
+```
+
+### **Performance Benchmarks**
+
+- **Tool Discovery**: <100ms (all 9 tools)
+- **Web Automation**: 2-5 seconds (typical page load)
+- **Meme Generation**: 1-3 seconds (API + processing)
+- **Screenshot Capture**: 1-2 seconds (headless browser)
+- **Neo4j Logging**: Async, non-blocking
+
+## Troubleshooting
+
+### **Known Issues & Fixes**
+
+#### **1. `/v1/tools/call` Endpoint Bug**
+**Error**: `Cannot invoke "Object.hashCode()" because "key" is null`
+**Cause**: NullPointerException in tool name parsing
+**Solution**: Use the main `/v1` endpoint for tool execution instead
+
+```bash
+# ❌ Don't use this (has bug)
+curl -X POST http://localhost:7860/v1/tools/call
+
+# ✅ Use this instead
+curl -X POST http://localhost:7860/v1 -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "method": "tools/call", "params": {...}, "id": 1}'
+```
+
+#### **2. Neo4j Warnings (Normal for New Deployments)**
+**Warnings**: `Unknown LabelWarning`, `Unknown PropertyKeyWarning`
+**Cause**: Neo4j database is empty or nodes lack certain properties
+**Status**: Expected for new deployments, will disappear as data is created
+
+**Example warnings (safe to ignore initially):**
+```
+One of the labels in your query is not available: Screenshot
+One of the property names in your query is not available: durationSeconds
+```
+
+#### **3. Duration Calculation Issues (FIXED)**
+**Previous Issue**: TaskNode entities had NULL `durationSeconds` values
+**Root Cause**: Duration calculation wasn't being stored in database
+**Fix Applied**: TaskExecutionIntegrationService now calculates and stores duration
+
+**Verification**:
+```bash
+# Check PostgreSQL
+docker exec a2a-postgres psql -U agent -d a2awebagent \
+  -c "SELECT task_id, actual_duration_seconds FROM task_executions ORDER BY created DESC LIMIT 3;"
+
+# Check Neo4j
+docker exec a2a-neo4j cypher-shell -u neo4j -p password123 \
+  "MATCH (t:Task) RETURN t.taskId, t.durationSeconds ORDER BY t.startedAt DESC LIMIT 3;"
+```
+
+### **Configuration Validation**
+
+#### **Database Connectivity**
+```bash
+# PostgreSQL
+docker exec a2a-postgres psql -U agent -d a2awebagent -c "SELECT 1;"
+
+# Redis  
+docker exec a2a-redis redis-cli ping
+
+# Neo4j
+docker exec a2a-neo4j cypher-shell -u neo4j -p password123 "RETURN 1;"
+```
+
+#### **MCP Tool Registration**
+```bash
+# Verify all 9 tools are registered
+curl -s http://localhost:7860/v1/tools | jq '.toolCount'
+
+# Check framework health
+curl -s http://localhost:7860/v1/health | jq '.'
+```
+
+### **Performance Monitoring**
+
+#### **Real-time Task Monitoring**
+- **Dashboard**: http://localhost:7860/agents
+- **SSE Stream**: http://localhost:7860/agents/stream
+- **Graph Analytics**: http://localhost:7860/api/graph/overview
+
+#### **Database Health Checks**
+```bash
+# Task execution statistics
+curl -s http://localhost:7860/api/graph/tasks/performance | jq '.'
+
+# Knowledge graph overview
+curl -s http://localhost:7860/api/graph/overview | jq '.'
+```
