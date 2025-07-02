@@ -320,7 +320,7 @@ Agent Evaluation System
 
         <div class="row">
             <!-- Left Column - System Health & Models -->
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <!-- System Health -->
                 <div class="card stats-card mb-4">
                     <div class="card-header">
@@ -452,7 +452,40 @@ Agent Evaluation System
             </div>
 
             <!-- Middle Column - Activity Feed -->
-            <div class="col-md-4">
+            <div class="col-md-6">
+                <!-- Evaluation Trigger -->
+                <div class="card mb-3" style="border-left: 4px solid #28a745;">
+                    <div class="card-header">
+                        <h6><i class="fas fa-play-circle"></i> Start Agent Evaluation</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-8">
+                                <label for="evaluation-tool-select" class="form-label small">Select Tool:</label>
+                                <select class="form-select form-select-sm" id="evaluation-tool-select" onchange="updateToolParameters()">
+                                    <option value="">Loading tools...</option>
+                                </select>
+                            </div>
+                            <div class="col-4 d-flex align-items-end">
+                                <button class="btn btn-success btn-sm w-100" onclick="startAgentEvaluation()">
+                                    <i class="fas fa-rocket"></i> Start
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Dynamic Parameter Inputs -->
+                        <div id="tool-parameters" class="mb-2">
+                            <!-- Parameters will be generated dynamically -->
+                        </div>
+                        
+                        <div id="evaluation-trigger-status" class="mt-2" style="display: none;">
+                            <div class="alert alert-info alert-sm">
+                                <i class="fas fa-spinner fa-spin"></i> <span id="evaluation-trigger-message">Starting evaluation...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="card activity-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5><i class="fas fa-stream"></i> Evaluation Activity Feed</h5>
@@ -461,6 +494,14 @@ Agent Evaluation System
                         </button>
                     </div>
                     <div class="card-body p-0">
+                        <!-- Live Browser Session Viewer -->
+                        <div id="browser-session-viewer" class="p-2 border-bottom" style="background-color: #f8f9fa; display: none;">
+                            <h6 class="text-muted mb-2"><i class="fas fa-globe"></i> Live Browser Session</h6>
+                            <div id="browser-actions" class="small">
+                                <div class="text-muted">No active browser sessions</div>
+                            </div>
+                        </div>
+                        
                         <div id="activity-feed" class="scrollable-content p-3">
                             <div class="text-center text-muted">
                                 <i class="fas fa-spinner fa-spin"></i> Loading activity feed...
@@ -471,7 +512,7 @@ Agent Evaluation System
             </div>
 
             <!-- Right Column - Error Analysis & Tools -->
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <!-- Error Analysis -->
                 <div class="card error-card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -667,13 +708,16 @@ Agent Evaluation System
         let sseConnection = null;
         let sseEnabled = false;
         let lastStatistics = null;
+        let availableTools = [];
         
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
             // Data is already loaded from the backend via Thymeleaf
-            // Just enable real-time updates
+            // Enable real-time updates via SSE
             loadCacheData();
-            console.log('Dashboard initialized with server-side data');
+            enableSSE(); // Start real-time updates automatically
+            loadAvailableTools(); // Discover all MCP tools dynamically
+            console.log('Dashboard initialized with server-side data and real-time updates');
         });
         
         // Update the entire dashboard with new statistics
@@ -885,6 +929,43 @@ Agent Evaluation System
                 }
             });
             
+            // Enhanced SSE event handlers for browser actions
+            sseConnection.addEventListener('tool-started', function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleBrowserToolEvent('started', data);
+                } catch (error) {
+                    console.error('Error parsing tool-started event:', error);
+                }
+            });
+            
+            sseConnection.addEventListener('tool-progress', function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleBrowserToolEvent('progress', data);
+                } catch (error) {
+                    console.error('Error parsing tool-progress event:', error);
+                }
+            });
+            
+            sseConnection.addEventListener('tool-completed', function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleBrowserToolEvent('completed', data);
+                } catch (error) {
+                    console.error('Error parsing tool-completed event:', error);
+                }
+            });
+            
+            sseConnection.addEventListener('screenshot-captured', function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleBrowserToolEvent('screenshot', data);
+                } catch (error) {
+                    console.error('Error parsing screenshot-captured event:', error);
+                }
+            });
+            
             sseConnection.onerror = function(error) {
                 console.error('SSE connection error:', error);
                 showError('Real-time connection lost. Retrying...');
@@ -910,13 +991,27 @@ Agent Evaluation System
         
         // Action functions
         function refreshAllStatistics() {
-            // Reload the page to get fresh server-side data
-            window.location.reload();
+            fetch('/api/admin/statistics/refresh', {method: 'POST'})
+                .then(response => response.json())
+                .then(result => {
+                    showSuccess('Statistics refreshed successfully');
+                })
+                .catch(error => {
+                    console.error('Error refreshing statistics:', error);
+                    showError('Failed to refresh statistics');
+                });
         }
         
         function refreshActivity() {
-            // Reload the page to get fresh server-side data
-            window.location.reload();
+            fetch('/api/admin/statistics/refresh', {method: 'POST'})
+                .then(response => response.json())
+                .then(result => {
+                    showSuccess('Activity feed refreshed');
+                })
+                .catch(error => {
+                    console.error('Error refreshing activity:', error);
+                    showError('Failed to refresh activity feed');
+                });
         }
         
         // Legacy cache functions (maintained for compatibility)
@@ -1113,8 +1208,19 @@ Agent Evaluation System
             const refreshIcon = document.getElementById('refresh-icon');
             refreshIcon.classList.add('fa-spin');
             
-            // Reload the page to get fresh server-side data
-            window.location.reload();
+            // Use the existing refresh endpoint instead of page reload
+            fetch('/api/admin/statistics/refresh', {method: 'POST'})
+                .then(response => response.json())
+                .then(result => {
+                    refreshIcon.classList.remove('fa-spin');
+                    showSuccess('Dashboard refreshed successfully');
+                    // The SSE will handle updating the data
+                })
+                .catch(error => {
+                    console.error('Refresh failed:', error);
+                    refreshIcon.classList.remove('fa-spin');
+                    showError('Failed to refresh dashboard');
+                });
         }
         
         function updateDashboardData(stats, health, activity) {
@@ -1141,6 +1247,74 @@ Agent Evaluation System
         // Auto-refresh every 30 seconds
         setInterval(refreshDashboard, 30000);
         
+        // Agent Evaluation Component (above activity feed)
+        function startAgentEvaluation() {
+            const toolSelect = document.getElementById('evaluation-tool-select');
+            const statusDiv = document.getElementById('evaluation-trigger-status');
+            const messageSpan = document.getElementById('evaluation-trigger-message');
+            
+            const selectedTool = toolSelect.value;
+            if (!selectedTool) {
+                showError('Please select a tool to evaluate');
+                return;
+            }
+            
+            const toolName = toolSelect.options[toolSelect.selectedIndex].text;
+            
+            statusDiv.style.display = 'block';
+            messageSpan.textContent = `Starting ${toolName}...`;
+            
+            // Collect parameters from dynamic form
+            const toolArgs = collectToolParameters(selectedTool);
+            if (toolArgs === null) {
+                statusDiv.style.display = 'none';
+                return; // Error already shown in collectToolParameters
+            }
+            
+            // Call the MCP tool via proper JSON-RPC 2.0 protocol
+            fetch('/v1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    "jsonrpc": "2.0",
+                    "method": "tools/call",
+                    "params": {
+                        "name": selectedTool,
+                        "arguments": toolArgs
+                    },
+                    "id": Date.now() // Use timestamp as unique ID
+                })
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            }).then(result => {
+                // Handle JSON-RPC response
+                if (result.error) {
+                    throw new Error(result.error.message || 'MCP tool execution failed');
+                }
+                
+                messageSpan.innerHTML = `<i class="fas fa-check"></i> ${toolName} completed successfully`;
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+                
+                // Show success message
+                showSuccess(`Agent evaluation completed: ${toolName}`);
+                console.log('Tool execution result:', result.result);
+            }).catch(error => {
+                console.error('Agent evaluation error:', error);
+                messageSpan.innerHTML = `<i class="fas fa-times"></i> Evaluation failed: ${error.message}`;
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+                showError('Agent evaluation failed: ' + error.message);
+            });
+        }
+
         // Model Evaluation Component
         function startModelEvaluation() {
             const statusDiv = document.getElementById('evaluation-status');
@@ -1198,6 +1372,306 @@ Agent Evaluation System
                 });
         }
         
+        // Browser tool event handler for live session viewer
+        function handleBrowserToolEvent(eventType, data) {
+            const browserViewer = document.getElementById('browser-session-viewer');
+            const browserActions = document.getElementById('browser-actions');
+            
+            // Show browser session viewer when browser tools are active
+            if (eventType === 'started' && data.task && isBrowserTool(data.task)) {
+                browserViewer.style.display = 'block';
+                browserActions.innerHTML = '<div class="text-info"><i class="fas fa-play"></i> Browser session started...</div>';
+            }
+            
+            // Update with progress messages for browser tools
+            if (eventType === 'progress' && data.task && isBrowserTool(data.task)) {
+                browserViewer.style.display = 'block';
+                const progressMessage = data.task.progressMessage || 'Browser action in progress...';
+                const timestamp = new Date().toLocaleTimeString();
+                
+                browserActions.innerHTML = `
+                    <div class="text-primary">
+                        <i class="fas fa-spinner fa-spin"></i> ${progressMessage}
+                        <small class="text-muted">(${timestamp})</small>
+                    </div>
+                `;
+            }
+            
+            // Show screenshot captured events
+            if (eventType === 'screenshot' && data.task && isBrowserTool(data.task)) {
+                browserViewer.style.display = 'block';
+                const timestamp = new Date().toLocaleTimeString();
+                
+                browserActions.innerHTML = `
+                    <div class="text-success">
+                        <i class="fas fa-camera"></i> Screenshot captured
+                        <small class="text-muted">(${timestamp})</small>
+                    </div>
+                `;
+            }
+            
+            // Hide browser session viewer when tool completes
+            if (eventType === 'completed' && data.task && isBrowserTool(data.task)) {
+                const timestamp = new Date().toLocaleTimeString();
+                
+                browserActions.innerHTML = `
+                    <div class="text-success">
+                        <i class="fas fa-check"></i> Browser session completed
+                        <small class="text-muted">(${timestamp})</small>
+                    </div>
+                `;
+                
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    browserViewer.style.display = 'none';
+                    browserActions.innerHTML = '<div class="text-muted">No active browser sessions</div>';
+                }, 5000);
+            }
+        }
+        
+        // Helper function to identify browser tools
+        function isBrowserTool(task) {
+            if (!task || !task.originalQuery) return false;
+            
+            const query = task.originalQuery.toLowerCase();
+            return query.includes('linkedscreenshot') || 
+                   query.includes('browseweband') || 
+                   query.includes('playwright') ||
+                   query.includes('web browsing');
+        }
+
+        // MCP Tool Discovery
+        function loadAvailableTools() {
+            fetch('/v1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    "jsonrpc": "2.0",
+                    "method": "tools/list",
+                    "id": "tool-discovery-" + Date.now()
+                })
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            }).then(result => {
+                if (result.error) {
+                    console.error('Tool discovery error:', result.error);
+                    showError('Failed to discover available tools');
+                    return;
+                }
+                
+                availableTools = result.result.tools || [];
+                console.log('Discovered tools:', availableTools);
+                populateToolDropdown();
+                
+            }).catch(error => {
+                console.error('Tool discovery failed:', error);
+                showError('Failed to load available tools');
+                // Fall back to hard-coded tools
+                availableTools = [
+                    {
+                        name: 'linkedScreenShot',
+                        description: 'Search LinkedIn for a person and capture screenshot',
+                        inputSchema: {
+                            properties: {
+                                personName: { type: 'string', description: 'Name of the person to search for' }
+                            }
+                        }
+                    },
+                    {
+                        name: 'browseWebAndReturnText',
+                        description: 'Browse web and return text content',
+                        inputSchema: {
+                            properties: {
+                                webBrowsingSteps: { type: 'string', description: 'Natural language web browsing steps' }
+                            }
+                        }
+                    },
+                    {
+                        name: 'browseWebAndReturnImage',
+                        description: 'Browse web and return screenshot',
+                        inputSchema: {
+                            properties: {
+                                webBrowsingSteps: { type: 'string', description: 'Natural language web browsing steps' }
+                            }
+                        }
+                    }
+                ];
+                populateToolDropdown();
+            });
+        }
+
+        function populateToolDropdown() {
+            const toolSelect = document.getElementById('evaluation-tool-select');
+            if (!toolSelect) {
+                console.warn('Tool select element not found');
+                return;
+            }
+            
+            // Clear existing options
+            toolSelect.innerHTML = '';
+            
+            // Add placeholder option
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = 'Select a tool to test...';
+            toolSelect.appendChild(placeholderOption);
+            
+            // Add all discovered tools
+            availableTools.forEach(tool => {
+                const option = document.createElement('option');
+                option.value = tool.name;
+                option.textContent = tool.description || tool.name;
+                toolSelect.appendChild(option);
+            });
+            
+            console.log(`Populated dropdown with ${availableTools.length} tools`);
+            
+            // Update parameters for first tool if available
+            if (availableTools.length > 0) {
+                updateToolParameters();
+            }
+        }
+
+        function updateToolParameters() {
+            const toolSelect = document.getElementById('evaluation-tool-select');
+            const parametersDiv = document.getElementById('tool-parameters');
+            
+            if (!toolSelect || !parametersDiv) {
+                return;
+            }
+            
+            const selectedToolName = toolSelect.value;
+            if (!selectedToolName) {
+                parametersDiv.innerHTML = '<div class="text-muted small">Select a tool to see its parameters</div>';
+                return;
+            }
+            
+            const selectedTool = availableTools.find(tool => tool.name === selectedToolName);
+            if (!selectedTool) {
+                parametersDiv.innerHTML = '<div class="text-muted small">Tool not found</div>';
+                return;
+            }
+            
+            generateParameterInputs(selectedTool, parametersDiv);
+        }
+
+        function generateParameterInputs(tool, container) {
+            const inputSchema = tool.inputSchema;
+            const properties = inputSchema?.properties || {};
+            
+            let html = '';
+            
+            if (Object.keys(properties).length === 0) {
+                html = '<div class="text-muted small">This tool has no parameters</div>';
+            } else {
+                Object.entries(properties).forEach(([paramName, paramSchema]) => {
+                    const paramType = paramSchema.type || 'string';
+                    const paramDescription = paramSchema.description || paramName;
+                    const isRequired = inputSchema.required?.includes(paramName) || false;
+                    
+                    // Generate default values based on tool and parameter
+                    let defaultValue = getDefaultParameterValue(tool.name, paramName);
+                    
+                    html += `
+                        <div class="mb-2">
+                            <label for="param-${paramName}" class="form-label small">
+                                ${paramDescription}
+                                ${isRequired ? '<span class="text-danger">*</span>' : ''}
+                            </label>
+                    `;
+                    
+                    if (paramType === 'string' && paramDescription.toLowerCase().includes('steps')) {
+                        // Multi-line text for step descriptions
+                        html += `
+                            <textarea id="param-${paramName}" class="form-control form-control-sm" 
+                                      rows="2" placeholder="${paramDescription}">${defaultValue}</textarea>
+                        `;
+                    } else {
+                        // Single line text input
+                        html += `
+                            <input type="text" id="param-${paramName}" class="form-control form-control-sm" 
+                                   placeholder="${paramDescription}" value="${defaultValue}">
+                        `;
+                    }
+                    
+                    html += '</div>';
+                });
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function getDefaultParameterValue(toolName, paramName) {
+            // Provide smart defaults based on tool and parameter name
+            const defaults = {
+                'linkedScreenShot': {
+                    'personName': 'Elon Musk'
+                },
+                'browseWebAndReturnText': {
+                    'webBrowsingSteps': 'Navigate to https://www.example.com and get the page title'
+                },
+                'browseWebAndReturnImage': {
+                    'webBrowsingSteps': 'Navigate to https://www.example.com and take a screenshot'
+                },
+                'generateMeme': {
+                    'topText': 'When the code',
+                    'bottomText': 'Finally works'
+                },
+                'generateMoodMeme': {
+                    'mood': 'excited'
+                },
+                'searchLinkedInProfile': {
+                    'personName': 'Elon Musk'
+                }
+            };
+            
+            return defaults[toolName]?.[paramName] || '';
+        }
+
+        function collectToolParameters(toolName) {
+            const selectedTool = availableTools.find(tool => tool.name === toolName);
+            if (!selectedTool) {
+                showError('Selected tool not found');
+                return null;
+            }
+            
+            const inputSchema = selectedTool.inputSchema;
+            const properties = inputSchema?.properties || {};
+            const required = inputSchema?.required || [];
+            const args = {};
+            
+            for (const [paramName, paramSchema] of Object.entries(properties)) {
+                const inputElement = document.getElementById(`param-${paramName}`);
+                if (!inputElement) {
+                    if (required.includes(paramName)) {
+                        showError(`Required parameter '${paramName}' not found`);
+                        return null;
+                    }
+                    continue;
+                }
+                
+                const value = inputElement.value.trim();
+                
+                // Validate required parameters
+                if (required.includes(paramName) && !value) {
+                    showError(`Parameter '${paramName}' is required`);
+                    return null;
+                }
+                
+                // Add to arguments if value provided
+                if (value) {
+                    args[paramName] = value;
+                }
+            }
+            
+            console.log('Collected tool arguments:', args);
+            return args;
+        }
+
         // Initial load
         document.addEventListener('DOMContentLoaded', function() {
             refreshDashboard();

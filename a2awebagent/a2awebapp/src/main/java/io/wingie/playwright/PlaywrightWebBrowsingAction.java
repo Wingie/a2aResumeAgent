@@ -31,6 +31,9 @@ public class PlaywrightWebBrowsingAction {
 
     @Autowired
     private BrowserContext playwrightContext;
+    
+    @Autowired
+    private BrowserEventHandler browserEventHandler;
 
     // AI processor removed - using static annotations instead
 
@@ -82,6 +85,9 @@ public class PlaywrightWebBrowsingAction {
             // Create a new page
             page = playwrightContext.newPage();
             log.info("Created new Playwright page");
+            
+            // Setup real-time event listeners for browser monitoring
+            browserEventHandler.setupPageEventListeners(page);
 
             // Execute steps directly without AI processing (using static tool descriptions)
             {
