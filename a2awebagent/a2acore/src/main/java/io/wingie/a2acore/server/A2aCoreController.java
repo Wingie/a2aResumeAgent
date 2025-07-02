@@ -133,10 +133,17 @@ public class A2aCoreController {
     
     /**
      * POST /v1/tools/call - Execute a tool (MCP protocol).
+     * 
+     * @deprecated Use the main POST /v1 endpoint with JSON-RPC method "tools/call" instead.
+     * This endpoint is maintained for backward compatibility but may be removed in future versions.
+     * 
+     * Recommended usage:
+     * POST /v1 with {"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "...", "arguments": {...}}, "id": 1}
      */
     @PostMapping(value = "/tools/call", 
                  consumes = MediaType.APPLICATION_JSON_VALUE,
                  produces = MediaType.APPLICATION_JSON_VALUE)
+    @Deprecated
     public ResponseEntity<JsonRpcResponse> callTool(@RequestBody ToolCallRequest toolCallRequest) {
         if (!initialized) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)

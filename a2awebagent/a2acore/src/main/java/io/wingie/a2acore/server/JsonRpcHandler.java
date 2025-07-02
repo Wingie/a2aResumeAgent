@@ -125,7 +125,18 @@ public class JsonRpcHandler {
                 return null;
             }
             
-            // Handle different parameter formats
+            // Handle ToolCallRequest object directly (from /v1/tools/call endpoint)
+            if (params instanceof ToolCallRequest) {
+                ToolCallRequest toolCallRequest = (ToolCallRequest) params;
+                // Validate tool name is not null
+                if (toolCallRequest.getName() == null || toolCallRequest.getName().trim().isEmpty()) {
+                    log.warn("Tool name is null or empty in ToolCallRequest");
+                    return null;
+                }
+                return toolCallRequest;
+            }
+            
+            // Handle different parameter formats (from /v1 endpoint)
             if (params instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> paramMap = (Map<String, Object>) params;
@@ -134,18 +145,24 @@ public class JsonRpcHandler {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> arguments = (Map<String, Object>) paramMap.get("arguments");
                 
-                if (toolName == null) {
+                if (toolName == null || toolName.trim().isEmpty()) {
+                    log.warn("Tool name is null or empty in parameter map");
                     return null;
                 }
                 
                 return new ToolCallRequest(toolName, arguments);
             }
             
-            // Try to convert using ObjectMapper
-            return objectMapper.convertValue(params, ToolCallRequest.class);
+            // Try to convert using ObjectMapper as fallback
+            ToolCallRequest result = objectMapper.convertValue(params, ToolCallRequest.class);
+            if (result != null && (result.getName() == null || result.getName().trim().isEmpty())) {
+                log.warn("Tool name is null or empty after ObjectMapper conversion");
+                return null;
+            }
+            return result;
             
         } catch (Exception e) {
-            log.error("Failed to extract tool call request", e);
+            log.error("Failed to extract tool call request from params: {}", request.getParams(), e);
             return null;
         }
     }
