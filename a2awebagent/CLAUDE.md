@@ -220,15 +220,25 @@ Task(
 
 ## MCP Protocol Testing
 
-### **Correct MCP Endpoints**
+### **MCP Protocol Endpoints**
 
-The application provides complete MCP (Model Context Protocol) JSON-RPC 2.0 support via the A2aCoreController:
+The application follows standard MCP (Model Context Protocol) JSON-RPC 2.0 specification with a **single primary endpoint**:
 
-- **Primary MCP JSON-RPC**: `POST http://localhost:7860/v1` ✅ **WORKING**
-- **Tools List**: `GET http://localhost:7860/v1/tools` ✅ **WORKING**
-- **Health Check**: `GET http://localhost:7860/v1/health` ✅ **WORKING**
-- **Metrics**: `GET http://localhost:7860/v1/metrics` ✅ **WORKING**
-- **Tool Execution**: `POST http://localhost:7860/v1/tools/call` ❌ **HAS BUG** - Use `/v1` instead
+#### **Primary Endpoint (Recommended)**
+- **MCP JSON-RPC**: `POST http://localhost:7860/v1` ✅ **DESKTOP CLAUDE USES THIS**
+  - Method: `tools/list` - List available tools
+  - Method: `tools/call` - Execute tools
+
+#### **Auxiliary Endpoints (Optional)**
+- **Tools List**: `GET http://localhost:7860/v1/tools` ✅ REST alternative 
+- **Health Check**: `GET http://localhost:7860/v1/health` ✅ System status
+- **Metrics**: `GET http://localhost:7860/v1/metrics` ✅ Framework metrics
+- **Tool Execution**: `POST http://localhost:7860/v1/tools/call` ⚠️ **DEPRECATED** - Use main `/v1` endpoint
+
+### **Why Single Endpoint?**
+- **MCP Standard**: JSON-RPC 2.0 typically uses one endpoint for all methods
+- **Desktop Claude Compatibility**: Desktop Claude uses the main `/v1` endpoint successfully
+- **Simplified Architecture**: Single source of truth reduces complexity and bugs
 
 ### **Testing MCP Tools**
 
