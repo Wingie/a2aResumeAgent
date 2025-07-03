@@ -37,7 +37,7 @@ logging:
     root: INFO
     io.wingie: DEBUG
     org.springframework.web: INFO
-    org.hibernate.SQL: DEBUG
+    org.hibernate.SQL: WARN
     # AI Provider specific logging
     com.t4a: DEBUG                    # tools4ai framework
     com.t4a.processor: DEBUG          # AI processor calls

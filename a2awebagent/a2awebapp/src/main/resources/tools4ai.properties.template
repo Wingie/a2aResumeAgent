@@ -21,7 +21,7 @@ mistralKey=
 openrouter.modelName=deepseek/deepseek-r1-0528:free
 openrouter.baseURL=https://openrouter.ai/api/v1
 #set it here or use -DopenrouterKey parameter
-openrouterKey=YOUR_OPENROUTER_API_KEY_HERE
+openrouterKey=
 openrouter.fallback.modelName=openai/gpt-4o-mini
 
 ##Open AI configuration (configured to use OpenRouter by default)

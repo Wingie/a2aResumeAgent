@@ -114,7 +114,10 @@ public class AdminStatisticsService {
      * Build tool usage and performance metrics
      */
     private ToolMetrics buildToolMetrics(LocalDateTime startDate, LocalDateTime endDate) {
+        log.debug("Building tool metrics for period: {} to {}", startDate, endDate);
+        
         List<TaskExecution> recentTasks = taskRepository.findCompletedTasksBetween(startDate, endDate);
+        log.debug("Found {} recent tasks for tool metrics", recentTasks.size());
         
         long totalCalls = recentTasks.size();
         long successfulCalls = recentTasks.stream()
@@ -135,6 +138,8 @@ public class AdminStatisticsService {
         Map<String, List<TaskExecution>> tasksByType = recentTasks.stream()
             .collect(Collectors.groupingBy(TaskExecution::getTaskType));
         
+        log.debug("Task types found: {}", tasksByType.keySet());
+        
         List<ToolCallMetric> topUsedTools = tasksByType.entrySet().stream()
             .map(entry -> buildToolCallMetric(entry.getKey(), entry.getValue()))
             .sorted((a, b) -> Long.compare(b.getCallCount(), a.getCallCount()))
@@ -154,6 +159,16 @@ public class AdminStatisticsService {
         
         Map<String, Long> callsByHour = buildHourlyCallsMap(recentTasks);
         Map<String, Long> errorsByType = buildErrorTypesMap(recentTasks);
+        
+        // Ensure lists are never null
+        if (topUsedTools == null) topUsedTools = new ArrayList<>();
+        if (slowestTools == null) slowestTools = new ArrayList<>();
+        if (mostFailedTools == null) mostFailedTools = new ArrayList<>();
+        if (callsByHour == null) callsByHour = new HashMap<>();
+        if (errorsByType == null) errorsByType = new HashMap<>();
+        
+        log.debug("Built tool metrics: {} total calls, {} top tools, {} success rate", 
+                 totalCalls, topUsedTools.size(), successRate);
         
         return ToolMetrics.builder()
             .totalToolCalls(totalCalls)

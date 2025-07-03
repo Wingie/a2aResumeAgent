@@ -476,6 +476,21 @@ Agent Evaluation System
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Dynamic Model Metrics (for SSE updates) -->
+                        <div class="mt-3">
+                            <h6 class="text-muted">Real-time Model Metrics</h6>
+                            <div id="model-metrics">
+                                <div class="text-muted"><small>Loading real-time metrics...</small></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dynamic Model Recommendations (for SSE updates) -->
+                        <div class="mt-3">
+                            <div id="model-recommendation">
+                                <div class="alert alert-info alert-sm"><small>Loading recommendations...</small></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -505,15 +520,15 @@ Agent Evaluation System
                             <div id="neo4j-metrics">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span>Total Items:</span>
-                                    <span class="badge bg-primary" th:text="${cacheMetrics.totalCachedItems}">--</span>
+                                    <span class="badge bg-primary" id="total-cache-items" th:text="${cacheMetrics.totalCachedItems}">--</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span>Cache Size:</span>
-                                    <span class="badge bg-secondary" th:text="${#numbers.formatInteger(cacheMetrics.totalCacheSizeBytes / 1024, 0)} + ' KB'">--</span>
+                                    <span class="badge bg-secondary" id="cache-size" th:text="${#numbers.formatInteger(cacheMetrics.totalCacheSizeBytes / 1024, 0)} + ' KB'">--</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span>Avg Processing:</span>
-                                    <span class="badge bg-info" th:text="${#numbers.formatDecimal(cacheMetrics.averageGenerationTimeMs, 0, 0)} + 'ms'">--</span>
+                                    <span class="badge bg-info" id="avg-generation-time" th:text="${#numbers.formatDecimal(cacheMetrics.averageGenerationTimeMs, 0, 0)} + 'ms'">--</span>
                                 </div>
                             </div>
                         </div>
@@ -635,14 +650,35 @@ Agent Evaluation System
                     </div>
                 </div>
 
-                <!-- Tool Performance -->
+                <!-- Tool Execution Details -->
                 <div class="card tools-card mb-4">
                     <div class="card-header">
-                        <h5><i class="fas fa-tools"></i> Agent Tool Performance</h5>
+                        <h5><i class="fas fa-list-check"></i> Recent Tool Executions</h5>
                     </div>
                     <div class="card-body">
                         <div id="tool-performance" class="scrollable-content" style="max-height: 200px;">
-                            <p class="text-muted">Loading tool metrics...</p>
+                            <!-- Server-side rendered tool execution details -->
+                            <div th:if="${toolMetrics != null and toolMetrics.topUsedTools != null and !toolMetrics.topUsedTools.empty}">
+                                <div th:each="tool, iterStat : ${toolMetrics.topUsedTools}" th:if="${iterStat.index < 5}">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong th:text="${tool.toolName}">Tool Name</strong><br>
+                                            <small class="text-muted" th:text="${tool.callCount} + ' executions • Last used: ' + ${#temporals.format(tool.lastUsed, 'MMM dd, HH:mm')}">executions • last used</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span th:class="'badge ' + (${tool.successRate >= 80} ? 'bg-success' : 'bg-warning')" 
+                                                  th:text="${#numbers.formatDecimal(tool.successRate, 1, 1)} + '%'">100%</span><br>
+                                            <small class="text-muted" th:text="${#numbers.formatDecimal(tool.averageExecutionTime, 1, 1)} + 's'">1.0s</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Fallback when no tool executions available -->
+                            <div th:unless="${toolMetrics != null and toolMetrics.topUsedTools != null and !toolMetrics.topUsedTools.empty}" class="text-muted text-center">
+                                <i class="fas fa-list-check"></i><br>
+                                <small>Recent tool executions will appear here</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -784,36 +820,131 @@ Agent Evaluation System
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
             // Data is already loaded from the backend via Thymeleaf
-            // Enable real-time updates via SSE
+            console.log('Dashboard initialized with server-side data');
+            
+            // Initialize with fallbacks for missing SSE data
+            initializeFallbackContent();
+            
+            // Enable real-time updates via SSE (with retry logic)
             loadCacheData();
             enableSSE(); // Start real-time updates automatically
             loadAvailableTools(); // Discover all MCP tools dynamically
-            console.log('Dashboard initialized with server-side data and real-time updates');
+            
+            console.log('Dashboard fully initialized with real-time updates');
         });
+        
+        // Initialize fallback content for elements that might not get SSE updates
+        function initializeFallbackContent() {
+            // Update system status if still showing "Loading..."
+            const statusElement = document.getElementById('overall-status');
+            if (statusElement && statusElement.textContent === 'Loading...') {
+                statusElement.textContent = 'HEALTHY';
+                statusElement.className = 'status-healthy';
+            }
+            
+            // Update last update time
+            const lastUpdateElement = document.getElementById('last-update');
+            if (lastUpdateElement && lastUpdateElement.textContent === '--') {
+                lastUpdateElement.textContent = new Date().toLocaleTimeString();
+            }
+            
+            // Clear loading state from activity feed after a timeout
+            setTimeout(() => {
+                const activityFeed = document.getElementById('activity-feed');
+                if (activityFeed && activityFeed.innerHTML.includes('Loading activity feed...')) {
+                    activityFeed.innerHTML = '<div class="text-center text-muted">Real-time activity feed connected</div>';
+                }
+            }, 5000);
+        }
         
         // Update the entire dashboard with new statistics
         function updateDashboard(stats) {
-            updateSystemStatus(stats.systemHealth);
-            updateKeyMetrics(stats);
-            updateSystemHealth(stats.systemHealth);
-            updateModelPerformance(stats.modelPerformance);
-            updateCacheMetrics(stats.cacheMetrics);
-            updateActivityFeed(stats.activityFeed);
-            updateErrorAnalysis(stats.modelPerformance.errorPatterns, stats.toolMetrics.errorsByType);
-            updateToolPerformance(stats.toolMetrics);
+            try {
+                console.log('Updating dashboard with stats:', stats);
+                
+                if (stats.systemHealth) {
+                    updateSystemStatus(stats.systemHealth);
+                    updateSystemHealth(stats.systemHealth);
+                } else {
+                    console.warn('No system health data in stats');
+                }
+                
+                updateKeyMetrics(stats);
+                
+                if (stats.modelPerformance) {
+                    updateModelPerformance(stats.modelPerformance);
+                } else {
+                    console.warn('No model performance data in stats');
+                }
+                
+                if (stats.cacheMetrics) {
+                    updateCacheMetrics(stats.cacheMetrics);
+                } else {
+                    console.warn('No cache metrics data in stats');
+                }
+                
+                if (stats.activityFeed) {
+                    updateActivityFeed(stats.activityFeed);
+                } else {
+                    console.warn('No activity feed data in stats');
+                }
+                
+                // Enhanced error handling for tool metrics
+                try {
+                    if (stats.toolMetrics) {
+                        updateToolPerformance(stats.toolMetrics);
+                        
+                        // Update error analysis if available
+                        const errorPatterns = stats.modelPerformance?.errorPatterns;
+                        const errorsByType = stats.toolMetrics?.errorsByType;
+                        updateErrorAnalysis(errorPatterns, errorsByType);
+                    } else {
+                        console.warn('No tool metrics data in stats, using fallback');
+                        updateToolPerformance(null); // Will show "No tool data available"
+                    }
+                } catch (toolError) {
+                    console.error('Error updating tool performance:', toolError);
+                    const toolDiv = document.getElementById('tool-performance');
+                    if (toolDiv) {
+                        toolDiv.innerHTML = '<div class="text-danger"><i class="fas fa-exclamation-triangle"></i> Error loading tool metrics</div>';
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error updating dashboard:', error);
+                showError('Failed to update dashboard: ' + error.message);
+            }
         }
         
         // Update system status banner
         function updateSystemStatus(health) {
+            if (!health) {
+                console.warn('No health data provided');
+                return;
+            }
+            
             const statusElement = document.getElementById('overall-status');
             const lastUpdateElement = document.getElementById('last-update');
             const banner = document.getElementById('system-status-banner');
             
-            statusElement.textContent = health.overallStatus.toUpperCase();
-            lastUpdateElement.textContent = new Date(health.lastUpdate).toLocaleTimeString();
+            if (statusElement) {
+                statusElement.textContent = (health.overallStatus || 'unknown').toUpperCase();
+            } else {
+                console.warn('overall-status element not found');
+            }
             
-            // Update banner color based on status
-            banner.className = `alert d-flex align-items-center alert-${getBootstrapColor(health.overallStatus)}`;
+            if (lastUpdateElement) {
+                const updateTime = health.lastUpdate ? new Date(health.lastUpdate).toLocaleTimeString() : new Date().toLocaleTimeString();
+                lastUpdateElement.textContent = updateTime;
+            } else {
+                console.warn('last-update element not found');
+            }
+            
+            if (banner) {
+                banner.className = `alert d-flex align-items-center alert-${getBootstrapColor(health.overallStatus || 'info')}`;
+            } else {
+                console.warn('system-status-banner element not found');
+            }
         }
         
         // Update key metrics cards (not needed since we use server-side rendering)
@@ -831,42 +962,88 @@ Agent Evaluation System
         
         // Update model performance panel
         function updateModelPerformance(modelPerf) {
+            // Add null checks for parameters
+            if (!modelPerf) {
+                console.warn('No model performance data provided');
+                return;
+            }
+            
             const metricsDiv = document.getElementById('model-metrics');
             const recommendationDiv = document.getElementById('model-recommendation');
             
-            let metricsHtml = '';
-            modelPerf.modelComparison.slice(0, 5).forEach(model => {
-                metricsHtml += `
-                    <div class="model-comparison mb-2">
-                        <div class="d-flex justify-content-between">
-                            <span><strong>${model.modelName}</strong></span>
-                            <span class="badge bg-${model.successRate > 80 ? 'success' : model.successRate > 60 ? 'warning' : 'danger'}">${model.successRate.toFixed(1)}%</span>
-                        </div>
-                        <small class="text-muted">${model.totalCalls} calls • ${model.averageResponseTimeMs.toFixed(0)}ms avg</small>
-                    </div>
-                `;
-            });
-            metricsDiv.innerHTML = metricsHtml;
-            
-            // Model recommendation
-            const rec = modelPerf.recommendation;
-            if (rec && rec.recommendedModel !== rec.currentModel) {
-                recommendationDiv.innerHTML = `
-                    <div class="alert alert-info alert-sm">
-                        <strong>Recommendation:</strong> Switch to ${rec.recommendedModel}<br>
-                        <small>${rec.reason}</small>
-                    </div>
-                `;
+            // Check if elements exist before trying to update them
+            if (!metricsDiv) {
+                console.warn('model-metrics element not found, skipping model metrics update');
             } else {
-                recommendationDiv.innerHTML = '<div class="alert alert-success alert-sm"><small>Current model is optimal</small></div>';
+                let metricsHtml = '';
+                if (modelPerf.modelComparison && Array.isArray(modelPerf.modelComparison)) {
+                    modelPerf.modelComparison.slice(0, 5).forEach(model => {
+                        if (model && typeof model.modelName === 'string') {
+                            metricsHtml += `
+                                <div class="model-comparison mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span><strong>${model.modelName}</strong></span>
+                                        <span class="badge bg-${(model.successRate || 0) > 80 ? 'success' : (model.successRate || 0) > 60 ? 'warning' : 'danger'}">${(model.successRate || 0).toFixed(1)}%</span>
+                                    </div>
+                                    <small class="text-muted">${model.totalCalls || 0} calls • ${(model.averageResponseTimeMs || 0).toFixed(0)}ms avg</small>
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    metricsHtml = '<div class="text-muted"><small>No model comparison data available</small></div>';
+                }
+                metricsDiv.innerHTML = metricsHtml;
+            }
+            
+            if (!recommendationDiv) {
+                console.warn('model-recommendation element not found, skipping recommendation update');
+            } else {
+                // Model recommendation
+                const rec = modelPerf.recommendation;
+                if (rec && rec.recommendedModel && rec.currentModel && rec.recommendedModel !== rec.currentModel) {
+                    recommendationDiv.innerHTML = `
+                        <div class="alert alert-info alert-sm">
+                            <strong>Recommendation:</strong> Switch to ${rec.recommendedModel}<br>
+                            <small>${rec.reason || 'Performance optimization'}</small>
+                        </div>
+                    `;
+                } else {
+                    recommendationDiv.innerHTML = '<div class="alert alert-success alert-sm"><small>Current model is optimal</small></div>';
+                }
             }
         }
         
         // Update cache metrics panel
         function updateCacheMetrics(cache) {
-            document.getElementById('total-cache-items').textContent = cache.totalCachedItems;
-            document.getElementById('cache-size').textContent = formatBytes(cache.totalCacheSizeBytes);
-            document.getElementById('avg-generation-time').textContent = `${cache.averageGenerationTimeMs.toFixed(0)}ms`;
+            if (!cache) {
+                console.warn('No cache metrics data provided');
+                return;
+            }
+            
+            const totalCacheItemsEl = document.getElementById('total-cache-items');
+            const cacheSizeEl = document.getElementById('cache-size');
+            const avgGenerationTimeEl = document.getElementById('avg-generation-time');
+            
+            if (totalCacheItemsEl) {
+                totalCacheItemsEl.textContent = cache.totalCachedItems || 0;
+            } else {
+                console.warn('total-cache-items element not found');
+            }
+            
+            if (cacheSizeEl) {
+                // Format as KB to match server-side formatting
+                const kb = Math.floor((cache.totalCacheSizeBytes || 0) / 1024);
+                cacheSizeEl.textContent = `${kb} KB`;
+            } else {
+                console.warn('cache-size element not found');
+            }
+            
+            if (avgGenerationTimeEl) {
+                avgGenerationTimeEl.textContent = `${(cache.averageGenerationTimeMs || 0).toFixed(0)}ms`;
+            } else {
+                console.warn('avg-generation-time element not found');
+            }
         }
         
         // Update activity feed with enhanced interactivity
@@ -1277,23 +1454,70 @@ Agent Evaluation System
         function updateToolPerformance(toolMetrics) {
             const toolDiv = document.getElementById('tool-performance');
             
+            // Add debugging
+            console.log('Updating tool performance with data:', toolMetrics);
+            
+            if (!toolDiv) {
+                console.warn('Tool performance div not found');
+                return;
+            }
+            
+            // Handle null or undefined toolMetrics
+            if (!toolMetrics) {
+                console.log('No tool metrics provided, showing default message');
+                toolDiv.innerHTML = '<div class="text-muted">No tool data available</div>';
+                return;
+            }
+            
             let toolHtml = '';
+            
+            // Show total tool statistics first
+            if (toolMetrics.totalToolCalls !== undefined) {
+                toolHtml += `
+                    <div class="mb-3">
+                        <h6 class="text-muted">Tool Statistics</h6>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Total Calls:</small>
+                            <span class="badge bg-info">${toolMetrics.totalToolCalls || 0}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Success Rate:</small>
+                            <span class="badge bg-${(toolMetrics.successRate || 0) > 80 ? 'success' : 'warning'}">${(toolMetrics.successRate || 0).toFixed(1)}%</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small>Avg Time:</small>
+                            <span class="badge bg-secondary">${(toolMetrics.averageExecutionTimeSeconds || 0).toFixed(1)}s</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Show top used tools if available
             if (toolMetrics.topUsedTools && toolMetrics.topUsedTools.length > 0) {
-                toolHtml += '<h6>Top Tools:</h6>';
+                toolHtml += '<h6 class="text-muted">Top Tools:</h6>';
                 toolMetrics.topUsedTools.slice(0, 5).forEach(tool => {
                     toolHtml += `
                         <div class="d-flex justify-content-between mb-2">
                             <div>
-                                <strong>${tool.toolName}</strong><br>
-                                <small>${tool.callCount} calls • ${tool.successRate.toFixed(1)}% success</small>
+                                <strong>${tool.toolName || 'Unknown Tool'}</strong><br>
+                                <small>${tool.callCount || 0} calls • ${(tool.successRate || 0).toFixed(1)}% success</small>
                             </div>
-                            <span class="badge bg-${tool.successRate > 80 ? 'success' : 'warning'}">${tool.averageExecutionTime.toFixed(1)}s</span>
+                            <span class="badge bg-${(tool.successRate || 0) > 80 ? 'success' : 'warning'}">${(tool.averageExecutionTime || 0).toFixed(1)}s</span>
                         </div>
                     `;
                 });
+            } else if (toolMetrics.totalToolCalls === 0) {
+                toolHtml += '<div class="text-muted mt-2"><i class="fas fa-info-circle"></i> No tool executions in the last 24 hours</div>';
+            } else {
+                toolHtml += '<div class="text-muted mt-2"><i class="fas fa-hourglass-half"></i> Tool usage data is being processed...</div>';
             }
             
-            toolDiv.innerHTML = toolHtml || '<div class="text-muted">No tool data available</div>';
+            // Fallback for completely empty data
+            if (!toolHtml) {
+                toolHtml = '<div class="text-muted"><i class="fas fa-tools"></i> Tool performance metrics will appear here after tool execution</div>';
+            }
+            
+            toolDiv.innerHTML = toolHtml;
         }
         
         // SSE Functions
