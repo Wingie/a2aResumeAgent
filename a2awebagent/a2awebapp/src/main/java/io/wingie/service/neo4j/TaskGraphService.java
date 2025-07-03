@@ -9,11 +9,11 @@ import io.wingie.repository.neo4j.TaskNodeRepository;
 import io.wingie.repository.neo4j.WebPageNodeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,6 +29,9 @@ public class TaskGraphService {
     private final TaskNodeRepository taskNodeRepository;
     private final ScreenshotNodeRepository screenshotNodeRepository;
     private final WebPageNodeRepository webPageNodeRepository;
+    
+    @Autowired(required = false) // Optional dependency for graceful degradation
+    private ScreenshotEmbeddingService screenshotEmbeddingService;
     
     /**
      * Asynchronously logs a task execution to Neo4j knowledge graph.
@@ -90,12 +93,17 @@ public class TaskGraphService {
      * Processes screenshots and creates ScreenshotNode entities
      */
     private void processScreenshots(TaskNode taskNode, List<String> screenshotUrls) {
+        log.debug("📸 Processing {} screenshots for task {}", screenshotUrls.size(), taskNode.getTaskId());
+        
         for (String screenshotUrl : screenshotUrls) {
             try {
-                // Check if screenshot already exists
+                // Generate unique screenshot ID using URL and timestamp
                 String screenshotId = generateScreenshotId(taskNode.getTaskId(), screenshotUrl);
+                
+                // Check if screenshot already exists to avoid duplicates
                 if (screenshotNodeRepository.findByScreenshotId(screenshotId).isEmpty()) {
                     
+                    // Create ScreenshotNode with enhanced metadata
                     ScreenshotNode screenshotNode = ScreenshotNode.fromScreenshotCapture(
                         taskNode.getTaskId(), 
                         screenshotUrl, 
@@ -103,16 +111,40 @@ public class TaskGraphService {
                         "task_completion"
                     );
                     
+                    // Save to Neo4j
                     screenshotNode = screenshotNodeRepository.save(screenshotNode);
                     
-                    // Establish relationship
+                    // Establish CAPTURES_SCREENSHOT relationship
                     taskNode.getScreenshots().add(screenshotNode);
-                    log.debug("📸 Logged screenshot {} for task {}", screenshotId, taskNode.getTaskId());
+                    
+                    log.info("✅ Created ScreenshotNode {} for task {} with URL: {}", 
+                        screenshotId, taskNode.getTaskId(), screenshotUrl);
+                    
+                    // Trigger async screenshot embedding processing if service available
+                    if (screenshotEmbeddingService != null) {
+                        screenshotEmbeddingService.processScreenshotEmbedding(screenshotId, screenshotUrl)
+                            .thenAccept(result -> log.debug("📊 Screenshot embedding completed for {}", screenshotId))
+                            .exceptionally(ex -> {
+                                log.warn("⚠️ Screenshot embedding failed for {}: {}", screenshotId, ex.getMessage());
+                                return null;
+                            });
+                    }
+                } else {
+                    log.debug("📸 Screenshot {} already exists for task {}, skipping", screenshotId, taskNode.getTaskId());
                 }
             } catch (Exception e) {
-                log.warn("⚠️ Failed to process screenshot {} for task {}: {}", 
-                    screenshotUrl, taskNode.getTaskId(), e.getMessage());
+                log.error("❌ Failed to process screenshot {} for task {}: {}", 
+                    screenshotUrl, taskNode.getTaskId(), e.getMessage(), e);
             }
+        }
+        
+        // Save TaskNode with updated screenshot relationships
+        try {
+            taskNodeRepository.save(taskNode);
+            log.info("💾 Saved TaskNode {} with {} screenshot relationships", 
+                taskNode.getTaskId(), taskNode.getScreenshots().size());
+        } catch (Exception e) {
+            log.error("❌ Failed to save TaskNode with screenshot relationships: {}", e.getMessage(), e);
         }
     }
     

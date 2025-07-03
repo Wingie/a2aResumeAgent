@@ -2,7 +2,7 @@ package io.wingie.service;
 
 import io.wingie.entity.TaskExecution;
 import io.wingie.playwright.PlaywrightWebBrowsingAction;
-import lombok.RequiredArgsConstructor;
+import io.wingie.repository.TaskExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +23,12 @@ public class WebBrowsingTaskProcessor {
     
     @Autowired
     private TaskProgressService progressService;
+    
+    @Autowired
+    private ScreenshotService screenshotService;
+    
+    @Autowired
+    private TaskExecutionRepository taskExecutionRepository;
     
     @Value("${app.storage.screenshots:/app/screenshots}")
     private String screenshotPath;
@@ -187,16 +193,35 @@ public class WebBrowsingTaskProcessor {
             io.wingie.a2acore.domain.ImageContent screenshotImageContent = webBrowsingAction.browseWebAndReturnImage(query);
             String screenshotResult = "Screenshot captured";
             
-            // Handle ImageContent for async task processing
+            // Handle ImageContent for async task processing - FIX SCREENSHOT INTEGRATION GAP
             if (screenshotImageContent != null && screenshotImageContent.getData() != null && !screenshotImageContent.getData().isEmpty()) {
-                // Create a descriptive result message for the async system
-                screenshotResult = String.format("Screenshot captured successfully - MIME type: %s, Data size: %d bytes", 
-                    screenshotImageContent.getMimeType(), 
-                    screenshotImageContent.getData().length());
-                
-                // For async tasks, we can optionally save the screenshot path
-                // Note: The actual screenshot file paths are handled by PlaywrightWebBrowsingAction internally
-                // and stored in the TaskExecution.screenshots via the browser automation flow
+                try {
+                    // ImageContent.getData() already returns base64-encoded data
+                    String base64Data = screenshotImageContent.getData();
+                    
+                    // Save screenshot and get accessible URL
+                    String screenshotUrl = screenshotService.saveScreenshotAndGetUrl(base64Data, "playwright");
+                    
+                    if (screenshotUrl != null) {
+                        // Add screenshot directly to TaskExecution to avoid circular dependency
+                        task.getScreenshots().add(screenshotUrl);
+                        task.setUpdated(LocalDateTime.now());
+                        taskExecutionRepository.save(task);
+                        
+                        screenshotResult = String.format("Screenshot captured and saved - URL: %s, MIME type: %s, Base64 size: %d chars", 
+                            screenshotUrl,
+                            screenshotImageContent.getMimeType(), 
+                            base64Data.length());
+                        
+                        log.info("📸 Screenshot successfully integrated for task {}: {}", task.getTaskId(), screenshotUrl);
+                    } else {
+                        log.warn("⚠️ Failed to save screenshot for task {}", task.getTaskId());
+                        screenshotResult = "Screenshot capture failed during save operation";
+                    }
+                } catch (Exception e) {
+                    log.error("❌ Error processing screenshot for task {}: {}", task.getTaskId(), e.getMessage());
+                    screenshotResult = "Screenshot processing error: " + e.getMessage();
+                }
             }
             
             callback.updateProgress(0.9, "Processing extracted data...");

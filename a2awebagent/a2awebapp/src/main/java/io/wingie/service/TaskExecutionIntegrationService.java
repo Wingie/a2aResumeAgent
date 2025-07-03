@@ -1,6 +1,5 @@
 package io.wingie.service;
 
-import io.wingie.controller.AgentDashboardController;
 import io.wingie.entity.TaskExecution;
 import io.wingie.entity.TaskStatus;
 import io.wingie.repository.TaskExecutionRepository;
@@ -9,6 +8,7 @@ import io.wingie.service.neo4j.ScreenshotEmbeddingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 public class TaskExecutionIntegrationService {
     
     private final TaskExecutionRepository taskRepository;
-    private final AgentDashboardController dashboardController;
+    private final ApplicationEventPublisher eventPublisher;
     
     @Autowired(required = false) // Optional dependency - graceful degradation if Neo4j unavailable
     private TaskGraphService taskGraphService;
@@ -208,16 +208,33 @@ public class TaskExecutionIntegrationService {
     }
     
     /**
-     * Triggers immediate SSE broadcast for task updates.
+     * Triggers immediate SSE broadcast for task updates using Spring Events.
      */
     private void broadcastTaskUpdate(TaskExecution task, String eventType) {
         try {
-            // Use the existing dashboard controller's broadcast method
-            // but enhance it with specific event types
-            dashboardController.broadcastTaskUpdate(task, eventType);
+            // Publish event instead of direct controller call to avoid circular dependency
+            TaskUpdateEvent event = new TaskUpdateEvent(task, eventType);
+            eventPublisher.publishEvent(event);
+            log.debug("📡 Published task update event: {} for task {}", eventType, task.getTaskId());
         } catch (Exception e) {
-            log.warn("Failed to broadcast task update via SSE: {}", e.getMessage());
-            // Don't fail the main execution if SSE broadcasting fails
+            log.warn("Failed to publish task update event: {}", e.getMessage());
+            // Don't fail the main execution if event publishing fails
         }
+    }
+    
+    /**
+     * Event class for task updates to avoid circular dependencies
+     */
+    public static class TaskUpdateEvent {
+        private final TaskExecution task;
+        private final String eventType;
+        
+        public TaskUpdateEvent(TaskExecution task, String eventType) {
+            this.task = task;
+            this.eventType = eventType;
+        }
+        
+        public TaskExecution getTask() { return task; }
+        public String getEventType() { return eventType; }
     }
 }
