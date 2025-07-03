@@ -174,6 +174,13 @@ public class AdminStatisticsDTO {
         private String errorDetails;
         private String severity; // "info", "warning", "error", "success"
         private Map<String, Object> metadata;
+        
+        // Critical fields for frontend clickability and result display
+        private String results; // Maps to TaskExecution.extractedResults
+        private List<String> screenshots; // Maps to TaskExecution.screenshots
+        private Object toolResult; // Structured result data for frontend consumption
+        private String progressMessage; // Current progress for in-progress tasks
+        private Integer progressPercent; // Progress percentage for in-progress tasks
     }
     
     @Data

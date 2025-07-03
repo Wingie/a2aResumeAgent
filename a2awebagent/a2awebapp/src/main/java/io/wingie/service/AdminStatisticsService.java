@@ -445,6 +445,19 @@ public class AdminStatisticsService {
             task.getProgressMessage() : 
             task.getOriginalQuery().substring(0, Math.min(100, task.getOriginalQuery().length()));
         
+        // Create structured tool result for frontend consumption
+        Map<String, Object> toolResult = Map.of(
+            "taskId", task.getTaskId(),
+            "originalQuery", task.getOriginalQuery(),
+            "extractedResults", task.getExtractedResults() != null ? task.getExtractedResults() : "",
+            "screenshots", task.getScreenshots() != null ? task.getScreenshots() : List.of(),
+            "progressMessage", task.getProgressMessage() != null ? task.getProgressMessage() : "",
+            "progressPercent", task.getProgressPercent() != null ? task.getProgressPercent() : 0,
+            "startedAt", task.getStartedAt(),
+            "completedAt", task.getCompletedAt(),
+            "actualDurationSeconds", task.getActualDurationSeconds()
+        );
+        
         return ActivityItem.builder()
             .id(task.getTaskId())
             .type("TASK_EXECUTION")
@@ -463,6 +476,12 @@ public class AdminStatisticsService {
                 "retryCount", task.getRetryCount(),
                 "requesterId", task.getRequesterId() != null ? task.getRequesterId() : "anonymous"
             ))
+            // CRITICAL: Map the missing fields that frontend expects
+            .results(task.getExtractedResults()) // Direct mapping for frontend
+            .screenshots(task.getScreenshots() != null ? task.getScreenshots() : List.of()) // Direct mapping
+            .toolResult(toolResult) // Structured object for detailed view
+            .progressMessage(task.getProgressMessage()) // For in-progress tasks
+            .progressPercent(task.getProgressPercent()) // For progress display
             .build();
     }
     

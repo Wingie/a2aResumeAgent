@@ -1094,14 +1094,10 @@ Agent Evaluation System
             feedDiv.innerHTML = feedHtml;
         }
         
-        // Check if activity is clickable (completed MCP tool execution)
+        // Check if activity is clickable - ALL activities should be clickable per user requirement
         function isActivityClickable(activity) {
-            return activity.severity === 'success' && 
-                   activity.taskType && 
-                   (activity.taskType.toLowerCase().includes('mcp') || 
-                    activity.taskType.toLowerCase().includes('tool') ||
-                    activity.taskType.toLowerCase().includes('agent')) &&
-                   (activity.results || activity.screenshot || activity.toolResult);
+            // Make ALL activities clickable regardless of status, data, or task type
+            return true;
         }
         
         // Check if activity has screenshot

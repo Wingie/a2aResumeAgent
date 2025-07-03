@@ -146,6 +146,9 @@ Task(
 )
 ```
 
+### Development Rules
+**IMPORTANT**: Never create fallback content. If data is missing, investigate the root cause rather than creating workarounds. Missing data typically indicates incomplete backend data mapping or missing field assignments.
+
 ### Performance Targets
 - Tool Discovery: <100ms
 - Web Automation: 2-5 seconds
