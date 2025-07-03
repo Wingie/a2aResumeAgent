@@ -5,6 +5,9 @@ import io.wingie.entity.TaskStatus;
 import io.wingie.repository.TaskExecutionRepository;
 import io.wingie.service.neo4j.TaskGraphService;
 import io.wingie.service.neo4j.ScreenshotEmbeddingService;
+import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.a2acore.domain.ToolCallResult;
+import io.wingie.a2acore.domain.Content;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +38,9 @@ public class TaskExecutionIntegrationService {
     
     @Autowired(required = false) // Optional dependency
     private ScreenshotEmbeddingService screenshotEmbeddingService;
+    
+    @Autowired(required = false) // Optional dependency  
+    private ScreenshotService screenshotService;
     
     /**
      * Wraps a tool execution with TaskExecution tracking and real-time SSE broadcasting.
@@ -75,7 +81,51 @@ public class TaskExecutionIntegrationService {
             task.setProgressPercent(100);
             task.setProgressMessage("Completed successfully");
             task.setCompletedAt(LocalDateTime.now());
-            task.setExtractedResults(result != null ? result.toString() : "");
+            
+            // Debug logging to understand the result type
+            log.debug("🔍 Tool execution result - Type: {}, ScreenshotService available: {}", 
+                     result != null ? result.getClass().getSimpleName() : "null", 
+                     screenshotService != null);
+            
+            // Handle screenshot results from ToolCallResult containing ImageContent
+            if (result instanceof ToolCallResult toolCallResult && screenshotService != null) {
+                // Check if any content in the result is an ImageContent
+                for (Content content : toolCallResult.getContent()) {
+                    if (content instanceof ImageContent imageContent) {
+                        String screenshotUrl = screenshotService.saveScreenshotAndGetUrl(imageContent.getData(), "mcp-tool");
+                        if (screenshotUrl != null) {
+                            task.getScreenshots().add(screenshotUrl);
+                            log.info("📸 Screenshot saved for MCP tool execution {}: {}", task.getTaskId(), screenshotUrl);
+                        }
+                        task.setExtractedResults("Screenshot captured: " + screenshotUrl);
+                        break; // Only handle the first screenshot
+                    }
+                }
+                // If no screenshots were found, use default result handling
+                if (task.getExtractedResults() == null) {
+                    task.setExtractedResults(result.toString());
+                }
+            } else if (result instanceof ImageContent imageContent && screenshotService != null) {
+                // Handle direct ImageContent (fallback case)
+                String screenshotUrl = screenshotService.saveScreenshotAndGetUrl(imageContent.getData(), "mcp-tool");
+                if (screenshotUrl != null) {
+                    task.getScreenshots().add(screenshotUrl);
+                    log.info("📸 Screenshot saved for MCP tool execution {}: {}", task.getTaskId(), screenshotUrl);
+                }
+                task.setExtractedResults("Screenshot captured: " + screenshotUrl);
+            } else {
+                if (result instanceof ToolCallResult toolCallResult) {
+                    // Check if we have screenshots but no service
+                    boolean hasImageContent = toolCallResult.getContent().stream()
+                        .anyMatch(content -> content instanceof ImageContent);
+                    if (hasImageContent && screenshotService == null) {
+                        log.warn("⚠️ ToolCallResult contains ImageContent but ScreenshotService is null");
+                    }
+                } else if (result instanceof ImageContent) {
+                    log.warn("⚠️ ImageContent result detected but ScreenshotService is null");
+                }
+                task.setExtractedResults(result != null ? result.toString() : "");
+            }
             
             // Calculate and store actual duration
             if (task.getStartedAt() != null && task.getCompletedAt() != null) {

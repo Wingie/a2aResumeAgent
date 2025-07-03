@@ -79,25 +79,50 @@ public class ParameterMapper {
      */
     private String mapSingleStringParameter(Map<String, Object> arguments, 
                                            java.lang.reflect.Parameter parameter) {
-        // Try standard parameter name first
-        Object value = arguments.get("provideAllValuesInPlainEnglish");
+        Object value = null;
+        String actualParamName = getParameterName(parameter, 0);
         
-        if (value == null) {
-            // Try actual parameter name
-            String paramName = getParameterName(parameter, 0);
+        log.debug("Mapping single string parameter. Actual param name: {}, Available arguments: {}", 
+                  actualParamName, arguments.keySet());
+        
+        // Try multiple parameter name strategies
+        String[] possibleNames = {
+            "provideAllValuesInPlainEnglish",  // Legacy standard name
+            actualParamName,                   // Reflection-based name
+            "webBrowsingSteps",               // Known parameter name for web browsing
+            "query",                          // Common parameter name
+            "text",                           // Generic text parameter
+            "input"                           // Generic input parameter
+        };
+        
+        for (String paramName : possibleNames) {
             value = arguments.get(paramName);
+            if (value != null) {
+                log.debug("Found parameter value using name: {}", paramName);
+                break;
+            }
+        }
+        
+        // If still no value, try any single argument (common case for single-param methods)
+        if (value == null && arguments.size() == 1) {
+            value = arguments.values().iterator().next();
+            log.debug("Using single available argument as parameter value");
         }
         
         if (value == null) {
             // Check for default value
             Parameter paramAnnotation = parameter.getAnnotation(Parameter.class);
             if (paramAnnotation != null && !paramAnnotation.defaultValue().isEmpty()) {
+                log.debug("Using default value from @Parameter annotation");
                 return paramAnnotation.defaultValue();
             }
             
             // Check if required
             if (paramAnnotation == null || paramAnnotation.required()) {
-                throw new ParameterMappingException("Required parameter not provided");
+                String errorMsg = String.format("Required parameter not provided. Tried names: %s, Available arguments: %s", 
+                                               String.join(", ", possibleNames), arguments.keySet());
+                log.error(errorMsg);
+                throw new ParameterMappingException(errorMsg);
             }
             
             return null;
