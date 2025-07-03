@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.wingie.converter.JsonbConverter;
+import org.hibernate.annotations.JdbcTypeCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -76,12 +78,14 @@ public class AgentDecisionStep {
     @Column(precision = 8, scale = 4)
     private BigDecimal stepCostUsd;
     
-    // Alternative Analysis (stored as JSON)
+    // Alternative Analysis (stored as JSONB)
+    @JdbcTypeCode(java.sql.Types.OTHER)
     @Column(columnDefinition = "jsonb")
-    private String alternativesConsidered; // JSON string of alternative options
+    private Map<String, Object> alternativesConsidered;
     
-    @Column(columnDefinition = "jsonb")
-    private String executionContext; // JSON string of additional context
+    @JdbcTypeCode(java.sql.Types.OTHER)
+    @Column(columnDefinition = "jsonb")  
+    private Map<String, Object> executionContext;
     
     // Execution Status
     @Enumerated(EnumType.STRING)
@@ -211,74 +215,24 @@ public class AgentDecisionStep {
     }
     
     /**
-     * Set alternatives considered (converts Map to JSON)
+     * Set alternatives considered (direct Map assignment)
      */
     public void setAlternativesMap(Map<String, Object> alternatives) {
-        if (alternatives == null) {
-            this.alternativesConsidered = null;
-        } else {
-            try {
-                // Simple JSON conversion - in production, use ObjectMapper
-                StringBuilder json = new StringBuilder("{");
-                alternatives.forEach((key, value) -> {
-                    if (json.length() > 1) json.append(",");
-                    json.append("\"").append(key).append("\":\"").append(value).append("\"");
-                });
-                json.append("}");
-                this.alternativesConsidered = json.toString();
-            } catch (Exception e) {
-                this.alternativesConsidered = "{\"error\":\"Failed to serialize alternatives\"}";
-            }
-        }
+        this.alternativesConsidered = alternatives;
     }
     
     /**
-     * Set execution context (converts Map to JSON)
+     * Set execution context (direct Map assignment)
      */
     public void setExecutionContextMap(Map<String, Object> context) {
-        if (context == null) {
-            this.executionContext = null;
-        } else {
-            try {
-                // Simple JSON conversion - in production, use ObjectMapper
-                StringBuilder json = new StringBuilder("{");
-                context.forEach((key, value) -> {
-                    if (json.length() > 1) json.append(",");
-                    json.append("\"").append(key).append("\":\"").append(value).append("\"");
-                });
-                json.append("}");
-                this.executionContext = json.toString();
-            } catch (Exception e) {
-                this.executionContext = "{\"error\":\"Failed to serialize context\"}";
-            }
-        }
+        this.executionContext = context;
     }
     
     /**
-     * Convenience method to get alternatives as Map (simplified parsing)
+     * Convenience method to get alternatives as Map (now directly available)
      */
-    public Map<String, String> getAlternativesMap() {
-        Map<String, String> result = new HashMap<>();
-        if (alternativesConsidered != null && !alternativesConsidered.isEmpty()) {
-            try {
-                // Simple JSON parsing - in production, use ObjectMapper
-                String content = alternativesConsidered.replaceAll("[{}]", "");
-                if (!content.isEmpty()) {
-                    String[] pairs = content.split(",");
-                    for (String pair : pairs) {
-                        String[] kv = pair.split(":");
-                        if (kv.length == 2) {
-                            String key = kv[0].replaceAll("\"", "").trim();
-                            String value = kv[1].replaceAll("\"", "").trim();
-                            result.put(key, value);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                result.put("error", "Failed to parse alternatives JSON");
-            }
-        }
-        return result;
+    public Map<String, Object> getAlternativesMap() {
+        return alternativesConsidered != null ? alternativesConsidered : new HashMap<>();
     }
     
     /**

@@ -441,37 +441,39 @@ public class AdminStatisticsService {
         
         String description = task.getProgressMessage() != null ? 
             task.getProgressMessage() : 
-            task.getOriginalQuery().substring(0, Math.min(100, task.getOriginalQuery().length()));
+            (task.getOriginalQuery() != null ? 
+                task.getOriginalQuery().substring(0, Math.min(100, task.getOriginalQuery().length())) : 
+                "No query available");
         
         // Create structured tool result for frontend consumption
         Map<String, Object> toolResult = Map.of(
-            "taskId", task.getTaskId(),
-            "originalQuery", task.getOriginalQuery(),
+            "taskId", task.getTaskId() != null ? task.getTaskId() : "",
+            "originalQuery", task.getOriginalQuery() != null ? task.getOriginalQuery() : "",
             "extractedResults", task.getExtractedResults() != null ? task.getExtractedResults() : "",
             "screenshots", task.getScreenshots() != null ? task.getScreenshots() : List.of(),
             "progressMessage", task.getProgressMessage() != null ? task.getProgressMessage() : "",
             "progressPercent", task.getProgressPercent() != null ? task.getProgressPercent() : 0,
-            "startedAt", task.getStartedAt(),
-            "completedAt", task.getCompletedAt(),
-            "actualDurationSeconds", task.getActualDurationSeconds()
+            "startedAt", task.getStartedAt() != null ? task.getStartedAt() : "",
+            "completedAt", task.getCompletedAt() != null ? task.getCompletedAt() : "",
+            "actualDurationSeconds", task.getActualDurationSeconds() != null ? task.getActualDurationSeconds() : 0
         );
         
         return ActivityItem.builder()
-            .id(task.getTaskId())
+            .id(task.getTaskId() != null ? task.getTaskId() : "")
             .type("TASK_EXECUTION")
             .title(title)
             .description(description)
             .status(task.getStatus())
-            .taskType(task.getTaskType())
+            .taskType(task.getTaskType() != null ? task.getTaskType() : "UNKNOWN")
             .modelUsed(currentModelName) // Simplified
-            .toolName(task.getTaskType())
-            .timestamp(task.getUpdated())
-            .duration(task.getDurationFormatted())
+            .toolName(task.getTaskType() != null ? task.getTaskType() : "UNKNOWN")
+            .timestamp(task.getUpdated() != null ? task.getUpdated() : LocalDateTime.now())
+            .duration(task.getDurationFormatted() != null ? task.getDurationFormatted() : "0s")
             .errorDetails(task.getErrorDetails())
             .severity(severity)
             .metadata(Map.of(
                 "screenshots", task.getScreenshots() != null ? task.getScreenshots().size() : 0,
-                "retryCount", task.getRetryCount(),
+                "retryCount", task.getRetryCount() != null ? task.getRetryCount() : 0,
                 "requesterId", task.getRequesterId() != null ? task.getRequesterId() : "anonymous"
             ))
             // CRITICAL: Map the missing fields that frontend expects

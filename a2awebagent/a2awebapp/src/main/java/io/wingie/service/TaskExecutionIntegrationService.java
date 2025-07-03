@@ -42,6 +42,9 @@ public class TaskExecutionIntegrationService {
     @Autowired(required = false) // Optional dependency  
     private ScreenshotService screenshotService;
     
+    @Autowired(required = false) // Optional dependency for agent thought tracking
+    private AgentThoughtService agentThoughtService;
+    
     /**
      * Wraps a tool execution with TaskExecution tracking and real-time SSE broadcasting.
      * 
@@ -58,6 +61,17 @@ public class TaskExecutionIntegrationService {
             // Set task context for LLM call correlation
             TaskContext.setContext(task.getTaskId(), generateSessionId(), "mcp-user");
             
+            // 🧠 Agent Thought: Record tool selection decision
+            if (agentThoughtService != null) {
+                agentThoughtService.recordToolSelection(
+                    task.getTaskId(),
+                    "Selected " + toolName + " for execution based on tool capabilities and user requirements",
+                    toolName,
+                    0.85, // Default confidence for MCP tool selection
+                    null  // No alternatives tracked for MCP calls yet
+                );
+            }
+            
             // Mark task as started and broadcast initial state
             task.setStatus(TaskStatus.RUNNING);
             task.setStartedAt(LocalDateTime.now());
@@ -69,6 +83,15 @@ public class TaskExecutionIntegrationService {
             broadcastTaskUpdate(task, "tool-started");
             
             log.info("🚀 Started tool execution: {} ({})", toolName, task.getTaskId());
+            
+            // 🧠 Agent Thought: Record execution start
+            if (agentThoughtService != null) {
+                agentThoughtService.recordExecutionStart(
+                    task.getTaskId(),
+                    toolName,
+                    "Beginning execution of " + toolName + " with provided arguments"
+                );
+            }
             
             // Update progress to indicate tool is running
             updateTaskProgress(task, 25, "Tool " + toolName + " is executing...");
@@ -135,6 +158,26 @@ public class TaskExecutionIntegrationService {
             
             task = taskRepository.save(task);
             
+            // 🧠 Agent Thought: Record successful completion and reflection
+            if (agentThoughtService != null) {
+                agentThoughtService.recordReflection(
+                    task.getTaskId(),
+                    "Tool execution completed successfully. Result processed and integrated into task workflow.",
+                    0.90 // High confidence for successful completion
+                );
+                
+                // Mark the decision as completed
+                long durationMs = task.getStartedAt() != null ? 
+                    java.time.Duration.between(task.getStartedAt(), task.getCompletedAt()).toMillis() : 0;
+                agentThoughtService.markDecisionCompleted(
+                    task.getTaskId(),
+                    toolName,
+                    true,
+                    durationMs,
+                    "Tool execution completed successfully"
+                );
+            }
+            
             // Trigger immediate SSE broadcast for completion
             broadcastTaskUpdate(task, "tool-completed");
             
@@ -156,6 +199,22 @@ public class TaskExecutionIntegrationService {
             return result;
             
         } catch (Exception e) {
+            // 🧠 Agent Thought: Record error and failed decision
+            if (agentThoughtService != null) {
+                agentThoughtService.recordError(
+                    task.getTaskId(),
+                    "Tool execution failed: " + e.getMessage(),
+                    "tool_execution_error"
+                );
+                
+                // Mark the decision as failed
+                agentThoughtService.markDecisionFailed(
+                    task.getTaskId(),
+                    toolName,
+                    e.getMessage()
+                );
+            }
+            
             // Mark as failed and broadcast error
             task.setStatus(TaskStatus.FAILED);
             task.setProgressPercent(100);

@@ -192,6 +192,125 @@
             box-shadow: 0 4px 15px rgba(100, 255, 218, 0.3);
         }
 
+        /* Live Agent Reasoning Display Styles */
+        .agent-thought {
+            background: var(--surface-color);
+            border-left: 4px solid var(--accent-color);
+            margin-bottom: 8px;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 1px 3px var(--shadow-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideInFromLeft 0.5s ease-out;
+        }
+
+        .agent-thought.tool-selection {
+            border-left-color: var(--success-color);
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.05) 0%, var(--surface-color) 100%);
+        }
+
+        .agent-thought.reasoning {
+            border-left-color: var(--accent-color);
+            background: linear-gradient(90deg, rgba(33, 150, 243, 0.05) 0%, var(--surface-color) 100%);
+        }
+
+        .agent-thought.execution {
+            border-left-color: var(--warning-color);
+            background: linear-gradient(90deg, rgba(255, 152, 0, 0.05) 0%, var(--surface-color) 100%);
+        }
+
+        .agent-thought.reflection {
+            border-left-color: #9c27b0;
+            background: linear-gradient(90deg, rgba(156, 39, 176, 0.05) 0%, var(--surface-color) 100%);
+        }
+
+        .agent-thought.error {
+            border-left-color: var(--danger-color);
+            background: linear-gradient(90deg, rgba(244, 67, 54, 0.05) 0%, var(--surface-color) 100%);
+        }
+
+        .agent-thought:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px var(--shadow-medium);
+        }
+
+        .thought-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .thought-type {
+            font-weight: 600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .thought-timestamp {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .thought-content {
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .thought-metadata {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+        }
+
+        .confidence-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .confidence-bar {
+            width: 30px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--success-color);
+            transition: width 0.3s ease;
+        }
+
+        .tool-selected {
+            background: var(--accent-light);
+            color: var(--accent-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+        }
+
+        @keyframes slideInFromLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .thoughts-paused .agent-thought {
+            opacity: 0.7;
+        }
+
         .progress-bar-animated {
             background: linear-gradient(-45deg, 
                 var(--accent-color), 
@@ -440,6 +559,44 @@ Agent Evaluation Dashboard
             </div>
         </div>
 
+        <!-- Live Agent Reasoning Display -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-brain me-2" style="color: var(--accent-color);"></i>Live Agent Reasoning
+                            <span class="badge bg-info ms-2" id="thoughts-count">0</span>
+                        </h5>
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-sm btn-outline-secondary me-2" id="clear-thoughts-btn">
+                                <i class="fas fa-trash me-1"></i>Clear
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary me-2" id="pause-thoughts-btn">
+                                <i class="fas fa-pause me-1"></i>Pause
+                            </button>
+                            <div class="form-check form-switch me-3">
+                                <input class="form-check-input" type="checkbox" id="auto-scroll-thoughts" checked>
+                                <label class="form-check-label" for="auto-scroll-thoughts">Auto-scroll</label>
+                            </div>
+                            <span class="badge bg-success" id="thoughts-connection">
+                                <i class="fas fa-circle me-1"></i>Connecting...
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="agent-thoughts-container" style="max-height: 400px; overflow-y: auto; background: #f8f9fa;">
+                            <div class="text-center text-muted py-4" id="no-thoughts-message">
+                                <i class="fas fa-brain fa-3x mb-3" style="opacity: 0.3;"></i>
+                                <p>Waiting for agent activity...</p>
+                                <small>Agent thoughts and reasoning will appear here in real-time</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <!-- Active Tasks Column -->
             <div class="col-lg-6">
@@ -585,6 +742,20 @@ Agent Evaluation Dashboard
         let connectionIndicator = document.getElementById('connection-indicator');
         let liveIndicator = document.getElementById('live-indicator');
         
+        // Agent Thoughts SSE and State Management
+        let thoughtsEventSource;
+        let thoughtsContainer = document.getElementById('agent-thoughts-container');
+        let thoughtsConnectionIndicator = document.getElementById('thoughts-connection');
+        let thoughtsCountBadge = document.getElementById('thoughts-count');
+        let noThoughtsMessage = document.getElementById('no-thoughts-message');
+        let clearThoughtsBtn = document.getElementById('clear-thoughts-btn');
+        let pauseThoughtsBtn = document.getElementById('pause-thoughts-btn');
+        let autoScrollCheckbox = document.getElementById('auto-scroll-thoughts');
+        
+        let thoughtsCount = 0;
+        let thoughtsPaused = false;
+        let thoughtsBuffer = [];
+        
         function connectSSE() {
             if (eventSource) {
                 eventSource.close();
@@ -659,6 +830,168 @@ Agent Evaluation Dashboard
                 console.log('SSE error, reconnecting in 5 seconds...');
                 setTimeout(connectSSE, 5000);
             };
+        }
+        
+        // Agent Thoughts SSE Connection and Management
+        function connectThoughtsSSE() {
+            if (thoughtsEventSource) {
+                thoughtsEventSource.close();
+            }
+            
+            thoughtsEventSource = new EventSource('/api/agent-thoughts/stream');
+            
+            thoughtsEventSource.onopen = function() {
+                thoughtsConnectionIndicator.className = 'badge bg-success';
+                thoughtsConnectionIndicator.innerHTML = '<i class="fas fa-circle me-1"></i> Connected';
+                console.log('Agent thoughts SSE connected');
+                
+                // Load recent thoughts on connection
+                loadRecentThoughts();
+            };
+            
+            thoughtsEventSource.addEventListener('agent-thought', function(event) {
+                try {
+                    const thought = JSON.parse(event.data);
+                    addThoughtToDisplay(thought);
+                } catch (e) {
+                    console.error('Error parsing agent thought:', e);
+                }
+            });
+            
+            thoughtsEventSource.addEventListener('connection', function(event) {
+                console.log('Agent thoughts connection confirmed:', event.data);
+            });
+            
+            thoughtsEventSource.onerror = function() {
+                thoughtsConnectionIndicator.className = 'badge bg-danger';
+                thoughtsConnectionIndicator.innerHTML = '<i class="fas fa-circle me-1"></i> Disconnected';
+                console.log('Agent thoughts SSE error, reconnecting in 5 seconds...');
+                setTimeout(connectThoughtsSSE, 5000);
+            };
+        }
+        
+        function loadRecentThoughts() {
+            fetch('/api/agent-thoughts/recent?limit=10')
+                .then(response => response.json())
+                .then(thoughts => {
+                    thoughts.reverse(); // Show oldest first
+                    thoughts.forEach(thought => addThoughtToDisplay(thought, false));
+                })
+                .catch(error => {
+                    console.error('Error loading recent thoughts:', error);
+                });
+        }
+        
+        function addThoughtToDisplay(thought, isNew = true) {
+            if (thoughtsPaused && isNew) {
+                thoughtsBuffer.push(thought);
+                return;
+            }
+            
+            // Hide empty message
+            if (noThoughtsMessage) {
+                noThoughtsMessage.style.display = 'none';
+            }
+            
+            const thoughtElement = createThoughtElement(thought);
+            thoughtsContainer.appendChild(thoughtElement);
+            
+            // Update count
+            thoughtsCount++;
+            thoughtsCountBadge.textContent = thoughtsCount;
+            
+            // Auto-scroll if enabled
+            if (autoScrollCheckbox.checked && isNew) {
+                thoughtsContainer.scrollTop = thoughtsContainer.scrollHeight;
+            }
+            
+            // Limit displayed thoughts (keep last 50)
+            const thoughts = thoughtsContainer.querySelectorAll('.agent-thought');
+            if (thoughts.length > 50) {
+                thoughts[0].remove();
+                thoughtsCount--;
+            }
+        }
+        
+        function createThoughtElement(thought) {
+            const div = document.createElement('div');
+            div.className = `agent-thought ${thought.thoughtType}`;
+            
+            const timestamp = new Date(thought.timestamp).toLocaleTimeString();
+            const confidencePercent = thought.confidence ? Math.round(thought.confidence * 100) : null;
+            
+            div.innerHTML = `
+                <div class="thought-header">
+                    <span class="thought-type">${getThoughtTypeIcon(thought.thoughtType)} ${thought.thoughtType.replace('_', ' ')}</span>
+                    <span class="thought-timestamp">${timestamp}</span>
+                </div>
+                <div class="thought-content">${escapeHtml(thought.reasoning)}</div>
+                <div class="thought-metadata">
+                    ${thought.taskId ? `<span><i class="fas fa-tag"></i> ${thought.taskId.substring(0, 8)}</span>` : ''}
+                    ${thought.toolSelected ? `<span class="tool-selected">${thought.toolSelected}</span>` : ''}
+                    ${confidencePercent !== null ? `
+                        <span class="confidence-indicator">
+                            <i class="fas fa-chart-bar"></i> ${confidencePercent}%
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" style="width: ${confidencePercent}%"></div>
+                            </div>
+                        </span>
+                    ` : ''}
+                    ${thought.isError ? '<span class="badge bg-danger"><i class="fas fa-exclamation-triangle"></i> Error</span>' : ''}
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        function getThoughtTypeIcon(thoughtType) {
+            switch (thoughtType) {
+                case 'tool_selection': return '<i class="fas fa-tools"></i>';
+                case 'reasoning': return '<i class="fas fa-brain"></i>';
+                case 'execution': return '<i class="fas fa-play"></i>';
+                case 'reflection': return '<i class="fas fa-mirror"></i>';
+                case 'error': return '<i class="fas fa-exclamation-triangle"></i>';
+                default: return '<i class="fas fa-comment"></i>';
+            }
+        }
+        
+        function clearThoughts() {
+            const thoughtElements = thoughtsContainer.querySelectorAll('.agent-thought');
+            thoughtElements.forEach(el => el.remove());
+            thoughtsCount = 0;
+            thoughtsCountBadge.textContent = '0';
+            thoughtsBuffer = [];
+            
+            if (noThoughtsMessage) {
+                noThoughtsMessage.style.display = 'block';
+            }
+        }
+        
+        function togglePauseThoughts() {
+            thoughtsPaused = !thoughtsPaused;
+            
+            if (thoughtsPaused) {
+                pauseThoughtsBtn.innerHTML = '<i class="fas fa-play me-1"></i>Resume';
+                pauseThoughtsBtn.className = 'btn btn-sm btn-success me-2';
+                thoughtsContainer.classList.add('thoughts-paused');
+            } else {
+                pauseThoughtsBtn.innerHTML = '<i class="fas fa-pause me-1"></i>Pause';
+                pauseThoughtsBtn.className = 'btn btn-sm btn-outline-secondary me-2';
+                thoughtsContainer.classList.remove('thoughts-paused');
+                
+                // Process buffered thoughts
+                thoughtsBuffer.forEach(thought => addThoughtToDisplay(thought));
+                thoughtsBuffer = [];
+            }
+        }
+        
+        // Event Listeners for Agent Thoughts (will be initialized in main DOMContentLoaded)
+        function initializeAgentThoughts() {
+            if (clearThoughtsBtn) clearThoughtsBtn.addEventListener('click', clearThoughts);
+            if (pauseThoughtsBtn) pauseThoughtsBtn.addEventListener('click', togglePauseThoughts);
+            
+            // Connect to agent thoughts SSE
+            connectThoughtsSSE();
         }
         
         function updateDashboard(data) {
@@ -1074,12 +1407,16 @@ Agent Evaluation Dashboard
         // Initialize SSE connection
         document.addEventListener('DOMContentLoaded', function() {
             connectSSE();
+            initializeAgentThoughts();
         });
         
         // Clean up on page unload
         window.addEventListener('beforeunload', function() {
             if (eventSource) {
                 eventSource.close();
+            }
+            if (thoughtsEventSource) {
+                thoughtsEventSource.close();
             }
         });
     </script>
