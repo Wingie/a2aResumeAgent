@@ -643,7 +643,7 @@ Agent Evaluation System
                                 <div class="activity-item activity-error mb-2">
                                     <div class="d-flex justify-content-between">
                                         <strong th:text="${activity.title}">Agent Task</strong>
-                                        <small class="text-muted" th:text="${#temporals.formatDateTime(activity.timestamp, 'HH:mm')}">12:34</small>
+                                        <small class="text-muted" th:text="${#temporals.format(activity.timestamp, 'HH:mm')}">12:34</small>
                                     </div>
                                     <div class="mt-1" th:text="${activity.description}">Error description</div>
                                     <div class="mt-1" th:if="${activity.errorDetails}">
@@ -662,6 +662,11 @@ Agent Evaluation System
                                     <span class="badge bg-warning" th:text="${errorEntry.value}">3</span>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <!-- Dynamic Error Patterns Container (JavaScript updates) -->
+                        <div id="error-patterns" class="mt-3">
+                            <!-- JavaScript will populate this with real-time error analysis -->
                         </div>
                     </div>
                 </div>
