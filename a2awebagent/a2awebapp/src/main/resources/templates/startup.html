@@ -320,8 +320,11 @@
 Agent Evaluation System
             </a>
             <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
-                <div id="connection-status" class="badge bg-success me-3">
+                <div id="connection-status" class="badge bg-success me-2">
                     <i class="fas fa-circle me-1"></i> Connected
+                </div>
+                <div id="system-status-badge" class="badge bg-info me-3">
+                    <i class="fas fa-heartbeat me-1"></i> <span id="overall-status">Loading...</span>
                 </div>
                 <a href="/agents" class="btn btn-outline-light btn-sm me-2">
                     <i class="fas fa-robot me-1"></i> Evaluations
@@ -344,75 +347,30 @@ Agent Evaluation System
     </nav>
 
     <div class="container-fluid mt-4">
-        <!-- Real-time Status Banner -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="alert alert-info d-flex align-items-center" id="system-status-banner">
-                    <span class="real-time-indicator me-2"></span>
-                    <strong>System Status:</strong> <span id="overall-status">Loading...</span>
-                    <span class="ms-auto">
-                        <small>Last updated: <span id="last-update">--</span></small>
-                    </span>
-                </div>
-            </div>
-        </div>
 
-        <!-- Top Row - Key Metrics -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card stats-card">
-                    <div class="card-body text-center">
-                        <div class="metric-value" th:text="${systemHealth.activeTasks}">--</div>
-                        <div class="metric-label">Active Agents</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card model-card">
-                    <div class="card-body text-center">
-                        <div class="metric-value" th:text="${#numbers.formatDecimal(toolMetrics.successRate, 1, 1)} + '%'">--</div>
-                        <div class="metric-label">Model Performance</div>
-                        <div class="mt-1">
-                            <small class="text-muted" th:text="${modelPerformance.currentModel}">Model Name</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card tools-card">
-                    <div class="card-body text-center">
-                        <div class="metric-value" th:text="${#numbers.formatDecimal(toolMetrics.averageExecutionTimeSeconds, 1, 1)} + 's'">--</div>
-                        <div class="metric-label">Tool Performance</div>
-                        <div class="mt-1">
-                            <small class="text-muted" th:text="${toolMetrics.totalToolCalls} + ' total calls'">Total Calls</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card error-card">
-                    <div class="card-body text-center">
-                        <div class="metric-value" th:text="${realTimeStats.errorsPerMinute}">--</div>
-                        <div class="metric-label">Errors/Minute</div>
-                        <div class="mt-1">
-                            <a href="/agents" class="btn btn-outline-danger btn-sm" th:if="${systemHealth.stuckTasks > 0}">
-                                <span th:text="${systemHealth.stuckTasks} + ' failed agents'">View Failed</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div class="row">
-            <!-- Left Column - System Health & Models -->
-            <div class="col-md-3">
+            <!-- Left Column - Info Panels -->
+            <div class="col-md-2">
                 <!-- System Health -->
                 <div class="card stats-card mb-4">
                     <div class="card-header">
                         <h5><i class="fas fa-heartbeat"></i> Agent System Health</h5>
                     </div>
                     <div class="card-body">
+                        <!-- Key Metrics Summary -->
+                        <div class="row mb-3 text-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+                            <div class="col-6">
+                                <div class="metric-value small" style="font-size: 1.2em;" th:text="${#numbers.formatDecimal(toolMetrics.successRate, 1, 1)} + '%'">--</div>
+                                <small class="text-muted">Success Rate</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-value small" style="font-size: 1.2em;" th:text="${#numbers.formatDecimal(toolMetrics.averageExecutionTimeSeconds, 1, 1)} + 's'">--</div>
+                                <small class="text-muted">Avg Time</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Detailed Health Status -->
                         <div id="system-health">
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Active Agents:</span>
@@ -430,9 +388,17 @@ Agent Evaluation System
                                 <span>Browser Health:</span>
                                 <span class="badge" th:classappend="${systemHealth.browserHealthy} ? 'bg-success' : 'bg-danger'" th:text="${systemHealth.browserHealthy} ? 'Healthy' : 'Issues'">--</span>
                             </div>
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-between mb-2">
                                 <span>System Status:</span>
                                 <span class="badge" th:classappend="${systemHealth.overallStatus == 'healthy'} ? 'bg-success' : (${systemHealth.overallStatus == 'warning'} ? 'bg-warning' : 'bg-danger')" th:text="${#strings.toUpperCase(systemHealth.overallStatus)}">--</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Tool Calls:</span>
+                                <span class="badge bg-primary" th:text="${toolMetrics.totalToolCalls}">--</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Errors/Minute:</span>
+                                <span class="badge" th:classappend="${realTimeStats.errorsPerMinute > 0} ? 'bg-danger' : 'bg-success'" th:text="${realTimeStats.errorsPerMinute}">--</span>
                             </div>
                         </div>
                     </div>
@@ -550,10 +516,69 @@ Agent Evaluation System
                         </div>
                     </div>
                 </div>
+
+                <!-- Error Analysis -->
+                <div class="card error-card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Error Analysis</h5>
+                        <a href="/agents" class="btn btn-outline-danger btn-sm" th:if="${systemHealth.stuckTasks > 0}">
+                            <i class="fas fa-list"></i> View All Failed
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <!-- Error Patterns -->
+                        <div class="mb-3" th:if="${modelPerformance.errorPatterns != null and !modelPerformance.errorPatterns.empty}">
+                            <h6 class="text-muted">Error Patterns</h6>
+                            <div th:each="error, iterStat : ${modelPerformance.errorPatterns}" th:if="${iterStat.index < 3}">
+                                <div class="error-pattern">
+                                    <strong th:text="${error.errorType}">Error Type</strong> 
+                                    <span class="badge bg-warning" th:text="${error.occurrenceCount} + 'x'">5x</span>
+                                    <br>
+                                    <small class="text-muted" th:text="${error.suggestedFix}">Suggested fix</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Failed Agents -->
+                        <div class="mt-3" th:if="${activityFeed.recentActivities != null}">
+                            <h6 class="text-muted">Recent Failed Agents</h6>
+                            <div th:each="activity, iterStat : ${activityFeed.recentActivities}" th:if="${activity.severity == 'error' and iterStat.index < 3}">
+                                <div class="activity-item activity-error mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <strong th:text="${activity.title}">Agent Task</strong>
+                                        <small class="text-muted" th:text="${#temporals.format(activity.timestamp, 'HH:mm')}">12:34</small>
+                                    </div>
+                                    <div class="mt-1" th:text="${activity.description}">Error description</div>
+                                    <div class="mt-1" th:if="${activity.errorDetails}">
+                                        <small class="text-danger" th:text="${activity.errorDetails}">Error details</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Error Types Breakdown -->
+                        <div class="mt-3" th:if="${toolMetrics.errorsByType != null and !toolMetrics.errorsByType.empty}">
+                            <h6 class="text-muted">Error Types</h6>
+                            <div th:each="errorEntry : ${toolMetrics.errorsByType}">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small th:text="${errorEntry.key}">Error Type</small>
+                                    <span class="badge bg-warning" th:text="${errorEntry.value}">3</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dynamic Error Patterns Container (JavaScript updates) -->
+                        <div id="error-patterns" class="mt-3">
+                            <!-- JavaScript will populate this with real-time error analysis -->
+                        </div>
+                    </div>
+                </div>
+
+
             </div>
 
-            <!-- Middle Column - Activity Feed -->
-            <div class="col-md-6">
+            <!-- Right Column - Activity Feed (Main Content) -->
+            <div class="col-md-8">
                 <!-- Evaluation Trigger -->
                 <div class="card mb-3" style="border-left: 4px solid #28a745;">
                     <div class="card-header">
@@ -612,99 +637,8 @@ Agent Evaluation System
                 </div>
             </div>
 
-            <!-- Right Column - Error Analysis & Tools -->
-            <div class="col-md-3">
-                <!-- Error Analysis -->
-                <div class="card error-card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-exclamation-triangle"></i> Error Analysis</h5>
-                        <a href="/agents" class="btn btn-outline-danger btn-sm" th:if="${systemHealth.stuckTasks > 0}">
-                            <i class="fas fa-list"></i> View All Failed
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <!-- Error Patterns -->
-                        <div class="mb-3" th:if="${modelPerformance.errorPatterns != null and !modelPerformance.errorPatterns.empty}">
-                            <h6 class="text-muted">Error Patterns</h6>
-                            <div th:each="error, iterStat : ${modelPerformance.errorPatterns}" th:if="${iterStat.index < 3}">
-                                <div class="error-pattern">
-                                    <strong th:text="${error.errorType}">Error Type</strong> 
-                                    <span class="badge bg-warning" th:text="${error.occurrenceCount} + 'x'">5x</span>
-                                    <br>
-                                    <small class="text-muted" th:text="${error.suggestedFix}">Suggested fix</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Recent Failed Agents -->
-                        <div class="mt-3" th:if="${activityFeed.recentActivities != null}">
-                            <h6 class="text-muted">Recent Failed Agents</h6>
-                            <div th:each="activity, iterStat : ${activityFeed.recentActivities}" th:if="${activity.severity == 'error' and iterStat.index < 3}">
-                                <div class="activity-item activity-error mb-2">
-                                    <div class="d-flex justify-content-between">
-                                        <strong th:text="${activity.title}">Agent Task</strong>
-                                        <small class="text-muted" th:text="${#temporals.format(activity.timestamp, 'HH:mm')}">12:34</small>
-                                    </div>
-                                    <div class="mt-1" th:text="${activity.description}">Error description</div>
-                                    <div class="mt-1" th:if="${activity.errorDetails}">
-                                        <small class="text-danger" th:text="${activity.errorDetails}">Error details</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Error Types Breakdown -->
-                        <div class="mt-3" th:if="${toolMetrics.errorsByType != null and !toolMetrics.errorsByType.empty}">
-                            <h6 class="text-muted">Error Types</h6>
-                            <div th:each="errorEntry : ${toolMetrics.errorsByType}">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small th:text="${errorEntry.key}">Error Type</small>
-                                    <span class="badge bg-warning" th:text="${errorEntry.value}">3</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Dynamic Error Patterns Container (JavaScript updates) -->
-                        <div id="error-patterns" class="mt-3">
-                            <!-- JavaScript will populate this with real-time error analysis -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tool Execution Details -->
-                <div class="card tools-card mb-4">
-                    <div class="card-header">
-                        <h5><i class="fas fa-list-check"></i> Recent Tool Executions</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="tool-performance" class="scrollable-content" style="max-height: 200px;">
-                            <!-- Server-side rendered tool execution details -->
-                            <div th:if="${toolMetrics != null and toolMetrics.topUsedTools != null and !toolMetrics.topUsedTools.empty}">
-                                <div th:each="tool, iterStat : ${toolMetrics.topUsedTools}" th:if="${iterStat.index < 5}">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <div>
-                                            <strong th:text="${tool.toolName}">Tool Name</strong><br>
-                                            <small class="text-muted" th:text="${tool.callCount} + ' executions • Last used: ' + ${#temporals.format(tool.lastUsed, 'MMM dd, HH:mm')}">executions • last used</small>
-                                        </div>
-                                        <div class="text-end">
-                                            <span th:class="'badge ' + (${tool.successRate >= 80} ? 'bg-success' : 'bg-warning')" 
-                                                  th:text="${#numbers.formatDecimal(tool.successRate, 1, 1)} + '%'">100%</span><br>
-                                            <small class="text-muted" th:text="${#numbers.formatDecimal(tool.averageExecutionTime, 1, 1)} + 's'">1.0s</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Fallback when no tool executions available -->
-                            <div th:unless="${toolMetrics != null and toolMetrics.topUsedTools != null and !toolMetrics.topUsedTools.empty}" class="text-muted text-center">
-                                <i class="fas fa-list-check"></i><br>
-                                <small>Recent tool executions will appear here</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
+            <div class="col-md-2">
+                            <!-- Quick Actions -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5><i class="fas fa-cog"></i> Quick Actions</h5>
@@ -934,7 +868,7 @@ Agent Evaluation System
             }
         }
         
-        // Update system status banner
+        // Update system status badge
         function updateSystemStatus(health) {
             if (!health) {
                 console.warn('No health data provided');
@@ -942,8 +876,7 @@ Agent Evaluation System
             }
             
             const statusElement = document.getElementById('overall-status');
-            const lastUpdateElement = document.getElementById('last-update');
-            const banner = document.getElementById('system-status-banner');
+            const statusBadge = document.getElementById('system-status-badge');
             
             if (statusElement) {
                 statusElement.textContent = (health.overallStatus || 'unknown').toUpperCase();
@@ -951,17 +884,11 @@ Agent Evaluation System
                 console.warn('overall-status element not found');
             }
             
-            if (lastUpdateElement) {
-                const updateTime = health.lastUpdate ? new Date(health.lastUpdate).toLocaleTimeString() : new Date().toLocaleTimeString();
-                lastUpdateElement.textContent = updateTime;
+            if (statusBadge) {
+                const badgeColor = getBootstrapColor(health.overallStatus || 'info');
+                statusBadge.className = `badge bg-${badgeColor} me-3`;
             } else {
-                console.warn('last-update element not found');
-            }
-            
-            if (banner) {
-                banner.className = `alert d-flex align-items-center alert-${getBootstrapColor(health.overallStatus || 'info')}`;
-            } else {
-                console.warn('system-status-banner element not found');
+                console.warn('system-status-badge element not found');
             }
         }
         
@@ -1099,7 +1026,9 @@ Agent Evaluation System
                         ${renderActivityInteractiveElements(activity, index)}
                         
                         <div class="mt-2">
-                            <span class="badge bg-secondary">${activity.taskType}</span>
+                            <span class="badge ${activity.taskType === 'mcp_tool_execution' ? 'bg-warning' : 'bg-secondary'}" style="font-weight: bold;">
+                                ${activity.taskType === 'mcp_tool_execution' ? '🔧 MCP TOOL EXECUTION' : activity.taskType}
+                            </span>
                             ${activity.duration ? `<span class="badge bg-info">${activity.duration}</span>` : ''}
                             ${hasScreenshot ? '<span class="badge bg-success"><i class="fas fa-camera"></i> Screenshot</span>' : ''}
                             ${hasResults ? '<span class="badge bg-primary"><i class="fas fa-file-alt"></i> Results</span>' : ''}
@@ -1154,7 +1083,7 @@ Agent Evaluation System
                         <div class="activity-screenshot-container mb-2" style="display: block;" id="screenshot-${index}">
                             <img src="${screenshotUrl}" alt="Activity Screenshot" 
                                  class="img-fluid activity-screenshot" 
-                                 style="max-height: 300px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer;" 
+                                 style="max-height: 400px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer;" 
                                  onclick="openScreenshotModal('${screenshotUrl}')">
                             <div class="screenshot-url-display mt-1">
                                 <small class="text-muted">📸 <a href="${screenshotUrl}" target="_blank" class="text-decoration-none">${screenshotUrl}</a></small>
@@ -1318,12 +1247,12 @@ Agent Evaluation System
                 html += `<div class="mb-2"><strong>Parameters:</strong> <pre class="small bg-light p-2 rounded">${JSON.stringify(parameters, null, 2)}</pre></div>`;
             }
             
-            // Results preview - check both locations
+            // Results preview - check both locations (full content, no truncation)
             const results = activity.results || (activity.toolResult && activity.toolResult.extractedResults);
             if (results) {
                 const displayResults = typeof results === 'string' ? results : JSON.stringify(results, null, 2);
-                const truncatedResults = displayResults.length > 300 ? displayResults.substring(0, 300) + '...' : displayResults;
-                html += `<div class="mb-2"><strong>Results Preview:</strong> <pre class="small bg-light p-2 rounded" style="max-height: 150px; overflow-y: auto;">${truncatedResults}</pre></div>`;
+                // Remove truncation for better visibility, allow full content display
+                html += `<div class="mb-2"><strong>Results:</strong> <pre class="small bg-light p-2 rounded" style="max-height: 400px; overflow-y: auto; white-space: pre-wrap;">${displayResults}</pre></div>`;
             }
             
             // Screenshots information
