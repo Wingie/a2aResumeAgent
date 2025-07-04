@@ -1,6 +1,6 @@
 package io.wingie.playwright;
 
-import io.wingie.a2acore.tools4ai.annotations.Prompt;
+import io.wingie.a2acore.annotation.Prompt;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

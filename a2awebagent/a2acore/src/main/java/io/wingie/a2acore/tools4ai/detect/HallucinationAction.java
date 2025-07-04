@@ -1,6 +1,6 @@
 package io.wingie.a2acore.tools4ai.detect;
 
-import io.wingie.a2acore.tools4ai.annotations.Action;
+import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.tools4ai.processor.AIProcessor;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;

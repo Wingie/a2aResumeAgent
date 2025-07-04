@@ -12,7 +12,7 @@ import java.util.Map;
 @Slf4j
 public class BenchmarkDefinitionService {
     
-    private final Map<String, List<BenchmarkTask>> benchmarks;
+    private final Map<String, List<BenchmarkTaskTemplate>> benchmarks;
     private final Map<String, String> benchmarkVersions;
     
     public BenchmarkDefinitionService() {
@@ -46,27 +46,27 @@ public class BenchmarkDefinitionService {
     }
     
     private void createBasicWebNavigationBenchmark() {
-        List<BenchmarkTask> tasks = new ArrayList<>();
+        List<BenchmarkTaskTemplate> tasks = new ArrayList<>();
         
-        tasks.add(BenchmarkTask.createNavigationTask(
+        tasks.add(BenchmarkTaskTemplate.createNavigationTask(
             "Navigate to Google",
             "https://google.com", 
             "Google search box"
         ));
         
-        tasks.add(BenchmarkTask.createNavigationTask(
+        tasks.add(BenchmarkTaskTemplate.createNavigationTask(
             "Navigate to GitHub",
             "https://github.com", 
             "Sign in button"
         ));
         
-        tasks.add(BenchmarkTask.createNavigationTask(
+        tasks.add(BenchmarkTaskTemplate.createNavigationTask(
             "Navigate to Stack Overflow",
             "https://stackoverflow.com", 
             "Questions link"
         ));
         
-        tasks.add(BenchmarkTask.createDataExtractionTask(
+        tasks.add(BenchmarkTaskTemplate.createDataExtractionTask(
             "Extract current time",
             "https://time.is",
             "current time"
@@ -77,23 +77,23 @@ public class BenchmarkDefinitionService {
     }
     
     private void createSearchEngineBenchmark() {
-        List<BenchmarkTask> tasks = new ArrayList<>();
+        List<BenchmarkTaskTemplate> tasks = new ArrayList<>();
         
-        tasks.add(BenchmarkTask.createSearchTask(
+        tasks.add(BenchmarkTaskTemplate.createSearchTask(
             "Google search for a2ajava",
             "https://google.com",
             "a2ajava",
             "GitHub repository"
         ));
         
-        tasks.add(BenchmarkTask.createSearchTask(
+        tasks.add(BenchmarkTaskTemplate.createSearchTask(
             "DuckDuckGo search for Spring Boot",
             "https://duckduckgo.com",
             "Spring Boot tutorial",
             "Spring Boot documentation"
         ));
         
-        tasks.add(BenchmarkTask.createSearchTask(
+        tasks.add(BenchmarkTaskTemplate.createSearchTask(
             "Bing search for Playwright",
             "https://bing.com",
             "Playwright automation",
@@ -105,16 +105,16 @@ public class BenchmarkDefinitionService {
     }
     
     private void createEcommerceBenchmark() {
-        List<BenchmarkTask> tasks = new ArrayList<>();
+        List<BenchmarkTaskTemplate> tasks = new ArrayList<>();
         
-        tasks.add(BenchmarkTask.createSearchTask(
+        tasks.add(BenchmarkTaskTemplate.createSearchTask(
             "Amazon product search",
             "https://amazon.com",
             "iPhone 15",
             "iPhone 15 price"
         ));
         
-        tasks.add(BenchmarkTask.createComplexInteractionTask(
+        tasks.add(BenchmarkTaskTemplate.createComplexInteractionTask(
             "Add item to cart",
             "Navigate to Amazon, search for a product, and add it to cart",
             "Go to Amazon.com, search for 'wireless headphones', find a product under $50, and add it to your cart",
@@ -122,7 +122,7 @@ public class BenchmarkDefinitionService {
             3
         ));
         
-        tasks.add(BenchmarkTask.createDataExtractionTask(
+        tasks.add(BenchmarkTaskTemplate.createDataExtractionTask(
             "Extract product price",
             "https://amazon.com",
             "price of first search result for 'laptop'"
@@ -133,16 +133,16 @@ public class BenchmarkDefinitionService {
     }
     
     private void createFormFillingBenchmark() {
-        List<BenchmarkTask> tasks = new ArrayList<>();
+        List<BenchmarkTaskTemplate> tasks = new ArrayList<>();
         
-        tasks.add(BenchmarkTask.createFormTask(
+        tasks.add(BenchmarkTaskTemplate.createFormTask(
             "Contact form submission",
             "https://httpbin.org/forms/post",
             "Name: John Doe, Email: john@example.com, Subject: Test",
             "form submitted successfully"
         ));
         
-        tasks.add(BenchmarkTask.createFormTask(
+        tasks.add(BenchmarkTaskTemplate.createFormTask(
             "Newsletter signup",
             "https://the-internet.herokuapp.com",
             "Email: test@example.com",
@@ -154,9 +154,9 @@ public class BenchmarkDefinitionService {
     }
     
     private void createTravelResearchBenchmark() {
-        List<BenchmarkTask> tasks = new ArrayList<>();
+        List<BenchmarkTaskTemplate> tasks = new ArrayList<>();
         
-        tasks.add(BenchmarkTask.createComplexInteractionTask(
+        tasks.add(BenchmarkTaskTemplate.createComplexInteractionTask(
             "Flight search on Expedia",
             "Search for flights between two cities",
             "Go to Expedia.com and search for round-trip flights from New York to Los Angeles for next month. Find the cheapest option.",
@@ -164,7 +164,7 @@ public class BenchmarkDefinitionService {
             4
         ));
         
-        tasks.add(BenchmarkTask.createComplexInteractionTask(
+        tasks.add(BenchmarkTaskTemplate.createComplexInteractionTask(
             "Hotel search on Booking.com",
             "Search for hotels in a specific city",
             "Go to Booking.com and search for hotels in Paris for a 3-night stay next month. Sort by price and find options under $200/night.",
@@ -172,7 +172,7 @@ public class BenchmarkDefinitionService {
             3
         ));
         
-        tasks.add(BenchmarkTask.createDataExtractionTask(
+        tasks.add(BenchmarkTaskTemplate.createDataExtractionTask(
             "Extract travel deals",
             "https://kayak.com",
             "current travel deals or promotions"
@@ -183,9 +183,9 @@ public class BenchmarkDefinitionService {
     }
     
     private void createAdvancedAutomationBenchmark() {
-        List<BenchmarkTask> tasks = new ArrayList<>();
+        List<BenchmarkTaskTemplate> tasks = new ArrayList<>();
         
-        tasks.add(BenchmarkTask.createComplexInteractionTask(
+        tasks.add(BenchmarkTaskTemplate.createComplexInteractionTask(
             "Multi-tab navigation",
             "Open multiple tabs and compare information",
             "Open Google in one tab and Bing in another. Search for 'weather today' in both and compare the results.",
@@ -193,7 +193,7 @@ public class BenchmarkDefinitionService {
             4
         ));
         
-        tasks.add(BenchmarkTask.createComplexInteractionTask(
+        tasks.add(BenchmarkTaskTemplate.createComplexInteractionTask(
             "Dynamic content interaction",
             "Interact with dynamically loaded content",
             "Go to a news website, scroll down to load more articles, and click on the third article that appears after scrolling.",
@@ -201,7 +201,7 @@ public class BenchmarkDefinitionService {
             5
         ));
         
-        tasks.add(BenchmarkTask.createComplexInteractionTask(
+        tasks.add(BenchmarkTaskTemplate.createComplexInteractionTask(
             "File download simulation",
             "Navigate to a file download page and interact with download elements",
             "Go to a website that offers file downloads, find a PDF document, and initiate the download process.",
@@ -219,8 +219,8 @@ public class BenchmarkDefinitionService {
         return new ArrayList<>(benchmarks.keySet());
     }
     
-    public List<BenchmarkTask> getBenchmarkTasks(String benchmarkName) {
-        List<BenchmarkTask> tasks = benchmarks.get(benchmarkName);
+    public List<BenchmarkTaskTemplate> getBenchmarkTasks(String benchmarkName) {
+        List<BenchmarkTaskTemplate> tasks = benchmarks.get(benchmarkName);
         if (tasks == null) {
             throw new IllegalArgumentException("Unknown benchmark: " + benchmarkName);
         }
@@ -232,14 +232,14 @@ public class BenchmarkDefinitionService {
     }
     
     public Map<String, Object> getBenchmarkInfo(String benchmarkName) {
-        List<BenchmarkTask> tasks = getBenchmarkTasks(benchmarkName);
+        List<BenchmarkTaskTemplate> tasks = getBenchmarkTasks(benchmarkName);
         
         Map<String, Object> info = new HashMap<>();
         info.put("name", benchmarkName);
         info.put("version", getBenchmarkVersion(benchmarkName));
         info.put("totalTasks", tasks.size());
-        info.put("maxPossibleScore", tasks.stream().mapToDouble(BenchmarkTask::getMaxScore).sum());
-        info.put("categories", tasks.stream().map(BenchmarkTask::getCategory).distinct().toList());
+        info.put("maxPossibleScore", tasks.stream().mapToDouble(BenchmarkTaskTemplate::getMaxScore).sum());
+        info.put("categories", tasks.stream().map(BenchmarkTaskTemplate::getCategory).distinct().toList());
         info.put("difficultyRange", getDifficultyRange(tasks));
         info.put("estimatedDuration", getEstimatedDuration(tasks));
         
@@ -252,14 +252,14 @@ public class BenchmarkDefinitionService {
             .toList();
     }
     
-    private Map<String, Integer> getDifficultyRange(List<BenchmarkTask> tasks) {
-        int min = tasks.stream().mapToInt(BenchmarkTask::getDifficultyLevel).min().orElse(1);
-        int max = tasks.stream().mapToInt(BenchmarkTask::getDifficultyLevel).max().orElse(1);
+    private Map<String, Integer> getDifficultyRange(List<BenchmarkTaskTemplate> tasks) {
+        int min = tasks.stream().mapToInt(BenchmarkTaskTemplate::getDifficultyLevel).min().orElse(1);
+        int max = tasks.stream().mapToInt(BenchmarkTaskTemplate::getDifficultyLevel).max().orElse(1);
         return Map.of("min", min, "max", max);
     }
     
-    private int getEstimatedDuration(List<BenchmarkTask> tasks) {
-        return tasks.stream().mapToInt(BenchmarkTask::getTimeoutSeconds).sum();
+    private int getEstimatedDuration(List<BenchmarkTaskTemplate> tasks) {
+        return tasks.stream().mapToInt(BenchmarkTaskTemplate::getTimeoutSeconds).sum();
     }
     
     public boolean benchmarkExists(String benchmarkName) {
@@ -267,13 +267,13 @@ public class BenchmarkDefinitionService {
     }
     
     public int getTaskCount(String benchmarkName) {
-        List<BenchmarkTask> tasks = benchmarks.get(benchmarkName);
+        List<BenchmarkTaskTemplate> tasks = benchmarks.get(benchmarkName);
         return tasks != null ? tasks.size() : 0;
     }
     
     public double getMaxScore(String benchmarkName) {
-        List<BenchmarkTask> tasks = benchmarks.get(benchmarkName);
+        List<BenchmarkTaskTemplate> tasks = benchmarks.get(benchmarkName);
         if (tasks == null) return 0.0;
-        return tasks.stream().mapToDouble(BenchmarkTask::getMaxScore).sum();
+        return tasks.stream().mapToDouble(BenchmarkTaskTemplate::getMaxScore).sum();
     }
 }

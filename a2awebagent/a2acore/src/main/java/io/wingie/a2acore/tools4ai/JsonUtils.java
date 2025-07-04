@@ -8,7 +8,7 @@ import com.google.gson.JsonObject;
 import io.wingie.a2acore.tools4ai.annotations.ListType;
 import io.wingie.a2acore.tools4ai.annotations.MapKeyType;
 import io.wingie.a2acore.tools4ai.annotations.MapValueType;
-import io.wingie.a2acore.tools4ai.annotations.Prompt;
+import io.wingie.a2acore.annotation.Prompt;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import lombok.extern.slf4j.Slf4j;

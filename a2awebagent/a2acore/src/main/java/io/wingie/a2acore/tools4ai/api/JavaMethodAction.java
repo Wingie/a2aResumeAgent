@@ -1,7 +1,7 @@
 package io.wingie.a2acore.tools4ai.api;
 
-import io.wingie.a2acore.tools4ai.annotations.Action;
-import io.wingie.a2acore.tools4ai.annotations.Agent;
+import io.wingie.a2acore.annotation.Action;
+import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.tools4ai.processor.AIProcessingException;
 import org.json.JSONObject;
 

@@ -841,7 +841,6 @@ Agent Evaluation System
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
             // Data is already loaded from the backend via Thymeleaf
-            console.log('Dashboard initialized with server-side data');
             
             // Initialize with fallbacks for missing SSE data
             initializeFallbackContent();
@@ -851,7 +850,6 @@ Agent Evaluation System
             enableSSE(); // Start real-time updates automatically
             loadAvailableTools(); // Discover all MCP tools dynamically
             
-            console.log('Dashboard fully initialized with real-time updates');
         });
         
         // Initialize fallback content for elements that might not get SSE updates
@@ -881,7 +879,6 @@ Agent Evaluation System
         // Update the entire dashboard with new statistics
         function updateDashboard(stats) {
             try {
-                console.log('Updating dashboard with stats:', stats);
                 
                 if (stats.systemHealth) {
                     updateSystemStatus(stats.systemHealth);
@@ -972,13 +969,11 @@ Agent Evaluation System
         function updateKeyMetrics(stats) {
             // Metrics are now populated server-side via Thymeleaf
             // This function is kept for SSE real-time updates if needed
-            console.log('Key metrics updated via real-time data');
         }
         
         // Update system health panel (server-side rendered, kept for SSE updates)
         function updateSystemHealth(health) {
             // System health is now populated server-side via Thymeleaf
-            console.log('System health updated via real-time data');
         }
         
         // Update model performance panel
@@ -1069,11 +1064,9 @@ Agent Evaluation System
         
         // Update activity feed with enhanced interactivity
         function updateActivityFeed(activityFeed) {
-            console.log('🔄 Updating activity feed with data:', activityFeed);
             const feedDiv = document.getElementById('activity-feed');
             
             if (!activityFeed.recentActivities || activityFeed.recentActivities.length === 0) {
-                console.log('⚠️ No recent activities found');
                 feedDiv.innerHTML = '<div class="text-center text-muted">No recent activity</div>';
                 currentActivityData = []; // Clear stored data
                 return;
@@ -1081,16 +1074,13 @@ Agent Evaluation System
             
             // Store activity data globally for detailed access
             currentActivityData = activityFeed.recentActivities.slice(0, 20);
-            console.log('📊 Processing', currentActivityData.length, 'activities');
             
             let feedHtml = '';
             currentActivityData.forEach((activity, index) => {
-                console.log(`🔍 Processing activity ${index}:`, activity);
                 const timeAgo = getTimeAgo(new Date(activity.timestamp));
                 const isClickable = isActivityClickable(activity);
                 const hasScreenshot = hasActivityScreenshot(activity);
                 const hasResults = hasActivityResults(activity);
-                console.log(`📊 Activity ${index} - Screenshot: ${hasScreenshot}, Results: ${hasResults}, Clickable: ${isClickable}`);
                 
                 feedHtml += `
                     <div class="activity-item activity-${activity.severity} ${isClickable ? 'activity-clickable activity-expanded' : ''}" 
@@ -1204,25 +1194,19 @@ Agent Evaluation System
         
         // Get screenshot URL from activity
         function getActivityScreenshotUrl(activity) {
-            console.log('🖼️ Checking for screenshot in activity:', activity);
             if (activity.screenshot) {
-                console.log('✅ Found screenshot in activity.screenshot:', activity.screenshot);
                 return activity.screenshot;
             }
             if (activity.results && activity.results.screenshot) {
-                console.log('✅ Found screenshot in activity.results.screenshot:', activity.results.screenshot);
                 return activity.results.screenshot;
             }
             if (activity.toolResult && activity.toolResult.screenshot) {
-                console.log('✅ Found screenshot in activity.toolResult.screenshot:', activity.toolResult.screenshot);
                 return activity.toolResult.screenshot;
             }
             if (activity.screenshots && activity.screenshots.length > 0) {
-                console.log('✅ Found screenshot in activity.screenshots:', activity.screenshots[0]);
                 return activity.screenshots[0];
             }
             if (activity.toolResult && activity.toolResult.screenshots && activity.toolResult.screenshots.length > 0) {
-                console.log('✅ Found screenshot in activity.toolResult.screenshots:', activity.toolResult.screenshots[0]);
                 return activity.toolResult.screenshots[0];
             }
             
@@ -1293,7 +1277,6 @@ Agent Evaluation System
         
         // Generate detailed activity information
         function generateActivityDetails(activity, index) {
-            console.log(`🔧 Generating details for activity ${index}:`, activity);
             let html = '<div class="activity-full-details">';
             
             // Timestamp details
@@ -1598,7 +1581,6 @@ Agent Evaluation System
             const toolDiv = document.getElementById('tool-performance');
             
             // Add debugging
-            console.log('Updating tool performance with data:', toolMetrics);
             
             if (!toolDiv) {
                 console.warn('Tool performance div not found');
@@ -1607,7 +1589,6 @@ Agent Evaluation System
             
             // Handle null or undefined toolMetrics
             if (!toolMetrics) {
-                console.log('No tool metrics provided, showing default message');
                 toolDiv.innerHTML = '<div class="text-muted">No tool data available</div>';
                 return;
             }
@@ -2081,7 +2062,6 @@ Agent Evaluation System
                 
                 // Show success message
                 showSuccess(`Agent evaluation completed: ${toolName}`);
-                console.log('Tool execution result:', result.result);
             }).catch(error => {
                 console.error('Agent evaluation error:', error);
                 messageSpan.innerHTML = `<i class="fas fa-times"></i> Evaluation failed: ${error.message}`;
@@ -2241,7 +2221,6 @@ Agent Evaluation System
                 }
                 
                 availableTools = result.result.tools || [];
-                console.log('Discovered tools:', availableTools);
                 populateToolDropdown();
                 
             }).catch(error => {
@@ -2305,7 +2284,6 @@ Agent Evaluation System
                 toolSelect.appendChild(option);
             });
             
-            console.log(`Populated dropdown with ${availableTools.length} tools`);
             
             // Update parameters for first tool if available
             if (availableTools.length > 0) {
@@ -2445,7 +2423,6 @@ Agent Evaluation System
                 }
             }
             
-            console.log('Collected tool arguments:', args);
             return args;
         }
 

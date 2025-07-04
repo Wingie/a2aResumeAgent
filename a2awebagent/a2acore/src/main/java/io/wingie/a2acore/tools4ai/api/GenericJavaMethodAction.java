@@ -1,8 +1,8 @@
 package io.wingie.a2acore.tools4ai.api;
 
 import io.wingie.a2acore.tools4ai.JsonUtils;
-import io.wingie.a2acore.tools4ai.annotations.Action;
-import io.wingie.a2acore.tools4ai.annotations.Agent;
+import io.wingie.a2acore.annotation.Action;
+import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.tools4ai.processor.AIProcessingException;
 import lombok.Getter;
 import lombok.Setter;

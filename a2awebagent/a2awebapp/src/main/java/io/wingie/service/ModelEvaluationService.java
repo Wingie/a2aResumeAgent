@@ -81,7 +81,7 @@ public class ModelEvaluationService {
             evaluationRepository.save(evaluation);
             
             // Get benchmark tasks and create evaluation tasks
-            List<BenchmarkTask> benchmarkTasks = benchmarkService.getBenchmarkTasks(benchmarkName);
+            List<BenchmarkTaskTemplate> benchmarkTasks = benchmarkService.getBenchmarkTasks(benchmarkName);
             createEvaluationTasks(evaluationId, benchmarkTasks);
             
             // Update total tasks count
@@ -250,9 +250,9 @@ public class ModelEvaluationService {
     /**
      * Create evaluation tasks from benchmark tasks
      */
-    private void createEvaluationTasks(String evaluationId, List<BenchmarkTask> benchmarkTasks) {
+    private void createEvaluationTasks(String evaluationId, List<BenchmarkTaskTemplate> benchmarkTasks) {
         for (int i = 0; i < benchmarkTasks.size(); i++) {
-            BenchmarkTask benchmarkTask = benchmarkTasks.get(i);
+            BenchmarkTaskTemplate benchmarkTask = benchmarkTasks.get(i);
             
             EvaluationTask evaluationTask = EvaluationTask.builder()
                 .taskId(UUID.randomUUID().toString())

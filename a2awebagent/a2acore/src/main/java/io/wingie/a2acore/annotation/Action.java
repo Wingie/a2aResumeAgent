@@ -1,5 +1,6 @@
 package io.wingie.a2acore.annotation;
 
+import io.wingie.a2acore.tools4ai.api.ActionRisk;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -63,4 +64,12 @@ public @interface Action {
      * @return timeout in milliseconds
      */
     long timeoutMs() default 0;
+    
+    /**
+     * Security risk level for this action.
+     * MEDIUM risk actions need one human verification, HIGH risk need two.
+     * 
+     * @return the risk level
+     */
+    ActionRisk riskLevel() default ActionRisk.LOW;
 }

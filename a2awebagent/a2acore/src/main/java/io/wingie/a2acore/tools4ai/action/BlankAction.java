@@ -1,6 +1,6 @@
 package io.wingie.a2acore.tools4ai.action;
 
-import io.wingie.a2acore.tools4ai.annotations.Action;
+import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.tools4ai.api.JavaMethodAction;
 
 /**
