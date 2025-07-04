@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Screenshot Gallery - Wingie</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #f5f7fa;
+            --secondary-color: #ffffff;
+            --surface-color: #ffffff;
+            --accent-color: #2196f3;
+            --accent-light: #e3f2fd;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+        }
+
+        .navbar {
+            background: var(--surface-color) !important;
+            box-shadow: 0 2px 4px var(--shadow-light);
+        }
+
+        .gallery-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .gallery-header {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--accent-light) 0%, rgba(33, 150, 243, 0.05) 100%);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .gallery-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .filter-btn {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .filter-btn:hover {
+            background: var(--accent-light);
+            color: var(--accent-color);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .screenshot-card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px var(--shadow-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .screenshot-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px var(--shadow-medium);
+        }
+
+        .screenshot-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .screenshot-info {
+            padding: 1rem;
+        }
+
+        .screenshot-title {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .screenshot-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .screenshot-date {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-success {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-error {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--danger-color);
+        }
+
+        .screenshot-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background: var(--accent-light);
+            color: var(--accent-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .modal-body img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        .similarity-panel {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+
+        .similar-screenshots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .similar-screenshot {
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .similar-screenshot:hover {
+            transform: scale(1.05);
+        }
+
+        .similar-screenshot img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-container {
+                padding: 1rem;
+            }
+            
+            .gallery-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .screenshot-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-robot me-2"></i>
+                Wingie - Enhanced Screenshot Gallery
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/agents">
+                    <i class="fas fa-brain me-1"></i>
+                    Agent Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="gallery-container">
+        <!-- Gallery Header -->
+        <div class="gallery-header">
+            <h1>
+                <i class="fas fa-images me-2"></i>
+                Enhanced Screenshot Gallery
+            </h1>
+            <p class="mb-0">Advanced visual analysis and similarity detection for AI agent interactions</p>
+            
+            <!-- Statistics -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalScreenshots">-</div>
+                    <div class="stat-label">Total Screenshots</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="successRate">-</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="uniqueTasks">-</div>
+                    <div class="stat-label">Unique Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="uniqueUrls">-</div>
+                    <div class="stat-label">Unique URLs</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Controls -->
+        <div class="gallery-controls">
+            <div class="filter-group">
+                <label class="me-2">Filter:</label>
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="success">Success</button>
+                <button class="filter-btn" data-filter="errors">Errors</button>
+                <button class="filter-btn" data-filter="recent">Recent</button>
+            </div>
+            
+            <div class="filter-group">
+                <input type="text" class="form-control" id="urlSearch" placeholder="Search by URL..." style="width: 300px;">
+                <button class="btn btn-primary" onclick="searchByUrl()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div>
+                <div class="spinner-border text-primary me-3" role="status"></div>
+                <span>Loading screenshots...</span>
+            </div>
+        </div>
+
+        <!-- Screenshot Grid -->
+        <div class="screenshot-grid" id="screenshotGrid" style="display: none;">
+            <!-- Screenshots will be loaded here -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <i class="fas fa-images"></i>
+            <h3>No Screenshots Found</h3>
+            <p>No screenshots match your current filter criteria.</p>
+        </div>
+    </div>
+
+    <!-- Screenshot Modal -->
+    <div class="modal fade" id="screenshotModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Screenshot Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Screenshot details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentFilter = 'all';
+        let allScreenshots = [];
+
+        // Initialize gallery
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGalleryData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    loadGalleryData();
+                });
+            });
+
+            // URL search
+            document.getElementById('urlSearch').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchByUrl();
+                }
+            });
+        }
+
+        async function loadGalleryData() {
+            try {
+                showLoading(true);
+                
+                // Load gallery data
+                const response = await fetch(`/api/screenshots/gallery?filter=${currentFilter}&limit=50`);
+                const data = await response.json();
+                
+                // Load analytics
+                const analyticsResponse = await fetch('/api/screenshots/analytics');
+                const analytics = await analyticsResponse.json();
+                
+                allScreenshots = data.screenshots;
+                updateStatistics(analytics);
+                renderScreenshots(allScreenshots);
+                
+            } catch (error) {
+                console.error('Failed to load gallery data:', error);
+                showEmptyState();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function updateStatistics(analytics) {
+            document.getElementById('totalScreenshots').textContent = analytics.totalScreenshots || 0;
+            document.getElementById('successRate').textContent = 
+                analytics.successRate ? (analytics.successRate * 100).toFixed(1) + '%' : '0%';
+            document.getElementById('uniqueTasks').textContent = analytics.uniqueTasks || 0;
+            document.getElementById('uniqueUrls').textContent = analytics.uniqueUrls || 0;
+        }
+
+        function renderScreenshots(screenshots) {
+            const grid = document.getElementById('screenshotGrid');
+            
+            if (screenshots.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            grid.innerHTML = screenshots.map(screenshot => `
+                <div class="screenshot-card" onclick="openScreenshotModal('${screenshot.screenshotId}')">
+                    <img src="${screenshot.screenshotUrl || screenshot.screenshotPath}" 
+                         alt="Screenshot" 
+                         class="screenshot-image"
+                         loading="lazy">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">
+                            ${screenshot.actionContext || screenshot.pageTitle || 'Screenshot'}
+                        </div>
+                        <div class="screenshot-meta">
+                            <span class="screenshot-date">
+                                ${new Date(screenshot.capturedAt).toLocaleDateString()}
+                            </span>
+                            <span class="status-badge ${screenshot.qualityScore > 0.7 ? 'status-success' : 'status-error'}">
+                                ${screenshot.qualityScore > 0.7 ? 'High Quality' : 'Low Quality'}
+                            </span>
+                        </div>
+                        <div class="screenshot-tags">
+                            ${screenshot.pageDomain ? `<span class="tag">${screenshot.pageDomain}</span>` : ''}
+                            ${screenshot.uiPatternType ? `<span class="tag">${screenshot.uiPatternType}</span>` : ''}
+                            ${screenshot.imageWidth && screenshot.imageHeight ? `<span class="tag">${screenshot.imageWidth}x${screenshot.imageHeight}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            grid.style.display = 'grid';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        async function openScreenshotModal(screenshotId) {
+            try {
+                const screenshot = allScreenshots.find(s => s.screenshotId === screenshotId);
+                if (!screenshot) return;
+
+                document.getElementById('modalTitle').textContent = 
+                    screenshot.actionContext || 'Screenshot Details';
+
+                document.getElementById('modalBody').innerHTML = `
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <img src="${screenshot.screenshotUrl}" alt="Screenshot" class="img-fluid">
+                        </div>
+                        <div class="col-lg-4">
+                            <h6>Details</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Task ID:</strong> ${screenshot.taskId}</li>
+                                <li><strong>URL:</strong> ${screenshot.pageUrl || 'N/A'}</li>
+                                <li><strong>Created:</strong> ${new Date(screenshot.capturedAt).toLocaleString()}</li>
+                                <li><strong>Quality Score:</strong> 
+                                    <span class="status-badge ${screenshot.qualityScore > 0.7 ? 'status-success' : 'status-error'}">
+                                        ${screenshot.qualityScore ? (screenshot.qualityScore * 100).toFixed(1) + '%' : 'Unknown'}
+                                    </span>
+                                </li>
+                                <li><strong>Dimensions:</strong> ${screenshot.imageWidth && screenshot.imageHeight ? screenshot.imageWidth + 'x' + screenshot.imageHeight : 'Unknown'}</li>
+                                <li><strong>File Size:</strong> ${screenshot.fileSizeBytes ? (screenshot.fileSizeBytes / 1024).toFixed(1) + ' KB' : 'Unknown'}</li>
+                                <li><strong>UI Pattern:</strong> ${screenshot.uiPatternType || 'Not detected'}</li>
+                            </ul>
+                            
+                            <div class="similarity-panel">
+                                <h6>Similar Screenshots</h6>
+                                <div class="similar-screenshots" id="similarScreenshots">
+                                    <div class="text-center text-muted">Loading...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Load similar screenshots
+                loadSimilarScreenshots(screenshotId);
+
+                const modal = new bootstrap.Modal(document.getElementById('screenshotModal'));
+                modal.show();
+
+            } catch (error) {
+                console.error('Failed to open screenshot modal:', error);
+            }
+        }
+
+        async function loadSimilarScreenshots(screenshotId) {
+            try {
+                const response = await fetch(`/api/screenshots/${screenshotId}/similar?limit=6`);
+                const similarScreenshots = await response.json();
+
+                const container = document.getElementById('similarScreenshots');
+                
+                if (similarScreenshots.length === 0) {
+                    container.innerHTML = '<div class="text-center text-muted">No similar screenshots found</div>';
+                    return;
+                }
+
+                container.innerHTML = similarScreenshots.map(screenshot => `
+                    <div class="similar-screenshot" onclick="openScreenshotModal('${screenshot.screenshotId}')">
+                        <img src="${screenshot.screenshotUrl}" 
+                             alt="Similar screenshot">
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Failed to load similar screenshots:', error);
+                document.getElementById('similarScreenshots').innerHTML = 
+                    '<div class="text-center text-muted">Failed to load similar screenshots</div>';
+            }
+        }
+
+        async function searchByUrl() {
+            const urlPattern = document.getElementById('urlSearch').value.trim();
+            if (!urlPattern) {
+                loadGalleryData();
+                return;
+            }
+
+            try {
+                showLoading(true);
+                const response = await fetch(`/api/screenshots/search/url?urlPattern=${encodeURIComponent(urlPattern)}`);
+                const screenshots = await response.json();
+                allScreenshots = screenshots;
+                renderScreenshots(screenshots);
+            } catch (error) {
+                console.error('Failed to search screenshots:', error);
+                showEmptyState();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingSpinner').style.display = show ? 'flex' : 'none';
+            document.getElementById('screenshotGrid').style.display = show ? 'none' : 'grid';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('screenshotGrid').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

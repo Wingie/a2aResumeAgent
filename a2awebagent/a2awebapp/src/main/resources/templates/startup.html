@@ -166,6 +166,22 @@
             animation: slideDown 0.3s ease-out;
         }
         
+        .screenshot-url-display {
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .screenshot-url-display a {
+            color: var(--accent-color);
+            word-break: break-all;
+        }
+        
+        .screenshot-url-display a:hover {
+            color: var(--accent-purple);
+        }
+        
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -1048,9 +1064,11 @@ Agent Evaluation System
         
         // Update activity feed with enhanced interactivity
         function updateActivityFeed(activityFeed) {
+            console.log('🔄 Updating activity feed with data:', activityFeed);
             const feedDiv = document.getElementById('activity-feed');
             
             if (!activityFeed.recentActivities || activityFeed.recentActivities.length === 0) {
+                console.log('⚠️ No recent activities found');
                 feedDiv.innerHTML = '<div class="text-center text-muted">No recent activity</div>';
                 currentActivityData = []; // Clear stored data
                 return;
@@ -1058,21 +1076,24 @@ Agent Evaluation System
             
             // Store activity data globally for detailed access
             currentActivityData = activityFeed.recentActivities.slice(0, 20);
+            console.log('📊 Processing', currentActivityData.length, 'activities');
             
             let feedHtml = '';
             currentActivityData.forEach((activity, index) => {
+                console.log(`🔍 Processing activity ${index}:`, activity);
                 const timeAgo = getTimeAgo(new Date(activity.timestamp));
                 const isClickable = isActivityClickable(activity);
                 const hasScreenshot = hasActivityScreenshot(activity);
                 const hasResults = hasActivityResults(activity);
+                console.log(`📊 Activity ${index} - Screenshot: ${hasScreenshot}, Results: ${hasResults}, Clickable: ${isClickable}`);
                 
                 feedHtml += `
-                    <div class="activity-item activity-${activity.severity} ${isClickable ? 'activity-clickable' : ''}" 
+                    <div class="activity-item activity-${activity.severity} ${isClickable ? 'activity-clickable activity-expanded' : ''}" 
                          ${isClickable ? `data-activity-id="${activity.id || index}" onclick="handleActivityClick(this, ${index})"` : ''}>
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <strong>${activity.title}</strong>
-                                ${isClickable ? '<i class="fas fa-external-link-alt ms-2 text-primary" style="font-size: 0.8em;"></i>' : ''}
+                                ${isClickable ? '<i class="fas fa-chevron-up ms-2 text-primary" style="font-size: 0.8em;"></i>' : ''}
                             </div>
                             <small class="activity-timestamp">${timeAgo}</small>
                         </div>
@@ -1087,6 +1108,11 @@ Agent Evaluation System
                             ${activity.duration ? `<span class="badge bg-info">${activity.duration}</span>` : ''}
                             ${hasScreenshot ? '<span class="badge bg-success"><i class="fas fa-camera"></i> Screenshot</span>' : ''}
                             ${hasResults ? '<span class="badge bg-primary"><i class="fas fa-file-alt"></i> Results</span>' : ''}
+                        </div>
+                        
+                        <!-- Expanded details shown by default -->
+                        <div id="activity-details-${index}" class="activity-details mt-2 p-2 border-top" style="display: block;">
+                            ${generateActivityDetails(activity, index)}
                         </div>
                     </div>
                 `;
@@ -1105,6 +1131,8 @@ Agent Evaluation System
             return activity.screenshot || 
                    (activity.results && activity.results.screenshot) ||
                    (activity.toolResult && activity.toolResult.screenshot) ||
+                   (activity.screenshots && activity.screenshots.length > 0) ||
+                   (activity.toolResult && activity.toolResult.screenshots && activity.toolResult.screenshots.length > 0) ||
                    (activity.description && activity.description.toLowerCase().includes('screenshot'));
         }
         
@@ -1128,17 +1156,21 @@ Agent Evaluation System
                 const screenshotUrl = getActivityScreenshotUrl(activity);
                 if (screenshotUrl) {
                     html += `
-                        <div class="activity-screenshot-container mb-2" style="display: none;" id="screenshot-${index}">
+                        <div class="activity-screenshot-container mb-2" style="display: block;" id="screenshot-${index}">
                             <img src="${screenshotUrl}" alt="Activity Screenshot" 
                                  class="img-fluid activity-screenshot" 
-                                 style="max-height: 200px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                 style="max-height: 300px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer;" 
+                                 onclick="openScreenshotModal('${screenshotUrl}')">
+                            <div class="screenshot-url-display mt-1">
+                                <small class="text-muted">📸 <a href="${screenshotUrl}" target="_blank" class="text-decoration-none">${screenshotUrl}</a></small>
+                            </div>
                         </div>
                     `;
                 }
                 
                 html += `
                     <button class="btn btn-outline-primary btn-sm me-2" onclick="toggleActivityScreenshot(${index}); event.stopPropagation();">
-                        <i class="fas fa-image"></i> <span id="screenshot-btn-text-${index}">View Screenshot</span>
+                        <i class="fas fa-image"></i> <span id="screenshot-btn-text-${index}">Hide Screenshot</span>
                     </button>
                 `;
             }
@@ -1167,21 +1199,57 @@ Agent Evaluation System
         
         // Get screenshot URL from activity
         function getActivityScreenshotUrl(activity) {
+            console.log('🖼️ Checking for screenshot in activity:', activity);
             if (activity.screenshot) {
+                console.log('✅ Found screenshot in activity.screenshot:', activity.screenshot);
                 return activity.screenshot;
             }
             if (activity.results && activity.results.screenshot) {
+                console.log('✅ Found screenshot in activity.results.screenshot:', activity.results.screenshot);
                 return activity.results.screenshot;
             }
             if (activity.toolResult && activity.toolResult.screenshot) {
+                console.log('✅ Found screenshot in activity.toolResult.screenshot:', activity.toolResult.screenshot);
                 return activity.toolResult.screenshot;
             }
+            if (activity.screenshots && activity.screenshots.length > 0) {
+                console.log('✅ Found screenshot in activity.screenshots:', activity.screenshots[0]);
+                return activity.screenshots[0];
+            }
+            if (activity.toolResult && activity.toolResult.screenshots && activity.toolResult.screenshots.length > 0) {
+                console.log('✅ Found screenshot in activity.toolResult.screenshots:', activity.toolResult.screenshots[0]);
+                return activity.toolResult.screenshots[0];
+            }
             
-            // Try to extract screenshot from description or other fields
+            // Enhanced screenshot URL detection from various fields
             const description = activity.description || '';
-            const screenshotMatch = description.match(/screenshot[s]?[:\s]*([^\s]+\.(?:png|jpg|jpeg|gif))/i);
-            if (screenshotMatch) {
-                return screenshotMatch[1];
+            const title = activity.title || '';
+            const errorDetails = activity.errorDetails || '';
+            const fullText = `${title} ${description} ${errorDetails}`;
+            
+            // Look for screenshot URLs in various formats
+            const patterns = [
+                /screenshot[s]?[:\s]*([^\s]+\.(?:png|jpg|jpeg|gif|webp))/i,
+                /image[s]?[:\s]*([^\s]+\.(?:png|jpg|jpeg|gif|webp))/i,
+                /file[s]?[:\s]*([^\s]+\.(?:png|jpg|jpeg|gif|webp))/i,
+                /(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp))/i,
+                /(\/[^\s]*screenshots?[^\s]*\.(?:png|jpg|jpeg|gif|webp))/i,
+                /(\/api\/[^\s]*screenshot[^\s]*)/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = fullText.match(pattern);
+                if (match) {
+                    return match[1];
+                }
+            }
+            
+            // Check for data in nested objects
+            if (activity.data && activity.data.screenshot) {
+                return activity.data.screenshot;
+            }
+            if (activity.params && activity.params.screenshot) {
+                return activity.params.screenshot;
             }
             
             // Default screenshot path pattern
@@ -1202,33 +1270,34 @@ Agent Evaluation System
             
             // Show/hide detailed information
             const detailsId = `activity-details-${index}`;
-            let detailsDiv = document.getElementById(detailsId);
+            const detailsDiv = document.getElementById(detailsId);
             
-            if (!detailsDiv) {
-                // Create details container
-                detailsDiv = document.createElement('div');
-                detailsDiv.id = detailsId;
-                detailsDiv.className = 'activity-details mt-2 p-2 border-top';
-                element.appendChild(detailsDiv);
-                
-                // Populate details
-                detailsDiv.innerHTML = generateActivityDetails(activityData, index);
-            } else {
+            if (detailsDiv) {
                 // Toggle visibility
-                detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+                const isVisible = detailsDiv.style.display !== 'none';
+                detailsDiv.style.display = isVisible ? 'none' : 'block';
+                
+                // Update chevron icon
+                const chevronIcon = element.querySelector('.fa-chevron-up, .fa-chevron-down');
+                if (chevronIcon) {
+                    chevronIcon.classList.toggle('fa-chevron-up', !isVisible);
+                    chevronIcon.classList.toggle('fa-chevron-down', isVisible);
+                }
             }
         }
         
         // Generate detailed activity information
         function generateActivityDetails(activity, index) {
+            console.log(`🔧 Generating details for activity ${index}:`, activity);
             let html = '<div class="activity-full-details">';
             
             // Timestamp details
             html += `<div class="mb-2"><strong>Executed:</strong> ${new Date(activity.timestamp).toLocaleString()}</div>`;
             
-            // Task details
-            if (activity.originalQuery) {
-                html += `<div class="mb-2"><strong>Original Query:</strong> <code class="small">${activity.originalQuery}</code></div>`;
+            // Task details - check both direct fields and toolResult
+            const originalQuery = activity.originalQuery || (activity.toolResult && activity.toolResult.originalQuery);
+            if (originalQuery) {
+                html += `<div class="mb-2"><strong>Original Query:</strong> <code class="small">${originalQuery}</code></div>`;
             }
             
             // Tool execution details
@@ -1236,14 +1305,55 @@ Agent Evaluation System
                 html += `<div class="mb-2"><strong>Tool:</strong> ${activity.toolName}</div>`;
             }
             
-            // Parameters
-            if (activity.parameters) {
-                html += `<div class="mb-2"><strong>Parameters:</strong> <pre class="small bg-light p-2 rounded">${JSON.stringify(activity.parameters, null, 2)}</pre></div>`;
+            // Task type and status
+            if (activity.taskType) {
+                html += `<div class="mb-2"><strong>Task Type:</strong> ${activity.taskType}</div>`;
+            }
+            if (activity.status) {
+                html += `<div class="mb-2"><strong>Status:</strong> <span class="badge bg-${activity.severity || 'secondary'}">${activity.status}</span></div>`;
             }
             
-            // Results preview
-            if (activity.results) {
-                html += `<div class="mb-2"><strong>Results Preview:</strong> <pre class="small bg-light p-2 rounded" style="max-height: 150px; overflow-y: auto;">${JSON.stringify(activity.results, null, 2)}</pre></div>`;
+            // Progress information
+            if (activity.progressMessage || (activity.toolResult && activity.toolResult.progressMessage)) {
+                const progressMsg = activity.progressMessage || activity.toolResult.progressMessage;
+                html += `<div class="mb-2"><strong>Progress:</strong> ${progressMsg}</div>`;
+            }
+            
+            // Duration information
+            if (activity.duration) {
+                html += `<div class="mb-2"><strong>Duration:</strong> ${activity.duration}</div>`;
+            }
+            
+            // Parameters - check toolResult if not in main activity
+            const parameters = activity.parameters || (activity.toolResult && activity.toolResult.parameters);
+            if (parameters) {
+                html += `<div class="mb-2"><strong>Parameters:</strong> <pre class="small bg-light p-2 rounded">${JSON.stringify(parameters, null, 2)}</pre></div>`;
+            }
+            
+            // Results preview - check both locations
+            const results = activity.results || (activity.toolResult && activity.toolResult.extractedResults);
+            if (results) {
+                const displayResults = typeof results === 'string' ? results : JSON.stringify(results, null, 2);
+                const truncatedResults = displayResults.length > 300 ? displayResults.substring(0, 300) + '...' : displayResults;
+                html += `<div class="mb-2"><strong>Results Preview:</strong> <pre class="small bg-light p-2 rounded" style="max-height: 150px; overflow-y: auto;">${truncatedResults}</pre></div>`;
+            }
+            
+            // Screenshots information
+            const screenshots = activity.screenshots || (activity.toolResult && activity.toolResult.screenshots) || [];
+            if (screenshots.length > 0) {
+                html += `<div class="mb-2"><strong>Screenshots:</strong> ${screenshots.length} captured</div>`;
+                screenshots.forEach((url, idx) => {
+                    html += `<div class="mb-1"><small><a href="${url}" target="_blank">📸 Screenshot ${idx + 1}</a></small></div>`;
+                });
+            }
+            
+            // Metadata information
+            if (activity.metadata) {
+                html += `<div class="mb-2"><strong>Metadata:</strong>`;
+                Object.entries(activity.metadata).forEach(([key, value]) => {
+                    html += `<br><small><strong>${key}:</strong> ${value}</small>`;
+                });
+                html += `</div>`;
             }
             
             html += '</div>';
@@ -1260,6 +1370,38 @@ Agent Evaluation System
                 screenshotDiv.style.display = isVisible ? 'none' : 'block';
                 btnText.textContent = isVisible ? 'View Screenshot' : 'Hide Screenshot';
             }
+        }
+        
+        // Open screenshot in modal for full view
+        function openScreenshotModal(screenshotUrl) {
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Screenshot</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img src="${screenshotUrl}" class="img-fluid" style="max-width: 100%; height: auto;">
+                            <div class="mt-3">
+                                <a href="${screenshotUrl}" target="_blank" class="btn btn-primary">
+                                    <i class="fas fa-external-link-alt"></i> Open in New Tab
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Clean up modal after it's hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
         }
         
         // Show activity results in modal
