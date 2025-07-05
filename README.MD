@@ -1,8 +1,8 @@
 # A foundation for an Enterprise Agentic Framework in Spring/Java
 
-This repository showcases a personal demo - its a versatile system that you can use for a lot of things.
+This repository showcases a personal demo - its a versatile system that you can use for a lot of interesting agentic things.
 
-- **Native Tools4AI Classe Integration**: Complete framework studied and recreated locally under `io.wingie.a2acore.tools4ai.*` from https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/transform
+- **Native Tools4AI Framework ReWrite**: The Complete framework is studied and recreated locally under `io.wingie.a2acore.tools4ai.*` from https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/transform, while vishalmysores implementation was quite solid, there were some architectural decisions that i woudl have done differently and it wasnt possible to simple use OOP subclassing to get around it, so hence i opted for a rewrite.
 - **Java 17+ Compatibility**: Resolved JAXB and modern Java runtime issues
 
 This repo demonstrates my Java/Spring Boot expertise, strategic architecture decisions, and the ability to take ownership of complex dependencies rather than relying on external libraries.
