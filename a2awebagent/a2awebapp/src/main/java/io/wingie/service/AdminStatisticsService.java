@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Service to aggregate comprehensive statistics for the admin dashboard
@@ -445,12 +447,24 @@ public class AdminStatisticsService {
                 task.getOriginalQuery().substring(0, Math.min(100, task.getOriginalQuery().length())) : 
                 "No query available");
         
+        // Extract screenshot URLs from both traditional screenshots and extracted results
+        List<String> allScreenshots = new ArrayList<>();
+        
+        // Add traditional screenshots from task_screenshots table
+        if (task.getScreenshots() != null) {
+            allScreenshots.addAll(task.getScreenshots());
+        }
+        
+        // Extract screenshot URLs from extracted results (ImageContentUrl objects)
+        List<String> extractedScreenshots = extractScreenshotUrlsFromResults(task.getExtractedResults());
+        allScreenshots.addAll(extractedScreenshots);
+        
         // Create structured tool result for frontend consumption
         Map<String, Object> toolResult = Map.of(
             "taskId", task.getTaskId() != null ? task.getTaskId() : "",
             "originalQuery", task.getOriginalQuery() != null ? task.getOriginalQuery() : "",
             "extractedResults", task.getExtractedResults() != null ? task.getExtractedResults() : "",
-            "screenshots", task.getScreenshots() != null ? task.getScreenshots() : List.of(),
+            "screenshots", allScreenshots,
             "progressMessage", task.getProgressMessage() != null ? task.getProgressMessage() : "",
             "progressPercent", task.getProgressPercent() != null ? task.getProgressPercent() : 0,
             "startedAt", task.getStartedAt() != null ? task.getStartedAt() : "",
@@ -472,17 +486,60 @@ public class AdminStatisticsService {
             .errorDetails(task.getErrorDetails())
             .severity(severity)
             .metadata(Map.of(
-                "screenshots", task.getScreenshots() != null ? task.getScreenshots().size() : 0,
+                "screenshots", allScreenshots.size(),
                 "retryCount", task.getRetryCount() != null ? task.getRetryCount() : 0,
                 "requesterId", task.getRequesterId() != null ? task.getRequesterId() : "anonymous"
             ))
             // CRITICAL: Map the missing fields that frontend expects
             .results(task.getExtractedResults()) // Direct mapping for frontend
-            .screenshots(task.getScreenshots() != null ? task.getScreenshots() : List.of()) // Direct mapping
+            .screenshots(allScreenshots) // Combined screenshots from both sources
             .toolResult(toolResult) // Structured object for detailed view
             .progressMessage(task.getProgressMessage()) // For in-progress tasks
             .progressPercent(task.getProgressPercent()) // For progress display
             .build();
+    }
+    
+    /**
+     * Extract screenshot URLs from extracted results that contain ImageContentUrl objects
+     * Handles both direct ImageContentUrl objects and nested ToolCallResult structures
+     */
+    private List<String> extractScreenshotUrlsFromResults(String extractedResults) {
+        List<String> screenshotUrls = new ArrayList<>();
+        
+        if (extractedResults == null || extractedResults.isEmpty()) {
+            return screenshotUrls;
+        }
+        
+        // Pattern to match ImageContentUrl objects with their URL field
+        // Matches: ImageContentUrl{url='http://localhost:7860/screenshots/screenshot_20250705_104300_5cc33bc6.png', mimeType='image/png', alt='null'}
+        Pattern imageContentUrlPattern = Pattern.compile(
+            "ImageContentUrl\\{url='([^']+)'[^}]*\\}",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+        );
+        
+        Matcher matcher = imageContentUrlPattern.matcher(extractedResults);
+        while (matcher.find()) {
+            String url = matcher.group(1);
+            if (url != null && !url.isEmpty()) {
+                screenshotUrls.add(url);
+            }
+        }
+        
+        // Also look for standard screenshot URL patterns in the text
+        Pattern standardScreenshotPattern = Pattern.compile(
+            "(https?://[^\\s]+/screenshots/[^\\s]+\\.[a-zA-Z]+)",
+            Pattern.CASE_INSENSITIVE
+        );
+        
+        Matcher standardMatcher = standardScreenshotPattern.matcher(extractedResults);
+        while (standardMatcher.find()) {
+            String url = standardMatcher.group(1);
+            if (url != null && !url.isEmpty() && !screenshotUrls.contains(url)) {
+                screenshotUrls.add(url);
+            }
+        }
+        
+        return screenshotUrls;
     }
     
     private CacheProviderMetric buildCacheProviderMetric(String providerModel, List<ToolDescription> items) {

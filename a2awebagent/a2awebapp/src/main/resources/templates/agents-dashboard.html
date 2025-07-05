@@ -682,7 +682,7 @@ Agent Evaluation Dashboard
                                         <small class="text-muted">Screenshots:</small>
                                         <div class="d-flex gap-1 mt-1">
                                             <img th:each="screenshot : ${task.screenshots}" 
-                                                 th:src="'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='" 
+                                                 th:src="${screenshot}" 
                                                  class="screenshot-thumbnail"
                                                  th:alt="|Screenshot ${screenshot}|"
                                                  th:title="${screenshot}">

@@ -6,6 +6,7 @@ import io.wingie.repository.TaskExecutionRepository;
 import io.wingie.service.neo4j.TaskGraphService;
 import io.wingie.service.neo4j.ScreenshotEmbeddingService;
 import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.a2acore.domain.ImageContentUrl;
 import io.wingie.a2acore.domain.ToolCallResult;
 import io.wingie.a2acore.domain.Content;
 import lombok.RequiredArgsConstructor;
@@ -112,16 +113,26 @@ public class TaskExecutionIntegrationService {
             
             // Handle screenshot results from ToolCallResult containing ImageContent
             if (result instanceof ToolCallResult toolCallResult && screenshotService != null) {
-                // Check if any content in the result is an ImageContent
-                for (Content content : toolCallResult.getContent()) {
-                    if (content instanceof ImageContent imageContent) {
-                        String screenshotUrl = screenshotService.saveScreenshotAndGetUrl(imageContent.getData(), "mcp-tool");
-                        if (screenshotUrl != null) {
-                            task.getScreenshots().add(screenshotUrl);
-                            log.info("📸 Screenshot saved for MCP tool execution {}: {}", task.getTaskId(), screenshotUrl);
+                // Check for existing screenshot URLs first (to avoid duplicate saves)
+                String existingUrl = extractExistingScreenshotUrl(toolCallResult);
+                
+                if (existingUrl != null) {
+                    // Use existing URL rather than saving again
+                    task.getScreenshots().add(existingUrl);
+                    log.info("📸 Using existing screenshot URL for MCP tool execution {}: {}", task.getTaskId(), existingUrl);
+                    task.setExtractedResults("Screenshot captured: " + existingUrl);
+                } else {
+                    // Check if any content in the result is an ImageContent
+                    for (Content content : toolCallResult.getContent()) {
+                        if (content instanceof ImageContent imageContent) {
+                            String screenshotUrl = screenshotService.saveScreenshotAndGetUrl(imageContent.getData(), "mcp-tool");
+                            if (screenshotUrl != null) {
+                                task.getScreenshots().add(screenshotUrl);
+                                log.info("📸 Screenshot saved for MCP tool execution {}: {}", task.getTaskId(), screenshotUrl);
+                            }
+                            task.setExtractedResults("Screenshot captured: " + screenshotUrl);
+                            break; // Only handle the first screenshot
                         }
-                        task.setExtractedResults("Screenshot captured: " + screenshotUrl);
-                        break; // Only handle the first screenshot
                     }
                 }
                 // If no screenshots were found, use default result handling
@@ -359,6 +370,20 @@ public class TaskExecutionIntegrationService {
             log.warn("Failed to publish task update event: {}", e.getMessage());
             // Don't fail the main execution if event publishing fails
         }
+    }
+    
+    /**
+     * Extracts existing screenshot URLs from ToolCallResult to avoid duplicate saves.
+     * Checks for ImageContentUrl in the result first.
+     */
+    private String extractExistingScreenshotUrl(ToolCallResult toolCallResult) {
+        // Check for ImageContentUrl in the result first
+        for (Content content : toolCallResult.getContent()) {
+            if (content instanceof ImageContentUrl imageUrl) {
+                return imageUrl.getUrl();
+            }
+        }
+        return null;
     }
     
     /**

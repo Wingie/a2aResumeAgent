@@ -174,22 +174,14 @@ public class MemeGeneratorTool {
             String memeUrl = buildMemegenUrl(template, topText, bottomText);
             log.info("Generated memegen URL: {}", memeUrl);
             
-            // Take a screenshot of the meme
-            ImageContent screenshotImage = webBrowsingAction.browseWebAndReturnImage(
-                String.format("Navigate to %s and take a high-quality screenshot of the meme", memeUrl)
-            );
+            // Fetch image directly from API and save as URL (single file creation)
+            ImageContentUrl urlImage = fetchMemeImageAsUrl(memeUrl);
             
-            // Save screenshot to static directory and get URL
-            String screenshotUrl = null;
-            if (screenshotImage != null && screenshotImage.getData() != null) {
-                screenshotUrl = screenshotService.saveMemeScreenshot(screenshotImage.getData());
-            }
+            // Get screenshot URL from the fetched image
+            String screenshotUrl = urlImage != null ? urlImage.getUrl() : null;
             
             // Create text content with current markdown response
             TextContent textResponse = TextContent.of(formatMemeResponse(template, topText, bottomText, memeUrl, screenshotUrl));
-            
-            // Try to fetch image and save as URL first (preferred for performance)
-            ImageContentUrl urlImage = fetchMemeImageAsUrl(memeUrl);
             
             // Return mixed content with both text and URL-based image
             if (urlImage != null) {
@@ -660,22 +652,14 @@ public class MemeGeneratorTool {
             String memeUrl = buildMemegenUrl(selectedTemplate, topText, bottomText);
             log.info("Generated memegen URL for mood '{}': {}", mood, memeUrl);
             
-            // Take a screenshot of the meme
-            ImageContent screenshotImage = webBrowsingAction.browseWebAndReturnImage(
-                String.format("Navigate to %s and take a high-quality screenshot of the meme", memeUrl)
-            );
+            // Fetch image directly from API and save as URL (single file creation)
+            ImageContentUrl urlImage = fetchMemeImageAsUrl(memeUrl);
             
-            // Save screenshot to static directory and get URL
-            String screenshotUrl = null;
-            if (screenshotImage != null && screenshotImage.getData() != null) {
-                screenshotUrl = screenshotService.saveMemeScreenshot(screenshotImage.getData());
-            }
+            // Get screenshot URL from the fetched image
+            String screenshotUrl = urlImage != null ? urlImage.getUrl() : null;
             
             // Create text content with current markdown response
             TextContent textResponse = TextContent.of(formatMoodMemeResponse(mood, selectedTemplate, topText, bottomText, memeUrl, screenshotUrl, templateSuggestions));
-            
-            // Try to fetch image and save as URL first (preferred for performance)
-            ImageContentUrl urlImage = fetchMemeImageAsUrl(memeUrl);
             
             // Return mixed content with both text and URL-based image
             if (urlImage != null) {

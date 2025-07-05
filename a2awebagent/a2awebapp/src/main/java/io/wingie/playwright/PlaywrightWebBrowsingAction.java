@@ -227,6 +227,11 @@ public class PlaywrightWebBrowsingAction {
             page.navigate("https://www.google.com");
             page.waitForLoadState(LoadState.DOMCONTENTLOADED);
             result.addData("Navigated to Google");
+        } else if (steps.toLowerCase().contains("linkedin")) {
+            log.info("Navigating to LinkedIn (keyword detected)");
+            page.navigate("https://www.linkedin.com");
+            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            result.addData("Navigated to LinkedIn");
         } else {
             // Always navigate somewhere sensible before screenshot - default to tastebeforeyouwaste.org
             log.info("No URL detected, defaulting to tastebeforeyouwaste.org for screenshot");
@@ -279,6 +284,7 @@ public class PlaywrightWebBrowsingAction {
         // Default URLs for common sites
         if (step.contains("google")) return "https://www.google.com";
         if (step.contains("booking")) return "https://www.booking.com";
+        if (step.contains("linkedin")) return "https://www.linkedin.com";
         return null;
     }
 

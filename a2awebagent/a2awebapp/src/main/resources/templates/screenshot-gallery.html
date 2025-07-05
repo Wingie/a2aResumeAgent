@@ -495,7 +495,16 @@
                             <ul class="list-unstyled">
                                 <li><strong>Task ID:</strong> ${screenshot.taskId}</li>
                                 <li><strong>URL:</strong> ${screenshot.pageUrl || 'N/A'}</li>
-                                <li><strong>Created:</strong> ${new Date(screenshot.capturedAt).toLocaleString()}</li>
+                                <li><strong>Created:</strong> ${new Date(screenshot.capturedAt).toLocaleString('en-GB', {
+                                    timeZone: 'Europe/Amsterdam',
+                                    year: 'numeric',
+                                    month: '2-digit', 
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit',
+                                    hour12: false
+                                })}</li>
                                 <li><strong>Quality Score:</strong> 
                                     <span class="status-badge ${screenshot.qualityScore > 0.7 ? 'status-success' : 'status-error'}">
                                         ${screenshot.qualityScore ? (screenshot.qualityScore * 100).toFixed(1) + '%' : 'Unknown'}
