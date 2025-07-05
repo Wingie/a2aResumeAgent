@@ -1,21 +1,13 @@
-# a2aTravelAgent - AI-Powered Travel Research with Local Tools4AI Framework
+# A foundation for an Enterprise Agentic Framework in Spring/Java
 
 This repository showcases a personal demo - its a versatile system that you can use for a lot of things.
 
 - **Native Tools4AI Classe Integration**: Complete framework studied and recreated locally under `io.wingie.a2acore.tools4ai.*` from https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/transform
 - **Java 17+ Compatibility**: Resolved JAXB and modern Java runtime issues
 
-![Tools4AI Framework](Tools4AI/tools4ai.png)
+This repo demonstrates my Java/Spring Boot expertise, strategic architecture decisions, and the ability to take ownership of complex dependencies rather than relying on external libraries.
 
-This technical achievement demonstrates advanced Java/Spring Boot expertise, strategic architecture decisions, and the ability to take ownership of complex dependencies rather than relying on external libraries.
-
-## 🏗️ Framework Recreation Architecture
-
-### **The Local Tools4AI Achievement**
-
-
-
-#### **After: Local Framework**
+#### ** Framework**
 ```
 a2awebagent/
 ├── a2acore/                          # 🎯 LOCAL TOOLS4AI FRAMEWORK
@@ -35,7 +27,7 @@ a2awebagent/
 
 #### **Technical Sanity**
 
-![Build Success](Tools4AI/compiler.PNG)
+<img src="a2awebagent/claude.png" alt="All Fixes by Claude" width="600">
 
 ### **Framework Integration Architecture**
 
@@ -450,10 +442,6 @@ Seamless integration with Claude for enhanced AI capabilities:
 
 <img src="a2awebagent/claude.png" alt="Claude Integration" width="600">
 
-### **LinkedIn Professional Search**
-Professional networking and profile search capabilities:
-
-<img src="a2awebagent/wingston_linkedin_screenshot.png" alt="LinkedIn Integration" width="400">
 
 ---
 
