@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,10 +104,10 @@ public class TaskExecution {
     @PrePersist
     protected void onCreate() {
         if (created == null) {
-            created = LocalDateTime.now();
+            created = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDateTime();
         }
         if (updated == null) {
-            updated = LocalDateTime.now();
+            updated = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDateTime();
         }
         if (status == null) {
             status = TaskStatus.QUEUED;
@@ -117,15 +119,15 @@ public class TaskExecution {
     
     @PreUpdate
     protected void onUpdate() {
-        updated = LocalDateTime.now();
+        updated = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDateTime();
         
         // Auto-set timestamps based on status changes
         if (status == TaskStatus.RUNNING && startedAt == null) {
-            startedAt = LocalDateTime.now();
+            startedAt = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDateTime();
         }
         
         if ((status == TaskStatus.COMPLETED || status == TaskStatus.FAILED) && completedAt == null) {
-            completedAt = LocalDateTime.now();
+            completedAt = ZonedDateTime.now(ZoneId.systemDefault()).toLocalDateTime();
             
             // Calculate actual duration
             if (startedAt != null) {

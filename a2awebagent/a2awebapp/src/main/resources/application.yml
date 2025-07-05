@@ -2,6 +2,13 @@ spring:
   profiles:
     active: default
   
+  # Jackson configuration for consistent timestamp handling
+  jackson:
+    time-zone: Europe/Amsterdam
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+  
   # Default configuration (for local development with Docker PostgreSQL)
   datasource:
     url: jdbc:postgresql://localhost:5432/a2awebagent
