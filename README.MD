@@ -70,15 +70,15 @@ This project serves as:
 - A **production-ready MCP protocol implementation** for AI-powerlayered agents  
 - A **good base for red teaming attack vectors at architecture example** of taking control over external dependencies
 
-![Agent Interface](agent.png)
+<img src="a2awebagent/startup.png" alt="Agent Interface" width="600">
 
-![Claude Integration](claude.png)
+<img src="a2awebagent/claude.png" alt="Claude Integration" width="600">
 
 ## 🏗️ Architecture Overview
 
 The system is built using a modern multi-module Spring Boot architecture with enhanced performance optimization:
 
-![Multiple Agent Architecture](multiple.png)
+<img src="a2awebagent/dashboard-one-shot.png" alt="Multiple Agent Architecture" width="600">
 
 ### Core Architecture Components
 
@@ -402,6 +402,61 @@ This project serves as a **living technical resume** that demonstrates:
 
 **Perfect for demonstrating technical capabilities to potential employers, clients, or collaborators.**
 
-Credits
+## 🖼️ Interface Showcase
+
+### **Main Application Interface**
+The startup interface provides a comprehensive view of agent capabilities and real-time interactions:
+
+<img src="a2awebagent/startup.png" alt="Main Startup Interface" width="600">
+
+### **Resume & Professional Portfolio**
+Interactive resume showcase demonstrating technical expertise:
+
+<img src="a2awebagent/resume.png" alt="Professional Resume Interface" width="600">
+
+### **Live Reasoning & AI Interactions**
+Real-time AI reasoning and decision-making process visualization:
+
+<img src="a2awebagent/live_reasoning_log.png" alt="Live AI Reasoning" width="600">
+
+## 🔧 System Features
+
+### **Meme Generation Server**
+Advanced meme generation with mood-based template selection:
+
+<img src="a2awebagent/meme_server.png" alt="Meme Generation Interface" width="500">
+
+### **Screenshot Capture System**
+Automated screenshot capture and processing capabilities:
+
+<img src="a2awebagent/captureScreenshot.png" alt="Screenshot Capture System" width="500">
+
+### **System Testing & Validation**
+Comprehensive testing interface for system reliability:
+
+<img src="a2awebagent/sanity_check_tets.png" alt="System Testing Interface" width="500">
+
+## 📊 Agent Analytics
+
+### **Agent Evaluation Dashboard**
+Performance metrics and evaluation of agent capabilities:
+
+<img src="a2awebagent/agent_eval.png" alt="Agent Evaluation Dashboard" width="600">
+
+## 🎯 Integration Examples
+
+### **Claude Desktop Integration**
+Seamless integration with Claude for enhanced AI capabilities:
+
+<img src="a2awebagent/claude.png" alt="Claude Integration" width="600">
+
+### **LinkedIn Professional Search**
+Professional networking and profile search capabilities:
+
+<img src="a2awebagent/wingston_linkedin_screenshot.png" alt="LinkedIn Integration" width="400">
+
+---
+
+## Credits
 https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/transform
 @vishalmysore for the amazing work on ^, your code was a joy to read
