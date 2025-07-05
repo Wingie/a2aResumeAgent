@@ -8,6 +8,7 @@ import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
 import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.a2acore.domain.ImageContentUrl;
 // AI processing imports removed - using a2acore annotations instead
 import io.wingie.CustomScriptResult;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,9 @@ public class PlaywrightWebBrowsingAction {
     
     @Autowired
     private BrowserEventHandler browserEventHandler;
+    
+    @Autowired
+    private io.wingie.service.ScreenshotService screenshotService;
 
     // AI processor removed - using static annotations instead
 
@@ -75,6 +79,39 @@ public class PlaywrightWebBrowsingAction {
             String errorMessage = "Error during web browsing: " + e.getMessage();
             String errorBase64 = Base64.getEncoder().encodeToString(errorMessage.getBytes());
             return ImageContent.png(errorBase64);
+        }
+    }
+
+    @Action(description = "perform actions on the web with Playwright and return image URL", name = "browseWebAndReturnImageUrl")
+    public ImageContentUrl browseWebAndReturnImageUrl(@Parameter(description = "Natural language description of web browsing steps to perform and capture as image URL") String webBrowsingSteps) {
+        
+        log.info("Starting Playwright web browsing with image URL capture: {}", webBrowsingSteps);
+        
+        try {
+            CustomScriptResult result = new CustomScriptResult();
+            executeWebBrowsingSteps(webBrowsingSteps, result);
+            
+            String base64Screenshot = result.getLastScreenshotAsBase64();
+            if (base64Screenshot != null) {
+                log.info("Successfully captured screenshot, saving as URL");
+                
+                // Save screenshot to static directory and get HTTP URL
+                String httpUrl = screenshotService.saveGeneralScreenshot(base64Screenshot);
+                
+                if (httpUrl != null) {
+                    log.info("Screenshot saved to HTTP URL: {}", httpUrl);
+                    return ImageContentUrl.png(httpUrl);
+                } else {
+                    log.warn("Failed to save screenshot to static directory");
+                    return null;
+                }
+            } else {
+                log.warn("No screenshot captured");
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Error during Playwright web browsing with image URL", e);
+            return null;
         }
     }
 

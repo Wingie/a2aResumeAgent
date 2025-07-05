@@ -18,7 +18,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = TextContent.class, name = "text"),
-    @JsonSubTypes.Type(value = ImageContent.class, name = "image")
+    @JsonSubTypes.Type(value = ImageContent.class, name = "image"),
+    @JsonSubTypes.Type(value = ImageContentUrl.class, name = "image")
 })
 public abstract class Content {
     

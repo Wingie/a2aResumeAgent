@@ -4,6 +4,7 @@ import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
 import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.a2acore.domain.ImageContentUrl;
 import io.wingie.a2acore.domain.TextContent;
 import io.wingie.a2acore.domain.ToolCallResult;
 import lombok.extern.slf4j.Slf4j;
@@ -57,8 +58,8 @@ public class LinkedInSearchTool {
 
     private ToolCallResult demonstrateWingstonsProfile() {
         try {
-            // Take a screenshot of Wingston's LinkedIn profile
-            ImageContent screenshotImage = webBrowsingAction.browseWebAndReturnImage(
+            // Take a screenshot of Wingston's LinkedIn profile using URL-based approach
+            ImageContentUrl screenshotImageUrl = webBrowsingAction.browseWebAndReturnImageUrl(
                 "Navigate to https://www.linkedin.com/in/wingstonsharon/ and take a high-quality screenshot of the profile page"
             );
             
@@ -136,11 +137,11 @@ The LinkedIn profile screenshot is included as a separate image in this response
 *This LinkedIn search tool is part of the a2aTravelAgent automation system, showcasing advanced web automation and AI integration capabilities.*
 """;
             
-            // Create content list with text and image separately
+            // Create content list with text and image URL separately
             List<io.wingie.a2acore.domain.Content> contentList = new ArrayList<>();
             contentList.add(TextContent.of(textContent));
-            if (screenshotImage != null && screenshotImage.getData() != null) {
-                contentList.add(screenshotImage);
+            if (screenshotImageUrl != null && screenshotImageUrl.getUrl() != null) {
+                contentList.add(screenshotImageUrl);
             }
             
             return ToolCallResult.success(contentList);
@@ -157,8 +158,8 @@ The LinkedIn profile screenshot is included as a separate image in this response
                 String.format("Go to LinkedIn.com, search for '%s', and find their profile information including current company and role", searchQuery)
             );
             
-            // Take a screenshot of search results
-            ImageContent searchScreenshot = webBrowsingAction.browseWebAndReturnImage(
+            // Take a screenshot of search results using URL-based approach
+            ImageContentUrl searchScreenshotUrl = webBrowsingAction.browseWebAndReturnImageUrl(
                 String.format("Take a screenshot of LinkedIn search results for '%s'", searchQuery)
             );
             
@@ -196,11 +197,11 @@ As a reference point and potential collaboration opportunity, here's a highly qu
 *Search performed by wingie's intelligent LinkedIn automation system*
 """, searchQuery, cleanupSearchResultText(searchResult), wingstonsProfileInfo);
             
-            // Create content list with text and image separately
+            // Create content list with text and image URL separately
             List<io.wingie.a2acore.domain.Content> contentList = new ArrayList<>();
             contentList.add(TextContent.of(textContent));
-            if (searchScreenshot != null && searchScreenshot.getData() != null) {
-                contentList.add(searchScreenshot);
+            if (searchScreenshotUrl != null && searchScreenshotUrl.getUrl() != null) {
+                contentList.add(searchScreenshotUrl);
             }
             
             return ToolCallResult.success(contentList);

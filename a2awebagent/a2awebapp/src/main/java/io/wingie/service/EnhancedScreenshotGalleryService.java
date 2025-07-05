@@ -41,8 +41,11 @@ public class EnhancedScreenshotGalleryService {
                                                              String url, boolean isSuccess, 
                                                              String actionContext) {
         try {
+            // Convert file path to HTTP URL for UI display
+            String httpUrl = convertFilePathToHttpUrl(screenshotPath);
+            
             // Create screenshot node using existing factory method
-            ScreenshotNode screenshot = ScreenshotNode.fromScreenshotCapture(taskId, screenshotPath, url, actionContext);
+            ScreenshotNode screenshot = ScreenshotNode.fromScreenshotCapture(taskId, httpUrl, url, actionContext);
             
             // Set additional properties
             screenshot.setScreenshotId(UUID.randomUUID().toString());
@@ -343,6 +346,34 @@ public class EnhancedScreenshotGalleryService {
             return urlObj.getHost();
         } catch (Exception e) {
             return null;
+        }
+    }
+    
+    /**
+     * Converts a file path to an HTTP URL for serving via Spring Boot static resources.
+     * Handles both absolute paths and filenames.
+     */
+    private String convertFilePathToHttpUrl(String filePath) {
+        if (filePath == null) return null;
+        
+        try {
+            // Extract just the filename from the path
+            String filename;
+            if (filePath.contains("/") || filePath.contains("\\")) {
+                // It's a full path, extract the filename
+                java.nio.file.Path path = java.nio.file.Paths.get(filePath);
+                filename = path.getFileName().toString();
+            } else {
+                // It's already just a filename
+                filename = filePath;
+            }
+            
+            // Convert to HTTP URL using the /screenshots/ mapping from WebConfig
+            return "/screenshots/" + filename;
+            
+        } catch (Exception e) {
+            log.warn("Failed to convert file path to HTTP URL: {}", filePath, e);
+            return filePath; // Fallback to original path
         }
     }
     

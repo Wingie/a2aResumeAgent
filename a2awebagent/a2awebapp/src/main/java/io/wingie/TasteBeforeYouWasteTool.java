@@ -4,6 +4,7 @@ import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
 import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.a2acore.domain.ImageContentUrl;
 import io.wingie.a2acore.domain.TextContent;
 import io.wingie.a2acore.domain.ToolCallResult;
 import io.wingie.service.ScreenshotService;
@@ -268,7 +269,8 @@ Since we couldn't access specific information from tastebeforeyouwaste.org, here
     @Action(description = "Get screenshot of tastebeforeyouwaste.org homepage with visual food safety guide", name = "getTasteBeforeYouWasteScreenshot")
     public ToolCallResult getTasteBeforeYouWasteScreenshot() throws java.io.IOException {
         try {
-            ImageContent screenshotImage = webBrowsingAction.browseWebAndReturnImage(
+            // Use URL-based approach for better performance
+            ImageContentUrl screenshotImageUrl = webBrowsingAction.browseWebAndReturnImageUrl(
                 "Navigate to https://tastebeforeyouwaste.org and take a high-quality screenshot of the homepage showing food safety guidance and visual guides"
             );
             
@@ -295,11 +297,11 @@ Since we couldn't access specific information from tastebeforeyouwaste.org, here
                 *Screenshot captured by a2aTravelAgent web automation system*
                 """, java.time.LocalDateTime.now());
             
-            // Create content list with text and image separately
+            // Create content list with text and image URL separately
             List<io.wingie.a2acore.domain.Content> contentList = new ArrayList<>();
             contentList.add(TextContent.of(textContent));
-            if (screenshotImage != null && screenshotImage.getData() != null) {
-                contentList.add(screenshotImage);
+            if (screenshotImageUrl != null && screenshotImageUrl.getUrl() != null) {
+                contentList.add(screenshotImageUrl);
             }
             
             return ToolCallResult.success(contentList);

@@ -263,7 +263,9 @@ public class TaskExecutionIntegrationService {
      */
     public void addTaskScreenshot(String taskId, String screenshotPath) {
         taskRepository.findById(taskId).ifPresent(task -> {
-            task.getScreenshots().add(screenshotPath);
+            // Convert file path to HTTP URL for UI display
+            String httpUrl = convertFilePathToHttpUrl(screenshotPath);
+            task.getScreenshots().add(httpUrl);
             task.setUpdated(LocalDateTime.now());
             task = taskRepository.save(task);
             
@@ -281,8 +283,36 @@ public class TaskExecutionIntegrationService {
                     });
             }
             
-            log.info("📸 Screenshot added to task {}: {}", taskId, screenshotPath);
+            log.info("📸 Screenshot added to task {}: {}", taskId, httpUrl);
         });
+    }
+    
+    /**
+     * Converts a file path to an HTTP URL for serving via Spring Boot static resources.
+     * Handles both absolute paths and filenames.
+     */
+    private String convertFilePathToHttpUrl(String filePath) {
+        if (filePath == null) return null;
+        
+        try {
+            // Extract just the filename from the path
+            String filename;
+            if (filePath.contains("/") || filePath.contains("\\")) {
+                // It's a full path, extract the filename
+                java.nio.file.Path path = java.nio.file.Paths.get(filePath);
+                filename = path.getFileName().toString();
+            } else {
+                // It's already just a filename
+                filename = filePath;
+            }
+            
+            // Convert to HTTP URL using the /screenshots/ mapping from WebConfig
+            return "/screenshots/" + filename;
+            
+        } catch (Exception e) {
+            log.warn("Failed to convert file path to HTTP URL: {}", filePath, e);
+            return filePath; // Fallback to original path
+        }
     }
     
     /**

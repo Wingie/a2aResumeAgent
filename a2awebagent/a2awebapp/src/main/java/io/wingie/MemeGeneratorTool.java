@@ -4,6 +4,7 @@ import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
 import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.a2acore.domain.ImageContentUrl;
 import io.wingie.a2acore.domain.TextContent;
 import io.wingie.a2acore.domain.ToolCallResult;
 import io.wingie.service.ScreenshotService;
@@ -187,17 +188,26 @@ public class MemeGeneratorTool {
             // Create text content with current markdown response
             TextContent textResponse = TextContent.of(formatMemeResponse(template, topText, bottomText, memeUrl, screenshotUrl));
             
-            // Try to fetch direct image from memegen API
-            ImageContent directImage = fetchMemeImageDirectly(memeUrl);
+            // Try to fetch image and save as URL first (preferred for performance)
+            ImageContentUrl urlImage = fetchMemeImageAsUrl(memeUrl);
             
-            // Return mixed content with both text and image
-            if (directImage != null) {
-                log.info("Returning mixed content: TextContent + ImageContent (base64 length: {})", 
-                    directImage.getData() != null ? directImage.getData().length() : 0);
-                return ToolCallResult.success(List.of(textResponse, directImage));
+            // Return mixed content with both text and URL-based image
+            if (urlImage != null) {
+                log.info("Returning mixed content: TextContent + ImageContentUrl ({})", urlImage.getUrl());
+                return ToolCallResult.success(List.of(textResponse, urlImage));
             } else {
-                log.warn("Direct image fetch failed, returning text-only response");
-                return ToolCallResult.success(textResponse);
+                log.warn("URL-based image fetch failed, falling back to base64 approach");
+                
+                // Fallback to base64 approach if URL method fails
+                ImageContent directImage = fetchMemeImageDirectly(memeUrl);
+                if (directImage != null) {
+                    log.info("Fallback: Returning mixed content with base64 (length: {})", 
+                        directImage.getData() != null ? directImage.getData().length() : 0);
+                    return ToolCallResult.success(List.of(textResponse, directImage));
+                } else {
+                    log.warn("Both URL and base64 image fetch failed, returning text-only response");
+                    return ToolCallResult.success(textResponse);
+                }
             }
             
         } catch (Exception e) {
@@ -290,7 +300,58 @@ public class MemeGeneratorTool {
     }
     
     /**
-     * Fetches meme image directly from memegen.link API and returns as ImageContent.
+     * Fetches meme image directly from memegen.link API and saves as HTTP URL.
+     * This provides better performance by avoiding large base64 data in JSON responses
+     * while still allowing Claude Desktop and frontend to display images.
+     * 
+     * @param memeUrl The memegen.link URL to fetch
+     * @return ImageContentUrl with HTTP URL reference, or null if fetch fails
+     */
+    private ImageContentUrl fetchMemeImageAsUrl(String memeUrl) {
+        try {
+            log.info("Fetching meme image and saving as URL from: {}", memeUrl);
+            
+            HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+                
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(memeUrl))
+                .timeout(Duration.ofSeconds(30))
+                .GET()
+                .build();
+                
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            
+            if (response.statusCode() == 200) {
+                byte[] imageBytes = response.body();
+                String base64Data = Base64.getEncoder().encodeToString(imageBytes);
+                
+                log.info("Successfully fetched meme image: {} bytes", imageBytes.length);
+                
+                // Save to static directory via ScreenshotService and get HTTP URL
+                String httpUrl = screenshotService.saveMemeScreenshot(base64Data);
+                
+                if (httpUrl != null) {
+                    log.info("Meme image saved to HTTP URL: {}", httpUrl);
+                    return ImageContentUrl.png(httpUrl);
+                } else {
+                    log.warn("Failed to save meme image to static directory");
+                    return null;
+                }
+            } else {
+                log.warn("Failed to fetch meme image, HTTP status: {}", response.statusCode());
+                return null;
+            }
+            
+        } catch (Exception e) {
+            log.error("Error fetching meme image from {}: {}", memeUrl, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Legacy: Fetches meme image directly from memegen.link API and returns as ImageContent.
      * 
      * This method bypasses browser automation and directly fetches the PNG image
      * from the memegen API, converts it to base64, and returns as ImageContent.
@@ -613,17 +674,26 @@ public class MemeGeneratorTool {
             // Create text content with current markdown response
             TextContent textResponse = TextContent.of(formatMoodMemeResponse(mood, selectedTemplate, topText, bottomText, memeUrl, screenshotUrl, templateSuggestions));
             
-            // Try to fetch direct image from memegen API
-            ImageContent directImage = fetchMemeImageDirectly(memeUrl);
+            // Try to fetch image and save as URL first (preferred for performance)
+            ImageContentUrl urlImage = fetchMemeImageAsUrl(memeUrl);
             
-            // Return mixed content with both text and image
-            if (directImage != null) {
-                log.info("Returning mood-based mixed content: TextContent + ImageContent (base64 length: {})", 
-                    directImage.getData() != null ? directImage.getData().length() : 0);
-                return ToolCallResult.success(List.of(textResponse, directImage));
+            // Return mixed content with both text and URL-based image
+            if (urlImage != null) {
+                log.info("Returning mood-based mixed content: TextContent + ImageContentUrl ({})", urlImage.getUrl());
+                return ToolCallResult.success(List.of(textResponse, urlImage));
             } else {
-                log.warn("Direct image fetch failed for mood-based meme, returning text-only response");
-                return ToolCallResult.success(textResponse);
+                log.warn("URL-based image fetch failed for mood-based meme, falling back to base64 approach");
+                
+                // Fallback to base64 approach if URL method fails
+                ImageContent directImage = fetchMemeImageDirectly(memeUrl);
+                if (directImage != null) {
+                    log.info("Fallback: Returning mood-based mixed content with base64 (length: {})", 
+                        directImage.getData() != null ? directImage.getData().length() : 0);
+                    return ToolCallResult.success(List.of(textResponse, directImage));
+                } else {
+                    log.warn("Both URL and base64 image fetch failed for mood-based meme, returning text-only response");
+                    return ToolCallResult.success(textResponse);
+                }
             }
             
         } catch (Exception e) {
