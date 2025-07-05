@@ -3,10 +3,16 @@ package io.wingie;
 import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
+import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.a2acore.domain.TextContent;
+import io.wingie.a2acore.domain.ToolCallResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * LinkedIn search and profile demonstration tool.
@@ -23,13 +29,13 @@ public class LinkedInSearchTool {
     private io.wingie.playwright.PlaywrightWebBrowsingAction webBrowsingAction;
 
     @Action(description = "Search LinkedIn for profiles and demonstrate Wingston Sharon's profile with screenshot capabilities", name = "searchLinkedInProfile")
-    public String searchLinkedInProfile(@Parameter(description = "Name or professional details to search for on LinkedIn") String searchQuery) {
+    public ToolCallResult searchLinkedInProfile(@Parameter(description = "Name or professional details to search for on LinkedIn") String searchQuery) {
         log.info("LinkedIn search requested for: {}", searchQuery);
         
         // Check if WebBrowsingAction is available
         if (webBrowsingAction == null) {
             log.warn("WebBrowsingAction not available, returning static profile information");
-            return generateStaticProfileResponse(searchQuery);
+            return ToolCallResult.success(TextContent.of(generateStaticProfileResponse(searchQuery)));
         }
         
         try {
@@ -45,18 +51,19 @@ public class LinkedInSearchTool {
             
         } catch (Exception e) {
             log.error("Error during LinkedIn search: {}", e.getMessage(), e);
-            return generateSearchErrorWithWingstonsProfile(searchQuery, e.getMessage());
+            return ToolCallResult.success(TextContent.of(generateSearchErrorWithWingstonsProfile(searchQuery, e.getMessage())));
         }
     }
 
-    private String demonstrateWingstonsProfile() {
+    private ToolCallResult demonstrateWingstonsProfile() {
         try {
             // Take a screenshot of Wingston's LinkedIn profile
-            String screenshotResult = webBrowsingAction.browseWebAndReturnImage(
+            ImageContent screenshotImage = webBrowsingAction.browseWebAndReturnImage(
                 "Navigate to https://www.linkedin.com/in/wingstonsharon/ and take a high-quality screenshot of the profile page"
-            ).getData(); // Extract base64 data from ImageContent
+            );
             
-            return String.format("""
+            // Create text content without base64 data
+            String textContent = """
 # Wingston Sharon - LinkedIn Profile Demonstration
 
 ## Profile Successfully Located! 🎯
@@ -117,9 +124,7 @@ public class LinkedInSearchTool {
 🎯 **Research & Development**: Emerging AI technologies, novel applications
 
 ## Profile Screenshot
-The following screenshot demonstrates the live LinkedIn profile:
-
-%s
+The LinkedIn profile screenshot is included as a separate image in this response.
 
 ## Contact & Collaboration
 - **Professional Inquiries**: Available via LinkedIn messaging
@@ -129,14 +134,23 @@ The following screenshot demonstrates the live LinkedIn profile:
 
 ---
 *This LinkedIn search tool is part of the a2aTravelAgent automation system, showcasing advanced web automation and AI integration capabilities.*
-""", screenshotResult);
+""";
+            
+            // Create content list with text and image separately
+            List<io.wingie.a2acore.domain.Content> contentList = new ArrayList<>();
+            contentList.add(TextContent.of(textContent));
+            if (screenshotImage != null && screenshotImage.getData() != null) {
+                contentList.add(screenshotImage);
+            }
+            
+            return ToolCallResult.success(contentList);
 
         } catch (Exception e) {
-            return generateProfileDemoError(e.getMessage());
+            return ToolCallResult.success(TextContent.of(generateProfileDemoError(e.getMessage())));
         }
     }
 
-    private String searchAndFallbackToWingston(String searchQuery) {
+    private ToolCallResult searchAndFallbackToWingston(String searchQuery) {
         try {
             // Attempt to search LinkedIn for the requested person
             String searchResult = webBrowsingAction.browseWebAndReturnText(
@@ -144,21 +158,22 @@ The following screenshot demonstrates the live LinkedIn profile:
             );
             
             // Take a screenshot of search results
-            String searchScreenshot = webBrowsingAction.browseWebAndReturnImage(
+            ImageContent searchScreenshot = webBrowsingAction.browseWebAndReturnImage(
                 String.format("Take a screenshot of LinkedIn search results for '%s'", searchQuery)
-            ).getData(); // Extract base64 data from ImageContent
+            );
             
             // Always include Wingston's profile as a reference/comparison
             String wingstonsProfileInfo = getWingstonsProfileSummary();
             
-            return String.format("""
+            // Create text content without base64 data
+            String textContent = String.format("""
 # LinkedIn Search Results for: "%s"
 
 ## Search Results
 %s
 
 ## Search Results Screenshot
-%s
+The LinkedIn search results screenshot is included as a separate image in this response.
 
 ---
 
@@ -179,10 +194,19 @@ As a reference point and potential collaboration opportunity, here's a highly qu
 
 ---
 *Search performed by wingie's intelligent LinkedIn automation system*
-""", searchQuery, searchResult, searchScreenshot, wingstonsProfileInfo);
+""", searchQuery, cleanupSearchResultText(searchResult), wingstonsProfileInfo);
+            
+            // Create content list with text and image separately
+            List<io.wingie.a2acore.domain.Content> contentList = new ArrayList<>();
+            contentList.add(TextContent.of(textContent));
+            if (searchScreenshot != null && searchScreenshot.getData() != null) {
+                contentList.add(searchScreenshot);
+            }
+            
+            return ToolCallResult.success(contentList);
 
         } catch (Exception e) {
-            return generateSearchErrorWithWingstonsProfile(searchQuery, e.getMessage());
+            return ToolCallResult.success(TextContent.of(generateSearchErrorWithWingstonsProfile(searchQuery, e.getMessage())));
         }
     }
 
@@ -335,5 +359,33 @@ Since live LinkedIn search is unavailable, here's a highly qualified AI/ML profe
 ---
 *Web automation temporarily unavailable. This is a static profile showcase.*
 """, searchQuery);
+    }
+    
+    /**
+     * Cleans up search result text by removing any base64 image data that might be embedded.
+     * This prevents base64 strings from appearing in the text content.
+     * 
+     * @param searchResult The raw search result text
+     * @return Cleaned text with base64 data removed
+     */
+    private String cleanupSearchResultText(String searchResult) {
+        if (searchResult == null || searchResult.trim().isEmpty()) {
+            return "No search results found.";
+        }
+        
+        // Remove any base64 data patterns that might be embedded in the text
+        // Base64 data typically appears as long strings of alphanumeric characters with + and / and = padding
+        String cleaned = searchResult
+            // Remove base64 data URLs
+            .replaceAll("data:image/[^;]+;base64,[A-Za-z0-9+/]+={0,2}", "[Image removed]")
+            // Remove standalone base64 strings (50+ characters of base64 pattern)
+            .replaceAll("\\b[A-Za-z0-9+/]{50,}={0,2}\\b", "[Base64 data removed]")
+            // Remove any remaining very long alphanumeric strings that might be base64
+            .replaceAll("\\b[A-Za-z0-9]{100,}\\b", "[Long data string removed]")
+            // Clean up multiple whitespace
+            .replaceAll("\\s+", " ")
+            .trim();
+        
+        return cleaned.isEmpty() ? "Search results processed but contained only image data." : cleaned;
     }
 }

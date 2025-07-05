@@ -4,11 +4,16 @@ import io.wingie.a2acore.annotation.Action;
 import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
 import io.wingie.a2acore.domain.ImageContent;
+import io.wingie.a2acore.domain.TextContent;
+import io.wingie.a2acore.domain.ToolCallResult;
 import io.wingie.service.ScreenshotService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Taste Before You Waste - Food Safety and Consumption Guidance Tool
@@ -261,64 +266,61 @@ Since we couldn't access specific information from tastebeforeyouwaste.org, here
     }
 
     @Action(description = "Get screenshot of tastebeforeyouwaste.org homepage with visual food safety guide", name = "getTasteBeforeYouWasteScreenshot")
-    public String getTasteBeforeYouWasteScreenshot() throws java.io.IOException {
+    public ToolCallResult getTasteBeforeYouWasteScreenshot() throws java.io.IOException {
         try {
             ImageContent screenshotImage = webBrowsingAction.browseWebAndReturnImage(
                 "Navigate to https://tastebeforeyouwaste.org and take a high-quality screenshot of the homepage showing food safety guidance and visual guides"
             );
             
-            // Save screenshot to static directory and get URL
-            String screenshotUrl = null;
+            // Create text content without embedding base64 data
+            String textContent = String.format("""
+                # 📸 Taste Before You Waste - Homepage Screenshot
+                
+                **Website**: https://tastebeforeyouwaste.org
+                **Captured**: %s
+                
+                This screenshot shows the food safety guidance and visual guides available on the Taste Before You Waste website.
+                
+                ## Key Features Visible:
+                - Visual food safety guides
+                - Interactive food database
+                - Storage recommendations
+                - Expiration date guidance
+                - Easy-to-use interface for food safety decisions
+                
+                ## Screenshot
+                The homepage screenshot is included as a separate image in this response.
+                
+                ---
+                *Screenshot captured by a2aTravelAgent web automation system*
+                """, java.time.LocalDateTime.now());
+            
+            // Create content list with text and image separately
+            List<io.wingie.a2acore.domain.Content> contentList = new ArrayList<>();
+            contentList.add(TextContent.of(textContent));
             if (screenshotImage != null && screenshotImage.getData() != null) {
-                screenshotUrl = screenshotService.saveGeneralScreenshot(screenshotImage.getData());
+                contentList.add(screenshotImage);
             }
             
-            if (screenshotUrl != null) {
-                return String.format("""
-                    # 📸 Taste Before You Waste - Homepage Screenshot
-                    
-                    ![Taste Before You Waste Homepage](%s)
-                    
-                    **Website**: https://tastebeforeyouwaste.org
-                    **Screenshot URL**: %s
-                    **Captured**: %s
-                    
-                    This screenshot shows the food safety guidance and visual guides available on the Taste Before You Waste website.
-                    
-                    ---
-                    *Screenshot captured by a2aTravelAgent web automation system*
-                    """, screenshotUrl, screenshotUrl, java.time.LocalDateTime.now());
-            } else {
-                return """
-                    # 📸 Taste Before You Waste - Screenshot Capture Failed
-                    
-                    **Website**: https://tastebeforeyouwaste.org
-                    **Status**: Screenshot capture encountered technical difficulties
-                    
-                    **Alternative**: Visit https://tastebeforeyouwaste.org directly to view:
-                    - Visual food safety guides
-                    - Interactive food database
-                    - Storage recommendations
-                    - Expiration date guidance
-                    
-                    *Screenshot attempt performed by a2aTravelAgent web automation system*
-                    """;
-            }
+            return ToolCallResult.success(contentList);
+            
         } catch (Exception e) {
-            return String.format("""
-# Taste Before You Waste - Website Screenshot
-
-**Status**: Screenshot capture encountered limitations
-**Details**: %s
-
-**Alternative**: Visit https://tastebeforeyouwaste.org directly to view:
-- Visual food safety guides
-- Interactive food database
-- Storage recommendations
-- Expiration date guidance
-
-*Screenshot attempt performed by a2aTravelAgent web automation system*
-""", e.getMessage());
+            String errorContent = String.format("""
+                # Taste Before You Waste - Website Screenshot
+                
+                **Status**: Screenshot capture encountered limitations
+                **Details**: %s
+                
+                **Alternative**: Visit https://tastebeforeyouwaste.org directly to view:
+                - Visual food safety guides
+                - Interactive food database
+                - Storage recommendations
+                - Expiration date guidance
+                
+                *Screenshot attempt performed by a2aTravelAgent web automation system*
+                """, e.getMessage());
+            
+            return ToolCallResult.success(TextContent.of(errorContent));
         }
     }
     
