@@ -66,7 +66,7 @@ echo -e "\n🔧 Project Structure Validation"
 echo "-------------------------------"
 
 # Check core project files
-[ -f "README.MD" ] && check_result 0 "Main README exists" || check_result 1 "Main README missing"
+[ -f "../README.MD" ] && check_result 0 "Main README exists" || check_result 1 "Main README missing"
 [ -f "docker-compose.yml" ] && check_result 0 "Docker compose file exists" || check_result 1 "Docker compose file missing"
 [ -f "pom.xml" ] && check_result 0 "Maven POM exists" || check_result 1 "Maven POM missing"
 
@@ -78,28 +78,28 @@ echo -e "\n📊 Content Quality Validation"
 echo "-----------------------------"
 
 # Check for version badges in main README
-if grep -q "version-1.0.0-brightgreen" README.MD; then
+if grep -q "version-1.0.0-brightgreen" ../README.MD; then
     check_result 0 "Version badge shows v1.0.0"
 else
     check_result 1 "Version badge missing or incorrect"
 fi
 
 # Check for production ready status
-if grep -q "production ready" README.MD; then
+if grep -qi "production ready" ../README.MD; then
     check_result 0 "Production ready status indicated"
 else
     check_result 1 "Production ready status missing"
 fi
 
 # Check for protocol documentation
-if grep -q "Agent2Agent (A2A)" README.MD && grep -q "Model Context Protocol (MCP)" README.MD; then
+if grep -q "Agent2Agent (A2A)" ../README.MD && grep -q "Model Context Protocol (MCP)" ../README.MD; then
     check_result 0 "Both A2A and MCP protocols documented"
 else
     check_result 1 "Protocol documentation incomplete"
 fi
 
 # Check for Docker section
-if grep -q "Docker Deployment" README.MD; then
+if grep -q "Docker Deployment" ../README.MD; then
     check_result 0 "Docker deployment section exists"
 else
     check_result 1 "Docker deployment section missing"

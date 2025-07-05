@@ -1,4 +1,4 @@
-# A2A Travel Agent - Enterprise Agentic Framework in Spring/Java
+# A2A Resume Agent - Enterprise Agentic Framework in Spring/Java
 
 ![Version](https://img.shields.io/badge/version-1.0.0-brightgreen) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-blue) ![Java](https://img.shields.io/badge/java-21+-orange) ![Spring Boot](https://img.shields.io/badge/spring%20boot-3.x-green)
 
