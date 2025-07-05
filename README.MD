@@ -7,6 +7,61 @@ This repository showcases a personal demo - its a versatile system that you can 
 
 This repo demonstrates my Java/Spring Boot expertise, strategic architecture decisions, and the ability to take ownership of complex dependencies rather than relying on external libraries.
 
+## 🖼️ Interface Showcase
+
+### **Main Application Interface**
+The startup interface provides a comprehensive view of agent capabilities and real-time interactions:
+
+<img src="a2awebagent/startup.png" alt="Main Startup Interface" width="600">
+
+### **Resume & Professional Portfolio**
+Interactive resume showcase demonstrating technical expertise:
+
+<img src="a2awebagent/resume.png" alt="Professional Resume Interface" width="600">
+
+### **Live Reasoning & AI Interactions**
+Real-time AI reasoning and decision-making process visualization:
+
+<img src="a2awebagent/live_reasoning_log.png" alt="Live AI Reasoning" width="600">
+
+## 🔧 System Features
+
+### **Meme Generation Server**
+Advanced meme generation with mood-based template selection:
+
+<img src="a2awebagent/meme_server.png" alt="Meme Generation Interface" width="500">
+
+### **Screenshot Capture System**
+Automated screenshot capture and processing capabilities:
+
+<img src="a2awebagent/captureScreenshot.png" alt="Screenshot Capture System" width="500">
+
+### **System Testing & Validation**
+Comprehensive testing interface for system reliability:
+
+<img src="a2awebagent/sanity_check_tets.png" alt="System Testing Interface" width="500">
+
+## 📊 Agent Analytics
+
+### **Agent Evaluation Dashboard**
+Performance metrics and evaluation of agent capabilities:
+
+<img src="a2awebagent/agent_eval.png" alt="Agent Evaluation Dashboard" width="600">
+
+## 🎯 Integration Examples
+
+### **Claude Desktop Integration**
+Seamless integration with Claude for enhanced AI capabilities:
+
+<img src="a2awebagent/claude.png" alt="Claude Integration" width="600">
+
+
+---
+
+## Credits
+https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/transform
+@vishalmysore for the amazing work on ^, your code was a joy to read
+
 #### ** Framework**
 ```
 a2awebagent/
@@ -24,10 +79,6 @@ a2awebagent/
     ├── PlaywrightProcessor.java      # Web automation interface
     └── [64 application classes]      # Travel research application
 ```
-
-#### **Technical Sanity**
-
-<img src="a2awebagent/claude.png" alt="All Fixes by Claude" width="600">
 
 ### **Framework Integration Architecture**
 
@@ -394,57 +445,3 @@ This project serves as a **living technical resume** that demonstrates:
 
 **Perfect for demonstrating technical capabilities to potential employers, clients, or collaborators.**
 
-## 🖼️ Interface Showcase
-
-### **Main Application Interface**
-The startup interface provides a comprehensive view of agent capabilities and real-time interactions:
-
-<img src="a2awebagent/startup.png" alt="Main Startup Interface" width="600">
-
-### **Resume & Professional Portfolio**
-Interactive resume showcase demonstrating technical expertise:
-
-<img src="a2awebagent/resume.png" alt="Professional Resume Interface" width="600">
-
-### **Live Reasoning & AI Interactions**
-Real-time AI reasoning and decision-making process visualization:
-
-<img src="a2awebagent/live_reasoning_log.png" alt="Live AI Reasoning" width="600">
-
-## 🔧 System Features
-
-### **Meme Generation Server**
-Advanced meme generation with mood-based template selection:
-
-<img src="a2awebagent/meme_server.png" alt="Meme Generation Interface" width="500">
-
-### **Screenshot Capture System**
-Automated screenshot capture and processing capabilities:
-
-<img src="a2awebagent/captureScreenshot.png" alt="Screenshot Capture System" width="500">
-
-### **System Testing & Validation**
-Comprehensive testing interface for system reliability:
-
-<img src="a2awebagent/sanity_check_tets.png" alt="System Testing Interface" width="500">
-
-## 📊 Agent Analytics
-
-### **Agent Evaluation Dashboard**
-Performance metrics and evaluation of agent capabilities:
-
-<img src="a2awebagent/agent_eval.png" alt="Agent Evaluation Dashboard" width="600">
-
-## 🎯 Integration Examples
-
-### **Claude Desktop Integration**
-Seamless integration with Claude for enhanced AI capabilities:
-
-<img src="a2awebagent/claude.png" alt="Claude Integration" width="600">
-
-
----
-
-## Credits
-https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/transform
-@vishalmysore for the amazing work on ^, your code was a joy to read
