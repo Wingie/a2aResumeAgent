@@ -155,7 +155,7 @@ The LinkedIn profile screenshot is included as a separate image in this response
         try {
             // Attempt to search LinkedIn for the requested person
             String searchResult = webBrowsingAction.browseWebAndReturnText(
-                String.format("Go to LinkedIn.com, search for '%s', and find their profile information including current company and role", searchQuery)
+                String.format("Go to LinkedIn.com, search for '%s', and find their profile information including current company and role", searchQuery), null
             );
             
             // Take a screenshot of search results using URL-based approach

@@ -146,32 +146,48 @@ public class MemeGeneratorTool {
      * generateMeme("fry", "Not sure if feature?", "Or bug...");  // Special chars handled automatically
      * generateMeme("woman-cat", "You said 5 minutes!", "That was 3 hours ago!");
      */
-    @Action(description = "Generate memes with automatic special character encoding and comprehensive template selection", name = "generateMeme")
+    @Action(description = "Generate memes with automatic special character encoding and comprehensive template selection. Supports both explicit template names and intelligent mood-based selection.", name = "generateMeme")
     public ToolCallResult generateMeme(
-        @Parameter(description = "EXACT API NAME ONLY - Use these exact strings: 'drake', 'db', 'woman-cat', 'gb', 'gru', 'pooh', 'fine', 'fry', 'pigeon', 'stonks', 'buzz', 'kermit', 'rollsafe', 'spongebob', 'patrick', 'doge', 'success', 'yuno', 'fwp', 'aag', 'blb', 'oag', 'cmm', 'mordor', 'philosoraptor', 'bear'. Do NOT use descriptive names - use exact API strings only.") String template,
+        @Parameter(description = "EXACT API NAME ONLY - Use these exact strings: 'drake', 'db', 'woman-cat', 'gb', 'gru', 'pooh', 'fine', 'fry', 'pigeon', 'stonks', 'buzz', 'kermit', 'rollsafe', 'spongebob', 'patrick', 'doge', 'success', 'yuno', 'fwp', 'aag', 'blb', 'oag', 'cmm', 'mordor', 'philosoraptor', 'bear'. Do NOT use descriptive names - use exact API strings only.", required = false) String template,
         @Parameter(description = "Top text for the meme. Special characters (?, &, %, #, /, etc.) will be automatically encoded for URL compatibility. Use natural text - no pre-encoding needed.") String topText,
-        @Parameter(description = "Bottom text for the meme (optional, can be empty). Special characters will be automatically encoded. Use natural text - no pre-encoding needed.") String bottomText) {
+        @Parameter(description = "Bottom text for the meme (optional, can be empty). Special characters will be automatically encoded. Use natural text - no pre-encoding needed.") String bottomText,
+        @Parameter(description = "Optional mood for intelligent template selection. Use natural language: 'happy', 'frustrated', 'sarcastic', 'confused', 'successful', 'comparing', 'planning', 'accepting', 'clever', 'difficult', 'everywhere', 'obsessive', 'wow', etc. If provided, overrides template parameter.", required = false) String mood) {
         
-        log.info("Generating meme with template: {}, top: {}, bottom: {}", template, topText, bottomText);
-        log.info("🔍 DEBUG: Received template from agent: '{}'", template);
-        log.info("🔍 DEBUG: Template length: {}, contains spaces: {}", template.length(), template.contains(" "));
+        log.info("Generating meme with template: {}, mood: {}, top: {}, bottom: {}", template, mood, topText, bottomText);
         
-        // Validate template name first
-        String validationError = validateTemplate(template);
+        String selectedTemplate = template;
+        List<String> templateSuggestions = null;
+        
+        // Handle mood-based template selection
+        if (mood != null && !mood.trim().isEmpty()) {
+            templateSuggestions = moodTemplateMapper.getTemplatesForMood(mood);
+            selectedTemplate = templateSuggestions.isEmpty() ? "drake" : templateSuggestions.get(0);
+            log.info("🎭 Mood '{}' mapped to template suggestions: {}, selected: '{}'", 
+                    mood, templateSuggestions, selectedTemplate);
+        } else if (template == null || template.trim().isEmpty()) {
+            selectedTemplate = "drake"; // Default template
+            log.info("No template or mood provided, using default: '{}'", selectedTemplate);
+        }
+        
+        log.info("🔍 DEBUG: Selected template: '{}'", selectedTemplate);
+        log.info("🔍 DEBUG: Template length: {}, contains spaces: {}", selectedTemplate.length(), selectedTemplate.contains(" "));
+        
+        // Validate template name
+        String validationError = validateTemplate(selectedTemplate);
         if (validationError != null) {
-            log.warn("Template validation failed for '{}': {}", template, validationError);
-            return ToolCallResult.error(generateTemplateValidationError(template, topText, bottomText, validationError));
+            log.warn("Template validation failed for '{}': {}", selectedTemplate, validationError);
+            return ToolCallResult.error(generateTemplateValidationError(selectedTemplate, topText, bottomText, validationError));
         }
         
         try {
             // Check if WebBrowsingAction is available
             if (webBrowsingAction == null) {
                 log.warn("WebBrowsingAction not available, returning fallback response");
-                return ToolCallResult.error(generateFallbackResponse(template, topText, bottomText));
+                return ToolCallResult.error(generateFallbackResponse(selectedTemplate, topText, bottomText));
             }
             
             // Build memegen URL
-            String memeUrl = buildMemegenUrl(template, topText, bottomText);
+            String memeUrl = buildMemegenUrl(selectedTemplate, topText, bottomText);
             log.info("Generated memegen URL: {}", memeUrl);
             
             // Fetch image directly from API and save as URL (single file creation)
@@ -180,8 +196,13 @@ public class MemeGeneratorTool {
             // Get screenshot URL from the fetched image
             String screenshotUrl = urlImage != null ? urlImage.getUrl() : null;
             
-            // Create text content with current markdown response
-            TextContent textResponse = TextContent.of(formatMemeResponse(template, topText, bottomText, memeUrl, screenshotUrl));
+            // Create text content with current markdown response - use mood format if mood was provided
+            TextContent textResponse;
+            if (mood != null && !mood.trim().isEmpty()) {
+                textResponse = TextContent.of(formatMoodMemeResponse(mood, selectedTemplate, topText, bottomText, memeUrl, screenshotUrl, templateSuggestions));
+            } else {
+                textResponse = TextContent.of(formatMemeResponse(selectedTemplate, topText, bottomText, memeUrl, screenshotUrl));
+            }
             
             // Return mixed content with both text and URL-based image
             if (urlImage != null) {
@@ -626,65 +647,6 @@ public class MemeGeneratorTool {
      * generateMoodMeme("frustrated", "When the build fails", "Again...");
      * generateMoodMeme("successful", "Code works first try!", "");
      */
-    @Action(description = "Generate memes using intelligent mood-based template selection with automatic special character encoding - express emotions naturally", name = "generateMoodMeme")
-    public ToolCallResult generateMoodMeme(
-        @Parameter(description = "Mood or emotion for intelligent template selection. Use natural language: 'happy', 'frustrated', 'sarcastic', 'confused', 'successful', 'comparing', 'planning', 'accepting', 'clever', 'difficult', 'everywhere', 'obsessive', 'wow', etc. The system maps moods to optimal templates automatically.") String mood,
-        @Parameter(description = "Top text for the meme. Special characters (?, &, %, #, /, etc.) will be automatically encoded for URL compatibility. Use natural text - no pre-encoding needed.") String topText,
-        @Parameter(description = "Bottom text for the meme (optional, can be empty). Special characters will be automatically encoded. Use natural text - no pre-encoding needed.") String bottomText) {
-        
-        log.info("Generating mood-based meme with mood: {}, top: {}, bottom: {}", mood, topText, bottomText);
-        
-        try {
-            // Get template suggestions for the mood
-            List<String> templateSuggestions = moodTemplateMapper.getTemplatesForMood(mood);
-            String selectedTemplate = templateSuggestions.isEmpty() ? "drake" : templateSuggestions.get(0);
-            
-            log.info("🎭 Mood '{}' mapped to template suggestions: {}, selected: '{}'", 
-                    mood, templateSuggestions, selectedTemplate);
-            
-            // Check if WebBrowsingAction is available
-            if (webBrowsingAction == null) {
-                log.warn("WebBrowsingAction not available, returning fallback response");
-                return ToolCallResult.error(generateMoodFallbackResponse(mood, selectedTemplate, topText, bottomText, templateSuggestions));
-            }
-            
-            // Build memegen URL
-            String memeUrl = buildMemegenUrl(selectedTemplate, topText, bottomText);
-            log.info("Generated memegen URL for mood '{}': {}", mood, memeUrl);
-            
-            // Fetch image directly from API and save as URL (single file creation)
-            ImageContentUrl urlImage = fetchMemeImageAsUrl(memeUrl);
-            
-            // Get screenshot URL from the fetched image
-            String screenshotUrl = urlImage != null ? urlImage.getUrl() : null;
-            
-            // Create text content with current markdown response
-            TextContent textResponse = TextContent.of(formatMoodMemeResponse(mood, selectedTemplate, topText, bottomText, memeUrl, screenshotUrl, templateSuggestions));
-            
-            // Return mixed content with both text and URL-based image
-            if (urlImage != null) {
-                log.info("Returning mood-based mixed content: TextContent + ImageContentUrl ({})", urlImage.getUrl());
-                return ToolCallResult.success(List.of(textResponse, urlImage));
-            } else {
-                log.warn("URL-based image fetch failed for mood-based meme, falling back to base64 approach");
-                
-                // Fallback to base64 approach if URL method fails
-                ImageContent directImage = fetchMemeImageDirectly(memeUrl);
-                if (directImage != null) {
-                    log.info("Fallback: Returning mood-based mixed content with base64 (length: {})", 
-                        directImage.getData() != null ? directImage.getData().length() : 0);
-                    return ToolCallResult.success(List.of(textResponse, directImage));
-                } else {
-                    log.warn("Both URL and base64 image fetch failed for mood-based meme, returning text-only response");
-                    return ToolCallResult.success(textResponse);
-                }
-            }
-            
-        } catch (Exception e) {
-            log.error("Error generating mood-based meme with mood '{}': {}", mood, e.getMessage(), e);
-            return ToolCallResult.error(generateMoodErrorResponse(mood, topText, bottomText, e.getMessage()));
-        }
-    }
     
     /**
      * Validates that the template name is supported by memegen.link API.

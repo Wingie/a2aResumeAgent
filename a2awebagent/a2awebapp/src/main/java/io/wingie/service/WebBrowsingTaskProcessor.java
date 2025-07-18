@@ -196,7 +196,7 @@ public class WebBrowsingTaskProcessor {
             // Execute the main browsing action
             callback.updateProgress(0.3, "Executing web interactions...");
             
-            String textResults = webBrowsingAction.browseWebAndReturnText(query);
+            String textResults = webBrowsingAction.browseWebAndReturnText(query, null);
             
             // Check for cancellation after text extraction
             if (isTaskCancelled(task)) {

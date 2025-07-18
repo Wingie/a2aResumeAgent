@@ -43,12 +43,13 @@ public class PlaywrightWebBrowsingAction {
 
     // AI processor removed - using static annotations instead
 
-    @Action(description = "perform actions on the web with Playwright and return text", name = "browseWebAndReturnText")
-    public String browseWebAndReturnText(@Parameter(description = "Natural language description of web browsing steps to perform") String webBrowsingSteps) {
-        return browseWebAndReturnTextWithParams(webBrowsingSteps, null);
+    @Action(description = "perform actions on the web with Playwright and return text. Supports optional execution parameters for multi-step control.", name = "browseWebAndReturnText")
+    public String browseWebAndReturnText(
+            @Parameter(description = "Natural language description of web browsing steps to perform") String webBrowsingSteps,
+            @Parameter(description = "Optional JSON execution parameters: {\"maxSteps\": 10, \"executionMode\": \"MULTI_STEP\", \"allowEarlyCompletion\": true}", required = false) String executionParamsJson) {
+        return browseWebAndReturnTextWithParams(webBrowsingSteps, executionParamsJson);
     }
 
-    @Action(description = "perform controlled web actions with execution parameters and return text", name = "browseWebWithParams")
     public String browseWebAndReturnTextWithParams(
             @Parameter(description = "Natural language description of web browsing steps to perform") String webBrowsingSteps,
             @Parameter(description = "JSON execution parameters: {\"maxSteps\": 10, \"executionMode\": \"MULTI_STEP\", \"allowEarlyCompletion\": true}") String executionParamsJson) {
@@ -239,23 +240,23 @@ public class PlaywrightWebBrowsingAction {
         if (url != null) {
             log.info("Navigating to extracted URL: {}", url);
             page.navigate(url);
-            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            page.waitForLoadState(LoadState.NETWORKIDLE);
             result.addData("Navigated to: " + url);
         } else if (steps.toLowerCase().contains("google")) {
             log.info("Navigating to Google (keyword detected)");
             page.navigate("https://www.google.com");
-            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            page.waitForLoadState(LoadState.NETWORKIDLE);
             result.addData("Navigated to Google");
         } else if (steps.toLowerCase().contains("linkedin")) {
             log.info("Navigating to LinkedIn (keyword detected)");
             page.navigate("https://www.linkedin.com");
-            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            page.waitForLoadState(LoadState.NETWORKIDLE);
             result.addData("Navigated to LinkedIn");
         } else {
             // Always navigate somewhere sensible before screenshot - default to tastebeforeyouwaste.org
             log.info("No URL detected, defaulting to tastebeforeyouwaste.org for screenshot");
             page.navigate("https://www.tastebeforeyouwaste.org");
-            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            page.waitForLoadState(LoadState.NETWORKIDLE);
             result.addData("Navigated to tastebeforeyouwaste.org (default for screenshot)");
         }
         
@@ -265,6 +266,24 @@ public class PlaywrightWebBrowsingAction {
 
     private void captureScreenshot(Page page, CustomScriptResult result) {
         try {
+            // Enhanced wait strategy for complete page loading
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+            
+            // Additional wait for JavaScript rendering and content to settle
+            try {
+                Thread.sleep(2000); // 2 second delay for dynamic content
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("Screenshot delay interrupted");
+            }
+            
+            // Wait for document ready state
+            try {
+                page.waitForFunction("() => document.readyState === 'complete'");
+            } catch (Exception e) {
+                log.debug("Document ready state check failed, proceeding: {}", e.getMessage());
+            }
+            
             // Use absolute path resolution for better compatibility
             String screenshotDir = System.getProperty("app.storage.screenshots", "./screenshots");
             java.nio.file.Path baseDir = Paths.get(screenshotDir).toAbsolutePath();
@@ -273,7 +292,7 @@ public class PlaywrightWebBrowsingAction {
             String filename = "playwright_" + System.currentTimeMillis() + ".png";
             java.nio.file.Path screenshotPath = baseDir.resolve(filename);
             
-            // Capture screenshot
+            // Capture screenshot after proper waits
             page.screenshot(new Page.ScreenshotOptions().setPath(screenshotPath));
             
             // Convert to base64 for result

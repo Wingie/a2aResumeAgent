@@ -33,26 +33,50 @@ public class TasteBeforeYouWasteTool {
     @Autowired
     private ScreenshotService screenshotService;
 
-    @Action(description = "Search tastebeforeyouwaste.org for food safety information and consumption guidance", name = "askTasteBeforeYouWaste")
-    public String askTasteBeforeYouWaste(@Parameter(description = "Question about food safety, expiration, or consumption guidance") String foodQuestion) {
-        log.info("Food safety question received: {}", foodQuestion);
+    @Action(description = "Search tastebeforeyouwaste.org for food safety information and consumption guidance. Optionally includes homepage screenshot.", name = "askTasteBeforeYouWaste")
+    public ToolCallResult askTasteBeforeYouWaste(
+            @Parameter(description = "Question about food safety, expiration, or consumption guidance") String foodQuestion,
+            @Parameter(description = "Include screenshot of tastebeforeyouwaste.org homepage with visual food safety guide", required = false) Boolean includeScreenshot) {
+        log.info("Food safety question received: {}, includeScreenshot: {}", foodQuestion, includeScreenshot);
         
         // Check if WebBrowsingAction is available
         if (webBrowsingAction == null) {
             log.warn("WebBrowsingAction not available, returning general food safety guidelines");
-            return generateStaticFoodSafetyResponse(foodQuestion);
+            return ToolCallResult.success(TextContent.of(generateStaticFoodSafetyResponse(foodQuestion)));
         }
         
         try {
             // First, try to search the site for the specific food item or question
             String searchResult = performFoodSafetySearch(foodQuestion);
             
-            // If we get a good result, return it with additional context
-            return formatFoodSafetyResponse(foodQuestion, searchResult);
+            // Format the text response
+            String textResponse = formatFoodSafetyResponse(foodQuestion, searchResult);
+            
+            // If screenshot requested, include it
+            if (includeScreenshot != null && includeScreenshot) {
+                try {
+                    ImageContentUrl screenshotImageUrl = webBrowsingAction.browseWebAndReturnImageUrl(
+                        "Navigate to https://tastebeforeyouwaste.org and take a high-quality screenshot of the homepage showing food safety guidance and visual guides"
+                    );
+                    
+                    if (screenshotImageUrl != null) {
+                        // Return mixed content with both text and screenshot
+                        return ToolCallResult.success(List.of(
+                            TextContent.of(textResponse), 
+                            screenshotImageUrl
+                        ));
+                    }
+                } catch (Exception screenshotError) {
+                    log.warn("Failed to capture screenshot, returning text-only response: {}", screenshotError.getMessage());
+                }
+            }
+            
+            // Return text-only response
+            return ToolCallResult.success(TextContent.of(textResponse));
             
         } catch (Exception e) {
             log.error("Error during food safety search: {}", e.getMessage(), e);
-            return generateFoodSafetyError(foodQuestion, e.getMessage());
+            return ToolCallResult.error(generateFoodSafetyError(foodQuestion, e.getMessage()));
         }
     }
 
@@ -72,13 +96,13 @@ public class TasteBeforeYouWasteTool {
                 Extract all relevant food safety information found.
                 """, searchQuery);
             
-            return webBrowsingAction.browseWebAndReturnText(searchInstruction);
+            return webBrowsingAction.browseWebAndReturnText(searchInstruction, null);
             
         } catch (Exception e) {
             // Fallback: try to get general information from the homepage
             try {
                 return webBrowsingAction.browseWebAndReturnText(
-                    "Navigate to https://tastebeforeyouwaste.org and get general food safety information and guidance"
+                    "Navigate to https://tastebeforeyouwaste.org and get general food safety information and guidance", null
                 );
             } catch (Exception fallbackException) {
                 return "Unable to access tastebeforeyouwaste.org: " + fallbackException.getMessage();
@@ -266,65 +290,6 @@ Since we couldn't access specific information from tastebeforeyouwaste.org, here
 """, question, errorMessage);
     }
 
-    @Action(description = "Get screenshot of tastebeforeyouwaste.org homepage with visual food safety guide", name = "getTasteBeforeYouWasteScreenshot")
-    public ToolCallResult getTasteBeforeYouWasteScreenshot() throws java.io.IOException {
-        try {
-            // Use URL-based approach for better performance
-            ImageContentUrl screenshotImageUrl = webBrowsingAction.browseWebAndReturnImageUrl(
-                "Navigate to https://tastebeforeyouwaste.org and take a high-quality screenshot of the homepage showing food safety guidance and visual guides"
-            );
-            
-            // Create text content without embedding base64 data
-            String textContent = String.format("""
-                # 📸 Taste Before You Waste - Homepage Screenshot
-                
-                **Website**: https://tastebeforeyouwaste.org
-                **Captured**: %s
-                
-                This screenshot shows the food safety guidance and visual guides available on the Taste Before You Waste website.
-                
-                ## Key Features Visible:
-                - Visual food safety guides
-                - Interactive food database
-                - Storage recommendations
-                - Expiration date guidance
-                - Easy-to-use interface for food safety decisions
-                
-                ## Screenshot
-                The homepage screenshot is included as a separate image in this response.
-                
-                ---
-                *Screenshot captured by a2aTravelAgent web automation system*
-                """, java.time.LocalDateTime.now());
-            
-            // Create content list with text and image URL separately
-            List<io.wingie.a2acore.domain.Content> contentList = new ArrayList<>();
-            contentList.add(TextContent.of(textContent));
-            if (screenshotImageUrl != null && screenshotImageUrl.getUrl() != null) {
-                contentList.add(screenshotImageUrl);
-            }
-            
-            return ToolCallResult.success(contentList);
-            
-        } catch (Exception e) {
-            String errorContent = String.format("""
-                # Taste Before You Waste - Website Screenshot
-                
-                **Status**: Screenshot capture encountered limitations
-                **Details**: %s
-                
-                **Alternative**: Visit https://tastebeforeyouwaste.org directly to view:
-                - Visual food safety guides
-                - Interactive food database
-                - Storage recommendations
-                - Expiration date guidance
-                
-                *Screenshot attempt performed by a2aTravelAgent web automation system*
-                """, e.getMessage());
-            
-            return ToolCallResult.success(TextContent.of(errorContent));
-        }
-    }
     
     private String generateStaticFoodSafetyResponse(String foodQuestion) {
         String foodItem = extractFoodItemFromQuestion(foodQuestion);
