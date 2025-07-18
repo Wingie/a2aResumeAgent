@@ -10,8 +10,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -117,6 +119,7 @@ public class TaskExecutorService {
         }
     }
 
+    @Transactional
     private void updateTaskProgress(TaskExecution task, TaskStatus status, String message, Integer progressPercent) {
         String taskId = task.getTaskId();
         
@@ -172,6 +175,7 @@ public class TaskExecutorService {
         }
     }
 
+    @Transactional
     private void markTaskCompleted(TaskExecution task, String results) {
         task.setStatus(TaskStatus.COMPLETED);
         task.setExtractedResults(results);
@@ -193,6 +197,7 @@ public class TaskExecutorService {
         log.info("Task {} completed successfully in {}", task.getTaskId(), task.getDurationFormatted());
     }
 
+    @Transactional
     private void markTaskCancelled(TaskExecution task) {
         task.setStatus(TaskStatus.CANCELLED);
         task.setProgressMessage("Task was cancelled");
@@ -205,6 +210,7 @@ public class TaskExecutorService {
         log.info("Task {} was cancelled", task.getTaskId());
     }
 
+    @Transactional
     private void markTaskTimedOut(TaskExecution task, String errorMessage) {
         task.setStatus(TaskStatus.TIMEOUT);
         task.setErrorDetails(errorMessage);
@@ -218,6 +224,7 @@ public class TaskExecutorService {
         log.warn("Task {} timed out: {}", task.getTaskId(), errorMessage);
     }
 
+    @Transactional
     private void handleTaskFailure(TaskExecution task, String errorMessage) {
         task.setStatus(TaskStatus.FAILED);
         task.setErrorDetails(errorMessage);
@@ -305,16 +312,31 @@ public class TaskExecutorService {
             if (!oldTasks.isEmpty()) {
                 log.info("Cleaning up {} old completed tasks", oldTasks.size());
                 
-                // Remove from Redis
+                // Build keys to delete in batch
+                List<String> keysToDelete = new ArrayList<>(oldTasks.size() * 2);
                 for (TaskExecution task : oldTasks) {
-                    redisTemplate.delete(REDIS_PROGRESS_PREFIX + task.getTaskId());
-                    redisTemplate.delete(REDIS_STATUS_PREFIX + task.getTaskId());
+                    keysToDelete.add(REDIS_PROGRESS_PREFIX + task.getTaskId());
+                    keysToDelete.add(REDIS_STATUS_PREFIX + task.getTaskId());
+                }
+                
+                // Perform efficient batch delete
+                if (!keysToDelete.isEmpty() && redisTemplate != null) {
+                    try {
+                        // Use unlink for non-blocking delete operation (more efficient for large key sets)
+                        Long deletedCount = redisTemplate.unlink(keysToDelete);
+                        log.info("Cleaned up Redis data for {} old tasks (unlinked {} keys in single operation)", 
+                                oldTasks.size(), deletedCount != null ? deletedCount : 0);
+                    } catch (Exception unlinkEx) {
+                        log.debug("Unlink not supported, falling back to delete: {}", unlinkEx.getMessage());
+                        // Fallback to regular batch delete if unlink is not supported
+                        Long deletedCount = redisTemplate.delete(keysToDelete);
+                        log.info("Cleaned up Redis data for {} old tasks (deleted {} keys in single operation)", 
+                                oldTasks.size(), deletedCount != null ? deletedCount : 0);
+                    }
                 }
                 
                 // Keep in database for audit purposes but could delete if needed
                 // taskRepository.deleteAll(oldTasks);
-                
-                log.info("Cleaned up Redis data for {} old tasks", oldTasks.size());
             }
             
         } catch (Exception e) {

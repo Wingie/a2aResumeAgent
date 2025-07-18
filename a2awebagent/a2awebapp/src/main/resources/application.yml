@@ -21,6 +21,12 @@ spring:
       ddl-auto: update
     show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
   
   # Redis configuration (will be overridden in docker profile)
   data:
@@ -28,6 +34,12 @@ spring:
       host: localhost
       port: 6379
       timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
 
 # Disable unused auto-configurations to prevent conflicts
 spring.autoconfigure.exclude:

@@ -36,38 +36,44 @@ public class TaskGraphService {
     /**
      * Asynchronously logs a task execution to Neo4j knowledge graph.
      * Called from TaskExecutionIntegrationService after task completion.
+     * This method delegates to a transactional method to properly separate async and transactional concerns
      */
     @Async("taskExecutor")
-    @Transactional
     public CompletableFuture<Void> logTaskToGraph(TaskExecution taskExecution) {
         try {
-            log.debug("🔗 Starting Neo4j graph logging for task: {}", taskExecution.getTaskId());
-            long startTime = System.currentTimeMillis();
-            
-            // Create or update TaskNode
-            TaskNode taskNode = createOrUpdateTaskNode(taskExecution);
-            
-            // Process screenshots if present
-            if (taskExecution.getScreenshots() != null && !taskExecution.getScreenshots().isEmpty()) {
-                processScreenshots(taskNode, taskExecution.getScreenshots());
-            }
-            
-            // Extract and process visited pages (if we can parse them from context)
-            processWebPages(taskNode, taskExecution);
-            
-            // Establish relationships with similar tasks
-            establishTaskRelationships(taskNode);
-            
-            long duration = System.currentTimeMillis() - startTime;
-            log.info("✅ Neo4j graph logging completed for task {} in {}ms", taskExecution.getTaskId(), duration);
-            
+            performGraphLogging(taskExecution);
             return CompletableFuture.completedFuture(null);
-            
         } catch (Exception e) {
             log.error("❌ Failed to log task {} to Neo4j graph: {}", taskExecution.getTaskId(), e.getMessage(), e);
             // Don't propagate exception - Neo4j logging is non-critical
             return CompletableFuture.completedFuture(null);
         }
+    }
+    
+    /**
+     * Internal transactional method that performs the actual graph logging
+     */
+    @Transactional
+    protected void performGraphLogging(TaskExecution taskExecution) {
+        log.debug("🔗 Starting Neo4j graph logging for task: {}", taskExecution.getTaskId());
+        long startTime = System.currentTimeMillis();
+        
+        // Create or update TaskNode
+        TaskNode taskNode = createOrUpdateTaskNode(taskExecution);
+        
+        // Process screenshots if present
+        if (taskExecution.getScreenshots() != null && !taskExecution.getScreenshots().isEmpty()) {
+            processScreenshots(taskNode, taskExecution.getScreenshots());
+        }
+        
+        // Extract and process visited pages (if we can parse them from context)
+        processWebPages(taskNode, taskExecution);
+        
+        // Establish relationships with similar tasks
+        establishTaskRelationships(taskNode);
+        
+        long duration = System.currentTimeMillis() - startTime;
+        log.info("✅ Neo4j graph logging completed for task {} in {}ms", taskExecution.getTaskId(), duration);
     }
     
     /**

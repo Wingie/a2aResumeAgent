@@ -48,9 +48,9 @@ public class ScreenshotEmbeddingService {
     
     /**
      * Asynchronously processes screenshot for embedding generation and similarity analysis
+     * This method delegates to a transactional method to properly separate async and transactional concerns
      */
     @Async("taskExecutor")
-    @Transactional
     public CompletableFuture<String> processScreenshotEmbedding(String screenshotId, String screenshotUrl) {
         if (!embeddingEnabled) {
             log.debug("📊 Screenshot embedding disabled, skipping processing for {}", screenshotId);
@@ -58,50 +58,58 @@ public class ScreenshotEmbeddingService {
         }
         
         try {
-            log.debug("🧠 Starting embedding processing for screenshot: {}", screenshotId);
-            long startTime = System.currentTimeMillis();
-            
-            // Find the screenshot node
-            ScreenshotNode screenshot = screenshotRepository.findByScreenshotId(screenshotId).orElse(null);
-            if (screenshot == null) {
-                log.warn("⚠️ Screenshot node not found: {}", screenshotId);
-                return CompletableFuture.completedFuture("not_found");
-            }
-            
-            // Load and analyze image
-            BufferedImage image = loadScreenshotImage(screenshotUrl);
-            if (image == null) {
-                log.warn("⚠️ Failed to load screenshot image: {}", screenshotUrl);
-                return CompletableFuture.completedFuture("image_load_failed");
-            }
-            
-            // Extract basic image properties
-            extractImageProperties(screenshot, image);
-            
-            // Generate visual embeddings
-            generateVisualEmbeddings(screenshot, image);
-            
-            // Perform duplicate detection
-            detectDuplicates(screenshot);
-            
-            // Find similar screenshots
-            findSimilarScreenshots(screenshot);
-            
-            // Extract UI patterns
-            extractUIPatterns(screenshot, image);
-            
-            // Save updated screenshot node
-            screenshotRepository.save(screenshot);
-            
-            long duration = System.currentTimeMillis() - startTime;
-            log.info("✅ Screenshot embedding completed for {} in {}ms", screenshotId, duration);
-            
-            return CompletableFuture.completedFuture("completed");
-            
+            String result = performEmbeddingProcessing(screenshotId, screenshotUrl);
+            return CompletableFuture.completedFuture(result);
         } catch (Exception e) {
             log.error("❌ Failed to process screenshot embedding for {}: {}", screenshotId, e.getMessage(), e);
             return CompletableFuture.completedFuture("failed");
         }
+    }
+    
+    /**
+     * Internal transactional method that performs the actual embedding processing
+     */
+    @Transactional
+    protected String performEmbeddingProcessing(String screenshotId, String screenshotUrl) {
+        log.debug("🧠 Starting embedding processing for screenshot: {}", screenshotId);
+        long startTime = System.currentTimeMillis();
+        
+        // Find the screenshot node
+        ScreenshotNode screenshot = screenshotRepository.findByScreenshotId(screenshotId).orElse(null);
+        if (screenshot == null) {
+            log.warn("⚠️ Screenshot node not found: {}", screenshotId);
+            return "not_found";
+        }
+        
+        // Load and analyze image
+        BufferedImage image = loadScreenshotImage(screenshotUrl);
+        if (image == null) {
+            log.warn("⚠️ Failed to load screenshot image: {}", screenshotUrl);
+            return "image_load_failed";
+        }
+        
+        // Extract basic image properties
+        extractImageProperties(screenshot, image);
+        
+        // Generate visual embeddings
+        generateVisualEmbeddings(screenshot, image);
+        
+        // Perform duplicate detection
+        detectDuplicates(screenshot);
+        
+        // Find similar screenshots
+        findSimilarScreenshots(screenshot);
+        
+        // Extract UI patterns
+        extractUIPatterns(screenshot, image);
+        
+        // Save updated screenshot node
+        screenshotRepository.save(screenshot);
+        
+        long duration = System.currentTimeMillis() - startTime;
+        log.info("✅ Screenshot embedding completed for {} in {}ms", screenshotId, duration);
+        
+        return "completed";
     }
     
     /**

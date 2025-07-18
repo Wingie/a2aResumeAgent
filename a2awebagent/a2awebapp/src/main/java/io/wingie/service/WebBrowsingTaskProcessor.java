@@ -3,6 +3,7 @@ package io.wingie.service;
 import io.wingie.entity.TaskExecution;
 import io.wingie.playwright.PlaywrightWebBrowsingAction;
 import io.wingie.repository.TaskExecutionRepository;
+import io.wingie.a2acore.domain.ExecutionParameters;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,14 +31,26 @@ public class WebBrowsingTaskProcessor {
     @Autowired
     private TaskExecutionRepository taskExecutionRepository;
     
+    @Autowired
+    private StepControlService stepControlService;
+    
     @Value("${app.storage.screenshots:/app/screenshots}")
     private String screenshotPath;
 
     public String processTravelSearch(TaskExecution task) throws IOException {
+        return processTravelSearchWithParams(task, null);
+    }
+    
+    public String processTravelSearchWithParams(TaskExecution task, ExecutionParameters params) throws IOException {
         String taskId = task.getTaskId();
         String query = task.getOriginalQuery();
         
-        log.info("Processing travel search for task {}: {}", taskId, query);
+        // Use default parameters if none provided
+        if (params == null) {
+            params = ExecutionParameters.auto(10); // Default for travel search
+        }
+        
+        log.info("Processing travel search for task {} with params {}: {}", taskId, params, query);
         
         // Check if WebBrowsingAction is available
         if (webBrowsingAction == null) {
@@ -47,35 +60,38 @@ public class WebBrowsingTaskProcessor {
         }
         
         try {
+            // Initialize step control
+            stepControlService.initializeStepControl(taskId, params);
+            
             // Step 1: Initialize search
             progressService.updateProgress(task, 10, "Initializing travel search...");
             
             // Enhanced query for travel search
-            String enhancedQuery = buildTravelSearchQuery(query);
+            String enhancedQuery = buildTravelSearchQueryWithParams(query, params);
             
             // Step 2: Navigate to travel sites
             progressService.updateProgress(task, 20, "Navigating to travel booking sites...");
             
-            // Step 3: Perform search with screenshots
+            // Step 3: Perform search with step control
             progressService.updateProgress(task, 40, "Searching for flights and accommodations...");
             
-            // Use existing WebBrowsingAction but with progress callbacks
-            AtomicReference<String> results = new AtomicReference<>();
-            
-            // Create a wrapper that captures progress
-            String searchResults = executeWithProgress(task, enhancedQuery, (progress, message) -> {
+            // Use step-controlled execution
+            String searchResults = executeWithStepControl(task, enhancedQuery, params, (progress, message) -> {
                 progressService.updateProgress(task, 40 + (int)(progress * 0.5), message);
             });
             
             // Step 4: Process results
             progressService.updateProgress(task, 90, "Processing and formatting results...");
             
+            // Get execution summary
+            StepControlService.ExecutionSummary summary = stepControlService.completeStepControl(taskId);
+            
             // Format results for travel search
-            String formattedResults = formatTravelResults(searchResults, query);
+            String formattedResults = formatTravelResultsWithSummary(searchResults, query, params, summary);
             
             progressService.updateProgress(task, 100, "Travel search completed successfully");
             
-            log.info("Travel search completed for task {}", taskId);
+            log.info("Travel search completed for task {} with summary: {}", taskId, summary);
             return formattedResults;
             
         } catch (Exception e) {
@@ -246,6 +262,10 @@ public class WebBrowsingTaskProcessor {
     }
 
     private String buildTravelSearchQuery(String originalQuery) {
+        return buildTravelSearchQueryWithParams(originalQuery, ExecutionParameters.auto(10));
+    }
+    
+    private String buildTravelSearchQueryWithParams(String originalQuery, ExecutionParameters params) {
         // Enhance the query for better travel search results
         String enhanced = originalQuery;
         
@@ -257,7 +277,17 @@ public class WebBrowsingTaskProcessor {
             enhanced += ". Search on booking.com and expedia.com for best options.";
         }
         
-        enhanced += " Take screenshots of search results and pricing.";
+        // Add step control instructions based on execution mode
+        if (params.getExecutionMode() == ExecutionParameters.ExecutionMode.ONE_SHOT) {
+            enhanced += " Take one screenshot of the main search results.";
+        } else {
+            enhanced += " Take screenshots of search results and pricing across multiple steps.";
+            enhanced += String.format(" Maximum %d automation steps allowed.", params.getMaxSteps());
+        }
+        
+        if (params.getAllowEarlyCompletion()) {
+            enhanced += " Complete early if good results are found.";
+        }
         
         return enhanced;
     }
@@ -293,6 +323,48 @@ public class WebBrowsingTaskProcessor {
             ---
             *Results generated by a2aTravelAgent async task system*
             """, originalQuery, rawResults, LocalDateTime.now());
+    }
+    
+    private String formatTravelResultsWithSummary(String rawResults, String originalQuery, ExecutionParameters params, StepControlService.ExecutionSummary summary) {
+        return String.format("""
+            # 🧳 Travel Search Results (User-Controlled Execution)
+            
+            ## Search Query
+            %s
+            
+            ## Execution Parameters
+            - **Mode**: %s
+            - **Max Steps**: %d
+            - **Early Completion**: %s
+            - **Step Screenshots**: %s
+            
+            ## Results Summary
+            %s
+            
+            ## Execution Summary
+            - **Steps Completed**: %d/%d (%s)
+            - **Efficiency**: %s
+            - **Early Completion**: %s
+            - **Search Completed**: %s
+            
+            ## Screenshots
+            Screenshots have been captured and saved for visual reference.
+            
+            ---
+            *Generated by a2aTravelAgent user-controlled automation system*
+            """, 
+            originalQuery, 
+            params.getExecutionMode(),
+            params.getMaxSteps(),
+            params.getAllowEarlyCompletion() ? "Enabled" : "Disabled",
+            params.getCaptureStepScreenshots() ? "Enabled" : "Disabled",
+            rawResults,
+            summary.getStepsCompleted(),
+            summary.getMaxSteps(),
+            summary.isEarlyCompletion() ? "early completion" : "full execution",
+            summary.getEfficiencyFormatted(),
+            summary.isEarlyCompletion() ? "Yes" : "No",
+            LocalDateTime.now());
     }
 
     private String formatLinkedInResults(String rawResults, String originalQuery) {
@@ -353,6 +425,81 @@ public class WebBrowsingTaskProcessor {
         }
         
         return combined.toString();
+    }
+
+    /**
+     * Execute with step control and progress tracking.
+     */
+    private String executeWithStepControl(TaskExecution task, String query, ExecutionParameters params, ProgressCallback callback) throws IOException {
+        String taskId = task.getTaskId();
+        
+        log.info("Starting step-controlled execution for task {} with params: {}", taskId, params);
+        
+        // Check for cancellation before starting
+        if (isTaskCancelled(task)) {
+            throw new TaskExecutorService.TaskCancelledException("Task was cancelled");
+        }
+        
+        callback.updateProgress(0.1, "Starting step-controlled web automation...");
+        
+        try {
+            // Convert execution parameters to JSON for the Playwright action
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String paramsJson = mapper.writeValueAsString(params);
+            
+            callback.updateProgress(0.2, "Executing web interactions with step control...");
+            
+            // Use the enhanced Playwright action with parameters
+            String textResults = webBrowsingAction.browseWebAndReturnTextWithParams(query, paramsJson);
+            
+            // Check for cancellation after text extraction
+            if (isTaskCancelled(task)) {
+                throw new TaskExecutorService.TaskCancelledException("Task was cancelled during text extraction");
+            }
+            
+            callback.updateProgress(0.7, "Capturing screenshots with step tracking...");
+            
+            // Capture screenshots with step control
+            io.wingie.a2acore.domain.ImageContent screenshotImageContent = webBrowsingAction.browseWebAndReturnImage(query);
+            String screenshotResult = "Screenshot captured with step control";
+            
+            // Handle ImageContent for step-controlled execution
+            if (screenshotImageContent != null && screenshotImageContent.getData() != null && !screenshotImageContent.getData().isEmpty()) {
+                try {
+                    String base64Data = screenshotImageContent.getData();
+                    String screenshotUrl = screenshotService.saveScreenshotAndGetUrl(base64Data, "step-controlled");
+                    
+                    if (screenshotUrl != null) {
+                        task.getScreenshots().add(screenshotUrl);
+                        task.setUpdated(LocalDateTime.now());
+                        taskExecutionRepository.save(task);
+                        
+                        screenshotResult = String.format("Step-controlled screenshot captured - URL: %s, Mode: %s, Max Steps: %d", 
+                            screenshotUrl, params.getExecutionMode(), params.getMaxSteps());
+                        
+                        log.info("📸 Step-controlled screenshot integrated for task {}: {}", taskId, screenshotUrl);
+                    } else {
+                        screenshotResult = "Step-controlled screenshot capture failed during save operation";
+                    }
+                } catch (Exception e) {
+                    log.error("❌ Error processing step-controlled screenshot for task {}: {}", taskId, e.getMessage());
+                    screenshotResult = "Step-controlled screenshot processing error: " + e.getMessage();
+                }
+            }
+            
+            callback.updateProgress(0.9, "Processing extracted data with execution summary...");
+            
+            // Combine results with step control information
+            String combinedResults = combineTextAndScreenshotResults(textResults, screenshotResult);
+            
+            callback.updateProgress(1.0, "Step-controlled web automation completed");
+            
+            return combinedResults;
+            
+        } catch (Exception e) {
+            log.error("Error during step-controlled web browsing execution for task {}", taskId, e);
+            throw new IOException("Step-controlled web browsing execution failed: " + e.getMessage(), e);
+        }
     }
 
     // Functional interface for progress callbacks

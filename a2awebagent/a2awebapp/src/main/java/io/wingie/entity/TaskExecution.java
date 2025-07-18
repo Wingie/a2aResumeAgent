@@ -57,7 +57,7 @@ public class TaskExecution {
     @Column(name = "extracted_results", columnDefinition = "TEXT")
     private String extractedResults;
     
-    @Column(name = "progress_message", length = 500)
+    @Column(name = "progress_message", columnDefinition = "TEXT")
     private String progressMessage;
     
     @Column(name = "progress_percent")
@@ -65,11 +65,13 @@ public class TaskExecution {
     
     @Column(name = "created", nullable = false)
     @NotNull
-    private LocalDateTime created;
+    @Builder.Default
+    private LocalDateTime created = LocalDateTime.now();
     
     @Column(name = "updated", nullable = false)
     @NotNull
-    private LocalDateTime updated;
+    @Builder.Default
+    private LocalDateTime updated = LocalDateTime.now();
     
     @Column(name = "started_at")
     private LocalDateTime startedAt;

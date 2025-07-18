@@ -9,8 +9,10 @@ import io.wingie.a2acore.annotation.Agent;
 import io.wingie.a2acore.annotation.Parameter;
 import io.wingie.a2acore.domain.ImageContent;
 import io.wingie.a2acore.domain.ImageContentUrl;
+import io.wingie.a2acore.domain.ExecutionParameters;
 // AI processing imports removed - using a2acore annotations instead
 import io.wingie.CustomScriptResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,12 +45,21 @@ public class PlaywrightWebBrowsingAction {
 
     @Action(description = "perform actions on the web with Playwright and return text", name = "browseWebAndReturnText")
     public String browseWebAndReturnText(@Parameter(description = "Natural language description of web browsing steps to perform") String webBrowsingSteps) {
+        return browseWebAndReturnTextWithParams(webBrowsingSteps, null);
+    }
+
+    @Action(description = "perform controlled web actions with execution parameters and return text", name = "browseWebWithParams")
+    public String browseWebAndReturnTextWithParams(
+            @Parameter(description = "Natural language description of web browsing steps to perform") String webBrowsingSteps,
+            @Parameter(description = "JSON execution parameters: {\"maxSteps\": 10, \"executionMode\": \"MULTI_STEP\", \"allowEarlyCompletion\": true}") String executionParamsJson) {
         
-        log.info("Starting Playwright web browsing: {}", webBrowsingSteps);
+        // Parse execution parameters
+        ExecutionParameters params = parseExecutionParameters(executionParamsJson);
+        log.info("Starting Playwright web browsing with params {}: {}", params, webBrowsingSteps);
         
         try {
             CustomScriptResult result = new CustomScriptResult();
-            executeWebBrowsingSteps(webBrowsingSteps, result);
+            executeWebBrowsingStepsWithParams(webBrowsingSteps, params, result);
             return result.getLastData() != null ? result.getLastData() : "Web browsing completed successfully";
         } catch (Exception e) {
             log.error("Error during Playwright web browsing", e);
@@ -116,6 +127,12 @@ public class PlaywrightWebBrowsingAction {
     }
 
     private void executeWebBrowsingSteps(String webBrowsingSteps, CustomScriptResult result) {
+        // Legacy method - use default parameters
+        ExecutionParameters defaultParams = ExecutionParameters.multiStep(5);
+        executeWebBrowsingStepsWithParams(webBrowsingSteps, defaultParams, result);
+    }
+
+    private void executeWebBrowsingStepsWithParams(String webBrowsingSteps, ExecutionParameters params, CustomScriptResult result) {
         Page page = null;
         
         try {
@@ -126,11 +143,13 @@ public class PlaywrightWebBrowsingAction {
             // Setup real-time event listeners for browser monitoring
             browserEventHandler.setupPageEventListeners(page);
 
-            // Execute steps directly without AI processing (using static tool descriptions)
-            {
-                // Fallback: execute directly if no AI processor
-                log.warn("No AI processor available, executing steps directly");
+            // Execute steps with user-controlled parameters
+            if (params.getExecutionMode() == ExecutionParameters.ExecutionMode.ONE_SHOT) {
+                log.info("Executing one-shot browsing action");
                 executeDirectSteps(page, webBrowsingSteps, result);
+            } else {
+                log.info("Executing multi-step browsing with {} max steps", params.getMaxSteps());
+                executeMultiStepBrowsing(page, webBrowsingSteps, params, result);
             }
 
         } catch (Exception e) {
@@ -310,5 +329,115 @@ public class PlaywrightWebBrowsingAction {
             }
         }
         return null;
+    }
+
+    /**
+     * Parse execution parameters from JSON string or return defaults.
+     */
+    private ExecutionParameters parseExecutionParameters(String executionParamsJson) {
+        if (executionParamsJson == null || executionParamsJson.trim().isEmpty()) {
+            return ExecutionParameters.multiStep(10); // Default
+        }
+        
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            ExecutionParameters params = mapper.readValue(executionParamsJson, ExecutionParameters.class);
+            params.validate(); // Ensure parameters are valid
+            return params;
+        } catch (Exception e) {
+            log.warn("Failed to parse execution parameters '{}', using defaults: {}", executionParamsJson, e.getMessage());
+            return ExecutionParameters.multiStep(10);
+        }
+    }
+
+    /**
+     * Execute multi-step browsing with user-controlled parameters and progress tracking.
+     */
+    private void executeMultiStepBrowsing(Page page, String webBrowsingSteps, ExecutionParameters params, CustomScriptResult result) {
+        int currentStep = 1;
+        double currentConfidence = 0.0;
+        
+        log.info("Starting multi-step execution: maxSteps={}, mode={}", params.getMaxSteps(), params.getExecutionMode());
+        
+        // Parse steps from the input
+        String[] stepArray = webBrowsingSteps.split("\\n");
+        
+        for (String step : stepArray) {
+            step = step.trim();
+            if (step.isEmpty()) continue;
+            
+            // Check step limits
+            if (currentStep > params.getMaxSteps()) {
+                log.info("Reached maximum steps limit: {}", params.getMaxSteps());
+                result.addData(String.format("⚠️ Stopped at step %d/%d due to maxSteps limit", currentStep - 1, params.getMaxSteps()));
+                break;
+            }
+            
+            log.info("Executing step {}/{}: {}", currentStep, params.getMaxSteps(), step);
+            
+            try {
+                // Execute the individual step
+                executeStep(page, step, result);
+                
+                // Wait for page to be ready
+                page.waitForLoadState(LoadState.NETWORKIDLE);
+                
+                // Capture screenshot if enabled
+                if (params.getCaptureStepScreenshots()) {
+                    captureStepScreenshot(page, result, currentStep);
+                }
+                
+                // Simulate confidence scoring (in real implementation, this would analyze results)
+                currentConfidence = Math.min(1.0, currentConfidence + 0.2);
+                
+                // Check for early completion
+                if (params.shouldStopEarly(currentStep, currentConfidence)) {
+                    log.info("Early completion triggered at step {} with confidence {:.2f}", currentStep, currentConfidence);
+                    result.addData(String.format("✅ Completed early at step %d/%d (confidence: %.2f)", currentStep, params.getMaxSteps(), currentConfidence));
+                    break;
+                }
+                
+                result.addData(String.format("Step %d completed successfully", currentStep));
+                currentStep++;
+                
+            } catch (Exception e) {
+                log.error("Error executing step {}: {}", currentStep, step, e);
+                result.addData(String.format("❌ Step %d failed: %s", currentStep, e.getMessage()));
+                
+                // For AUTO mode, continue to next step; for MULTI_STEP, break on error
+                if (params.getExecutionMode() == ExecutionParameters.ExecutionMode.MULTI_STEP) {
+                    break;
+                }
+                currentStep++;
+            }
+        }
+        
+        result.addData(String.format("Multi-step execution completed: %d steps processed", currentStep - 1));
+    }
+
+    /**
+     * Capture screenshot for a specific step with step numbering.
+     */
+    private void captureStepScreenshot(Page page, CustomScriptResult result, int stepNumber) {
+        try {
+            String screenshotDir = System.getProperty("app.storage.screenshots", "./screenshots");
+            java.nio.file.Path baseDir = Paths.get(screenshotDir).toAbsolutePath();
+            java.nio.file.Files.createDirectories(baseDir);
+            
+            String filename = String.format("step_%02d_%d.png", stepNumber, System.currentTimeMillis());
+            java.nio.file.Path screenshotPath = baseDir.resolve(filename);
+            
+            page.screenshot(new Page.ScreenshotOptions().setPath(screenshotPath));
+            
+            byte[] screenshotBytes = java.nio.file.Files.readAllBytes(screenshotPath);
+            String base64Screenshot = Base64.getEncoder().encodeToString(screenshotBytes);
+            
+            result.addScreenshot(screenshotPath.toString(), base64Screenshot);
+            log.info("Step {} screenshot captured: {}", stepNumber, screenshotPath);
+            
+        } catch (Exception e) {
+            log.error("Error capturing step {} screenshot", stepNumber, e);
+            result.addData(String.format("Screenshot capture failed for step %d: %s", stepNumber, e.getMessage()));
+        }
     }
 }

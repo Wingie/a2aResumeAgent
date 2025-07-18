@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
@@ -197,6 +198,7 @@ public class AgentThoughtService {
     /**
      * Mark a decision step as completed
      */
+    @Transactional
     public void markDecisionCompleted(String taskId, String toolSelected, boolean successful, 
                                     Long executionTimeMs, String statusMessage) {
         
@@ -218,6 +220,7 @@ public class AgentThoughtService {
     /**
      * Mark a decision step as failed
      */
+    @Transactional
     public void markDecisionFailed(String taskId, String toolSelected, String errorMessage) {
         AgentDecisionStep latestStep = decisionStepRepository
             .findLatestStepByTaskExecution(taskId)
@@ -292,6 +295,7 @@ public class AgentThoughtService {
                 .incrementAndGet();
     }
     
+    @Transactional
     private void updateDecisionStepStatus(String taskId, String toolSelected, 
                                         AgentDecisionStep.DecisionStatus status) {
         AgentDecisionStep latestStep = decisionStepRepository

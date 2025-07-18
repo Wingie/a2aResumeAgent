@@ -120,6 +120,32 @@ public class EvaluationTask {
     @Column(name = "tags", length = 500)
     private String tags; // Comma-separated tags for categorization
     
+    // User-controlled execution parameters
+    @Column(name = "execution_parameters", columnDefinition = "TEXT")
+    private String executionParametersJson; // JSON string of ExecutionParameters
+    
+    @Column(name = "max_steps")
+    @Builder.Default
+    private Integer maxSteps = 10; // Quick access field for queries
+    
+    @Column(name = "execution_mode", length = 20)
+    @Builder.Default
+    private String executionMode = "MULTI_STEP"; // ONE_SHOT, MULTI_STEP, AUTO
+    
+    @Column(name = "early_completion_allowed")
+    @Builder.Default
+    private Boolean earlyCompletionAllowed = true;
+    
+    @Column(name = "steps_completed")
+    private Integer stepsCompleted; // Track actual steps executed
+    
+    @Column(name = "early_completion_triggered")
+    private Boolean earlyCompletionTriggered; // Whether task completed early
+    
+    @Version
+    @Column(name = "version")
+    private Long version;
+    
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
@@ -283,5 +309,109 @@ public class EvaluationTask {
             return success ? 100.0 : 0.0;
         }
         return (score / maxScore) * 100.0;
+    }
+    
+    /**
+     * Parse execution parameters from JSON or return defaults.
+     */
+    public io.wingie.a2acore.domain.ExecutionParameters getExecutionParameters() {
+        if (executionParametersJson == null || executionParametersJson.trim().isEmpty()) {
+            // Build from individual fields
+            return io.wingie.a2acore.domain.ExecutionParameters.builder()
+                .maxSteps(maxSteps != null ? maxSteps : 10)
+                .executionMode(parseExecutionMode())
+                .allowEarlyCompletion(earlyCompletionAllowed != null ? earlyCompletionAllowed : true)
+                .build();
+        }
+        
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            return mapper.readValue(executionParametersJson, io.wingie.a2acore.domain.ExecutionParameters.class);
+        } catch (Exception e) {
+            // Fallback to individual fields
+            return io.wingie.a2acore.domain.ExecutionParameters.builder()
+                .maxSteps(maxSteps != null ? maxSteps : 10)
+                .executionMode(parseExecutionMode())
+                .allowEarlyCompletion(earlyCompletionAllowed != null ? earlyCompletionAllowed : true)
+                .build();
+        }
+    }
+    
+    /**
+     * Set execution parameters from object.
+     */
+    public void setExecutionParameters(io.wingie.a2acore.domain.ExecutionParameters params) {
+        if (params == null) return;
+        
+        // Set individual fields for easy querying
+        this.maxSteps = params.getMaxSteps();
+        this.executionMode = params.getExecutionMode().name();
+        this.earlyCompletionAllowed = params.getAllowEarlyCompletion();
+        
+        // Store complete JSON for full parameter access
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            this.executionParametersJson = mapper.writeValueAsString(params);
+        } catch (Exception e) {
+            // If JSON serialization fails, clear the field
+            this.executionParametersJson = null;
+        }
+    }
+    
+    private io.wingie.a2acore.domain.ExecutionParameters.ExecutionMode parseExecutionMode() {
+        if (executionMode == null) {
+            return io.wingie.a2acore.domain.ExecutionParameters.ExecutionMode.MULTI_STEP;
+        }
+        
+        try {
+            return io.wingie.a2acore.domain.ExecutionParameters.ExecutionMode.valueOf(executionMode);
+        } catch (IllegalArgumentException e) {
+            return io.wingie.a2acore.domain.ExecutionParameters.ExecutionMode.MULTI_STEP;
+        }
+    }
+    
+    /**
+     * Update execution results after task completion.
+     */
+    public void updateExecutionResults(int stepsCompleted, boolean earlyCompletion) {
+        this.stepsCompleted = stepsCompleted;
+        this.earlyCompletionTriggered = earlyCompletion;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    /**
+     * Get execution efficiency as percentage of steps used vs. maximum allowed.
+     */
+    public double getExecutionEfficiency() {
+        if (stepsCompleted == null || maxSteps == null || maxSteps == 0) {
+            return 0.0;
+        }
+        return (double) stepsCompleted / maxSteps * 100.0;
+    }
+    
+    /**
+     * Check if task executed within expected parameters.
+     */
+    public boolean isExecutionEfficient() {
+        return getExecutionEfficiency() <= 80.0; // Used 80% or less of allocated steps
+    }
+    
+    /**
+     * Get formatted execution summary.
+     */
+    public String getExecutionSummary() {
+        StringBuilder summary = new StringBuilder();
+        summary.append(String.format("Mode: %s, ", executionMode));
+        summary.append(String.format("Steps: %d/%d", 
+                                    stepsCompleted != null ? stepsCompleted : 0, 
+                                    maxSteps != null ? maxSteps : 0));
+        
+        if (earlyCompletionTriggered != null && earlyCompletionTriggered) {
+            summary.append(" (early completion)");
+        }
+        
+        summary.append(String.format(", Efficiency: %.1f%%", getExecutionEfficiency()));
+        
+        return summary.toString();
     }
 }

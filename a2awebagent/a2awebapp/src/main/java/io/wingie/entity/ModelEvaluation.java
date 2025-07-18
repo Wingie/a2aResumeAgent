@@ -105,6 +105,10 @@ public class ModelEvaluation {
     @Builder.Default
     private List<EvaluationTask> tasks = new ArrayList<>();
     
+    @Version
+    @Column(name = "version")
+    private Long version;
+    
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {

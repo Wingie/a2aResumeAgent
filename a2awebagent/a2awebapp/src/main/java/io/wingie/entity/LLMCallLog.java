@@ -60,11 +60,9 @@ public class LLMCallLog {
     private String modelName; // "gpt-4o-mini", "gemini-2.0-flash", etc.
     
     // Request/Response Data (stored as JSON for flexibility)
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String requestPayload;
     
-    @Lob
     @Column(columnDefinition = "TEXT") 
     private String responsePayload;
     
@@ -82,7 +80,6 @@ public class LLMCallLog {
     @Column(length = 50)
     private String errorCode;
     
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String errorMessage;
     
@@ -106,7 +103,6 @@ public class LLMCallLog {
     @Column(length = 45) // IPv6 max length
     private String requestIp;
     
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String userAgent;
     

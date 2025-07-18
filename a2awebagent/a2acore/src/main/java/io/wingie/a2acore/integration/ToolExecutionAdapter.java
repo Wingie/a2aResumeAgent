@@ -53,7 +53,8 @@ public class ToolExecutionAdapter {
             return toolExecutor.execute(request);
             
         } catch (Exception e) {
-            log.error("Error in integrated tool execution for {}", request.getName(), e);
+            String errorMessage = extractErrorMessage(e);
+            log.error("Error in integrated tool execution for {}: {}", request.getName(), errorMessage);
             
             // Always fallback to standard execution to maintain MCP functionality
             if (e instanceof ToolExecutionException) {
@@ -87,7 +88,8 @@ public class ToolExecutionAdapter {
             return method.invoke(integrationService, request.getName(), arguments, toolExecution);
             
         } catch (Exception e) {
-            log.error("Failed to execute tool with tracking: {}", e.getMessage());
+            String errorMessage = extractErrorMessage(e);
+            log.error("Failed to execute tool with tracking: {}", errorMessage);
             
             // Extract and re-throw ToolExecutionException if it's the root cause
             Throwable cause = e.getCause();
@@ -99,7 +101,7 @@ public class ToolExecutionAdapter {
             }
             
             // If not a ToolExecutionException, wrap it
-            throw new ToolExecutionException("Tool execution with tracking failed: " + e.getMessage(), e);
+            throw new ToolExecutionException("Tool execution with tracking failed: " + errorMessage, e);
         }
     }
     
@@ -144,5 +146,28 @@ public class ToolExecutionAdapter {
      */
     public boolean hasToolImpl(String toolName) {
         return toolExecutor.hasToolImpl(toolName);
+    }
+    
+    /**
+     * Safely extracts error message from exception and truncates if needed.
+     */
+    private String extractErrorMessage(Exception e) {
+        String message = null;
+        
+        // Try to get the most specific error message
+        if (e.getMessage() != null && !e.getMessage().trim().isEmpty()) {
+            message = e.getMessage();
+        } else if (e.getCause() != null && e.getCause().getMessage() != null) {
+            message = e.getCause().getMessage();
+        } else {
+            message = e.getClass().getSimpleName();
+        }
+        
+        // Truncate if too long (keep reasonable length for database storage)
+        if (message != null && message.length() > 1000) {
+            message = message.substring(0, 997) + "...";
+        }
+        
+        return message != null ? message : "Unknown error";
     }
 }

@@ -93,18 +93,26 @@ public class ToolDescriptionCacheService {
     }
     
     /**
-     * Update usage statistics asynchronously by ID (separate transaction)
-     * Uses REQUIRES_NEW to ensure it runs in a completely separate transaction
+     * Update usage statistics asynchronously by ID
+     * This method delegates to a transactional method to properly separate async and transactional concerns
      */
     @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW, transactionManager = "transactionManager")
     public void updateUsageStatsAsync(Long descriptionId) {
         try {
-            repository.incrementUsageCount(descriptionId, LocalDateTime.now());
-            log.debug("Updated usage stats for tool ID: {}", descriptionId);
+            updateUsageStatsById(descriptionId);
         } catch (Exception e) {
             log.warn("Failed to update usage stats for ID {}: {}", descriptionId, e.getMessage());
         }
+    }
+    
+    /**
+     * Internal transactional method to update usage statistics by ID
+     * Uses REQUIRES_NEW to ensure it runs in a completely separate transaction
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, transactionManager = "transactionManager")
+    public void updateUsageStatsById(Long descriptionId) {
+        repository.incrementUsageCount(descriptionId, LocalDateTime.now());
+        log.debug("Updated usage stats for tool ID: {}", descriptionId);
     }
 
     /**

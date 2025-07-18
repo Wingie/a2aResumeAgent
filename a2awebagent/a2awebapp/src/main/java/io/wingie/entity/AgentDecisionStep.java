@@ -61,7 +61,6 @@ public class AgentDecisionStep {
     @Column(length = 100)
     private String toolSelected;
     
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String reasoningText;
     

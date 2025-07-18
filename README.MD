@@ -6,10 +6,8 @@
 
 This repository showcases a **production-ready enterprise agentic framework** - a sophisticated system demonstrating advanced AI agent communication protocols, modern Spring Boot architecture, and professional development practices.
 
-- **Native Tools4AI Framework ReWrite**: The Complete framework is studied and recreated locally under `io.wingie.a2acore.tools4ai.*` from https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/transform, while vishalmysores implementation was quite solid, there were some architectural decisions that i woudl have done differently and it wasnt possible to simple use OOP subclassing to get around it, so hence i opted for a rewrite.
+- **Native Tools4AI Framework ReWrite**: The Complete framework is recreated locally under `io.wingie.a2acore.tools4ai.*` from https://github.com/vishalmysore/Tools4AI/tree/main/src/main/java/com/t4a/*, while vishalmysores implementation was quite solid, there were some architectural decisions that i woudl have done differently and it wasnt possible to simple use OOP subclassing to get around it, so hence i opted for a rewrite to study more about the A2A and java system as a whole.
 - **Java 17+ Compatibility**: Resolved JAXB and modern Java runtime issues
-
-This repo demonstrates my Java/Spring Boot expertise, strategic architecture decisions, and the ability to take ownership of complex dependencies rather than relying on external libraries.
 
 ## 🖼️ Interface Showcase
 

@@ -8,10 +8,13 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      maximum-pool-size: 10
+      idle-timeout: 300000      # 5 minutes
+      max-lifetime: 1800000     # 30 minutes
+      maximum-pool-size: 20     # Increased from 10
       minimum-idle: 5
+      leak-detection-threshold: 60000  # 1 minute
+      validation-timeout: 5000
+      pool-name: "HikariCP-A2A"
   
   # JPA/Hibernate Configuration
   jpa:
@@ -23,6 +26,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         use_sql_comments: false
+        jdbc:
+          lob:
+            non_contextual_creation: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   
   # Redis Configuration
