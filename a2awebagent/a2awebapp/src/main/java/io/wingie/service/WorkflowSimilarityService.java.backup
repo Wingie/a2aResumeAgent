@@ -1,0 +1,882 @@
+package io.wingie.service;
+
+import io.wingie.entity.neo4j.ScreenshotNode;
+import io.wingie.entity.neo4j.TaskNode;
+import io.wingie.entity.neo4j.WorkflowNode;
+import io.wingie.repository.neo4j.ScreenshotNodeRepository;
+import io.wingie.repository.neo4j.TaskNodeRepository;
+import io.wingie.repository.neo4j.WorkflowNodeRepository;
+import io.wingie.service.EnhancedScreenshotEmbeddingService;
+import io.wingie.service.NetworkInterceptionService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Service for finding similar workflows based on visual, textual, and behavioral patterns
+ * Uses comprehensive similarity analysis including embeddings, UI patterns, and JSON data
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class WorkflowSimilarityService {
+    
+    private final ScreenshotNodeRepository screenshotRepository;
+    private final TaskNodeRepository taskRepository;
+    private final WorkflowNodeRepository workflowRepository;
+    private final EnhancedScreenshotEmbeddingService embeddingService;
+    private final NetworkInterceptionService networkService;
+    private final ObjectMapper objectMapper;
+    
+    @Value("${workflow.similarity.visual.threshold:0.7}")
+    private double visualSimilarityThreshold;
+    
+    @Value("${workflow.similarity.semantic.threshold:0.6}")
+    private double semanticSimilarityThreshold;
+    
+    @Value("${workflow.similarity.behavioral.threshold:0.5}")
+    private double behavioralSimilarityThreshold;
+    
+    @Value("${workflow.similarity.max.results:10}")
+    private int maxSimilarityResults;
+    
+    /**
+     * Find similar workflows based on comprehensive similarity analysis
+     */
+    @Transactional(readOnly = true)
+    public List<WorkflowSimilarityResult> findSimilarWorkflows(String sessionId) {
+        try {
+            log.info("Finding similar workflows for session: {}", sessionId);
+            
+            // Gather workflow data for the query session
+            WorkflowAnalysisData queryData = gatherWorkflowData(sessionId);
+            if (queryData == null) {
+                log.warn("No workflow data found for session: {}", sessionId);
+                return new ArrayList<>();
+            }
+            
+            // Get all completed workflows to compare against
+            List<WorkflowAnalysisData> candidateWorkflows = getAllCompletedWorkflows(sessionId);
+            
+            // Calculate similarity scores
+            List<WorkflowSimilarityResult> results = new ArrayList<>();
+            
+            for (WorkflowAnalysisData candidate : candidateWorkflows) {
+                try {
+                    WorkflowSimilarityResult similarity = calculateWorkflowSimilarity(queryData, candidate);
+                    if (similarity.getOverallSimilarity() >= semanticSimilarityThreshold) {
+                        results.add(similarity);
+                    }
+                } catch (Exception e) {
+                    log.debug("Error calculating similarity for workflow {}: {}", candidate.getSessionId(), e.getMessage());
+                }
+            }
+            
+            // Sort by overall similarity and limit results
+            results.sort((a, b) -> Double.compare(b.getOverallSimilarity(), a.getOverallSimilarity()));
+            
+            List<WorkflowSimilarityResult> limitedResults = results.stream()
+                .limit(maxSimilarityResults)
+                .collect(Collectors.toList());
+            
+            log.info("Found {} similar workflows for session: {}", limitedResults.size(), sessionId);
+            return limitedResults;
+            
+        } catch (Exception e) {
+            log.error("Error finding similar workflows for session {}: {}", sessionId, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * Find workflows with similar visual patterns
+     */
+    @Transactional(readOnly = true)
+    public List<WorkflowSimilarityResult> findVisuallyS workflowsSimilar(String sessionId, double minSimilarity) {
+        try {
+            // Get screenshots for the query session
+            List<ScreenshotNode> queryScreenshots = screenshotRepository.findBySessionId(sessionId);
+            if (queryScreenshots.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            List<WorkflowSimilarityResult> results = new ArrayList<>();
+            
+            // For each screenshot, find similar ones
+            for (ScreenshotNode queryScreenshot : queryScreenshots) {
+                if (queryScreenshot.getClipEmbedding() == null) {
+                    continue;
+                }
+                
+                List<ScreenshotNode> similarScreenshots = embeddingService.findSimilarScreenshots(
+                    queryScreenshot.getId().toString(), minSimilarity);
+                
+                // Group by session and calculate workflow similarity
+                Map<String, List<ScreenshotNode>> screenshotsBySession = similarScreenshots.stream()
+                    .collect(Collectors.groupingBy(s -> extractSessionId(s.getScreenshotPath())));
+                
+                for (Map.Entry<String, List<ScreenshotNode>> entry : screenshotsBySession.entrySet()) {
+                    String candidateSessionId = entry.getKey();
+                    List<ScreenshotNode> candidateScreenshots = entry.getValue();
+                    
+                    if (!candidateSessionId.equals(sessionId)) {
+                        WorkflowSimilarityResult result = createVisualSimilarityResult(
+                            sessionId, candidateSessionId, queryScreenshots, candidateScreenshots);
+                        results.add(result);
+                    }
+                }
+            }
+            
+            // Deduplicate and sort results
+            Map<String, WorkflowSimilarityResult> uniqueResults = new HashMap<>();
+            for (WorkflowSimilarityResult result : results) {
+                String key = result.getCandidateSessionId();
+                if (!uniqueResults.containsKey(key) || 
+                    uniqueResults.get(key).getVisualSimilarity() < result.getVisualSimilarity()) {
+                    uniqueResults.put(key, result);
+                }
+            }
+            
+            return uniqueResults.values().stream()
+                .sorted((a, b) -> Double.compare(b.getVisualSimilarity(), a.getVisualSimilarity()))
+                .limit(maxSimilarityResults)
+                .collect(Collectors.toList());
+            
+        } catch (Exception e) {
+            log.error("Error finding visually similar workflows: {}", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * Find workflows with similar API interaction patterns
+     */
+    @Transactional(readOnly = true)
+    public List<WorkflowSimilarityResult> findAPIPatternSimilarWorkflows(String sessionId) {
+        try {
+            // Get API data for the query session
+            var queryApiResponses = networkService.getApiResponses(sessionId);
+            if (queryApiResponses.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            // Extract API patterns from query session
+            APIPatternData queryPatterns = extractAPIPatterns(queryApiResponses);
+            
+            // Get all workflow sessions with API data
+            List<String> allSessions = getAllSessionsWithAPIData();
+            
+            List<WorkflowSimilarityResult> results = new ArrayList<>();
+            
+            for (String candidateSessionId : allSessions) {
+                if (candidateSessionId.equals(sessionId)) {
+                    continue;
+                }
+                
+                try {
+                    var candidateApiResponses = networkService.getApiResponses(candidateSessionId);
+                    if (!candidateApiResponses.isEmpty()) {
+                        APIPatternData candidatePatterns = extractAPIPatterns(candidateApiResponses);
+                        
+                        double similarity = calculateAPIPatternSimilarity(queryPatterns, candidatePatterns);
+                        if (similarity >= behavioralSimilarityThreshold) {
+                            WorkflowSimilarityResult result = WorkflowSimilarityResult.builder()
+                                .querySessionId(sessionId)
+                                .candidateSessionId(candidateSessionId)
+                                .apiPatternSimilarity(similarity)
+                                .overallSimilarity(similarity)
+                                .similarityReason(\"Similar API interaction patterns\")
+                                .build();
+                            results.add(result);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.debug(\"Error analyzing API patterns for session {}: {}\", candidateSessionId, e.getMessage());
+                }
+            }
+            
+            return results.stream()
+                .sorted((a, b) -> Double.compare(b.getAPIPatternSimilarity(), a.getAPIPatternSimilarity()))
+                .limit(maxSimilarityResults)
+                .collect(Collectors.toList());
+            
+        } catch (Exception e) {
+            log.error(\"Error finding API pattern similar workflows: {}\", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * Find workflows with similar step sequences
+     */
+    @Transactional(readOnly = true)
+    public List<WorkflowSimilarityResult> findSequentiallyS workflowsSimilar(String sessionId) {
+        try {
+            // Get task sequence for query session
+            List<TaskNode> queryTasks = taskRepository.findBySessionIdOrderByCreatedAt(sessionId);
+            if (queryTasks.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            // Extract step sequence patterns
+            List<String> querySequence = queryTasks.stream()
+                .map(task -> extractStepType(task.getOriginalQuery()))
+                .collect(Collectors.toList());
+            
+            // Get all workflow sessions
+            List<String> allSessions = getAllCompletedWorkflowSessions();
+            
+            List<WorkflowSimilarityResult> results = new ArrayList<>();
+            
+            for (String candidateSessionId : allSessions) {
+                if (candidateSessionId.equals(sessionId)) {
+                    continue;
+                }
+                
+                try {
+                    List<TaskNode> candidateTasks = taskRepository.findBySessionIdOrderByCreatedAt(candidateSessionId);
+                    if (!candidateTasks.isEmpty()) {
+                        List<String> candidateSequence = candidateTasks.stream()
+                            .map(task -> extractStepType(task.getOriginalQuery()))
+                            .collect(Collectors.toList());
+                        
+                        double similarity = calculateSequenceSimilarity(querySequence, candidateSequence);
+                        if (similarity >= behavioralSimilarityThreshold) {
+                            WorkflowSimilarityResult result = WorkflowSimilarityResult.builder()
+                                .querySessionId(sessionId)
+                                .candidateSessionId(candidateSessionId)
+                                .sequenceSimilarity(similarity)
+                                .overallSimilarity(similarity)
+                                .similarityReason(\"Similar step sequence patterns\")
+                                .matchingSteps(findMatchingSteps(querySequence, candidateSequence))
+                                .build();
+                            results.add(result);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.debug(\"Error analyzing sequence for session {}: {}\", candidateSessionId, e.getMessage());
+                }
+            }
+            
+            return results.stream()
+                .sorted((a, b) -> Double.compare(b.getSequenceSimilarity(), a.getSequenceSimilarity()))
+                .limit(maxSimilarityResults)
+                .collect(Collectors.toList());
+            
+        } catch (Exception e) {
+            log.error(\"Error finding sequentially similar workflows: {}\", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * Get comprehensive workflow recommendations
+     */
+    @Transactional(readOnly = true)
+    public WorkflowRecommendation getWorkflowRecommendations(String sessionId) {
+        try {
+            log.info(\"Generating workflow recommendations for session: {}\", sessionId);
+            
+            // Find similar workflows using all methods
+            List<WorkflowSimilarityResult> visualSimilar = findVisuallyS workflowsSimilar(sessionId, visualSimilarityThreshold);
+            List<WorkflowSimilarityResult> apiSimilar = findAPIPatternSimilarWorkflows(sessionId);
+            List<WorkflowSimilarityResult> sequenceSimilar = findSequentiallyS workflowsSimilar(sessionId);
+            List<WorkflowSimilarityResult> overallSimilar = findSimilarWorkflows(sessionId);
+            
+            // Combine and analyze patterns
+            Set<String> allSimilarSessions = new HashSet<>();
+            visualSimilar.forEach(r -> allSimilarSessions.add(r.getCandidateSessionId()));
+            apiSimilar.forEach(r -> allSimilarSessions.add(r.getCandidateSessionId()));
+            sequenceSimilar.forEach(r -> allSimilarSessions.add(r.getCandidateSessionId()));
+            overallSimilar.forEach(r -> allSimilarSessions.add(r.getCandidateSessionId()));
+            
+            // Generate recommendations
+            List<String> recommendations = new ArrayList<>();
+            List<String> optimizations = new ArrayList<>();
+            
+            if (!visualSimilar.isEmpty()) {
+                recommendations.add(\"Found workflows with similar visual patterns - consider reusing successful interaction strategies\");
+                optimizations.add(\"Visual similarity suggests consistent UI patterns across workflows\");
+            }
+            
+            if (!apiSimilar.isEmpty()) {
+                recommendations.add(\"Found workflows with similar API interaction patterns - consider caching strategies\");
+                optimizations.add(\"API patterns suggest opportunities for request optimization\");
+            }
+            
+            if (!sequenceSimilar.isEmpty()) {
+                recommendations.add(\"Found workflows with similar step sequences - consider workflow templates\");
+                optimizations.add(\"Sequence similarity suggests opportunities for step automation\");
+            }
+            
+            // Success rate analysis
+            double successRate = calculateSuccessRate(allSimilarSessions);
+            if (successRate < 0.8) {
+                recommendations.add(\"Similar workflows have lower success rates - consider alternative approaches\");
+            }
+            
+            return WorkflowRecommendation.builder()
+                .sessionId(sessionId)
+                .visualSimilarWorkflows(visualSimilar)
+                .apiPatternSimilarWorkflows(apiSimilar)
+                .sequenceSimilarWorkflows(sequenceSimilar)
+                .overallSimilarWorkflows(overallSimilar)
+                .recommendations(recommendations)
+                .optimizations(optimizations)
+                .successRate(successRate)
+                .analysisTimestamp(LocalDateTime.now())
+                .build();
+            
+        } catch (Exception e) {
+            log.error(\"Error generating workflow recommendations: {}\", e.getMessage());
+            return WorkflowRecommendation.builder()
+                .sessionId(sessionId)
+                .visualSimilarWorkflows(new ArrayList<>())
+                .apiPatternSimilarWorkflows(new ArrayList<>())
+                .sequenceSimilarWorkflows(new ArrayList<>())
+                .overallSimilarWorkflows(new ArrayList<>())
+                .recommendations(List.of(\"Error generating recommendations\"))
+                .optimizations(new ArrayList<>())
+                .successRate(0.0)
+                .analysisTimestamp(LocalDateTime.now())
+                .build();
+        }
+    }
+    
+    // Private helper methods
+    
+    private WorkflowAnalysisData gatherWorkflowData(String sessionId) {
+        try {
+            // Get tasks for the session
+            List<TaskNode> tasks = taskRepository.findBySessionIdOrderByCreatedAt(sessionId);
+            if (tasks.isEmpty()) {
+                return null;
+            }
+            
+            // Get screenshots
+            List<ScreenshotNode> screenshots = screenshotRepository.findBySessionId(sessionId);
+            
+            // Get API responses
+            var apiResponses = networkService.getApiResponses(sessionId);
+            
+            // Get network activity
+            var networkActivity = networkService.getNetworkActivity(sessionId);
+            
+            return WorkflowAnalysisData.builder()
+                .sessionId(sessionId)
+                .tasks(tasks)
+                .screenshots(screenshots)
+                .apiResponses(apiResponses)
+                .networkActivity(networkActivity)
+                .build();
+            
+        } catch (Exception e) {
+            log.error(\"Error gathering workflow data for session {}: {}\", sessionId, e.getMessage());
+            return null;
+        }
+    }
+    
+    private List<WorkflowAnalysisData> getAllCompletedWorkflows(String excludeSessionId) {
+        try {
+            // Get all completed task sessions
+            List<String> completedSessions = taskRepository.findCompletedWorkflowSessions()
+                .stream()
+                .filter(sessionId -> !sessionId.equals(excludeSessionId))
+                .collect(Collectors.toList());
+            
+            List<WorkflowAnalysisData> workflows = new ArrayList<>();
+            
+            for (String sessionId : completedSessions) {
+                try {
+                    WorkflowAnalysisData data = gatherWorkflowData(sessionId);
+                    if (data != null) {
+                        workflows.add(data);
+                    }
+                } catch (Exception e) {
+                    log.debug(\"Error gathering data for session {}: {}\", sessionId, e.getMessage());
+                }
+            }
+            
+            return workflows;
+            
+        } catch (Exception e) {
+            log.error(\"Error getting completed workflows: {}\", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    private WorkflowSimilarityResult calculateWorkflowSimilarity(WorkflowAnalysisData query, WorkflowAnalysisData candidate) {
+        try {
+            // Calculate visual similarity
+            double visualSimilarity = calculateVisualSimilarity(query.getScreenshots(), candidate.getScreenshots());
+            
+            // Calculate API pattern similarity
+            double apiSimilarity = calculateAPIPatternSimilarity(
+                extractAPIPatterns(query.getApiResponses()),
+                extractAPIPatterns(candidate.getApiResponses())
+            );
+            
+            // Calculate sequence similarity
+            double sequenceSimilarity = calculateSequenceSimilarity(
+                query.getTasks().stream().map(t -> extractStepType(t.getOriginalQuery())).collect(Collectors.toList()),
+                candidate.getTasks().stream().map(t -> extractStepType(t.getOriginalQuery())).collect(Collectors.toList())
+            );
+            
+            // Calculate semantic similarity
+            double semanticSimilarity = calculateSemanticSimilarity(query, candidate);
+            
+            // Calculate overall similarity with weights
+            double overallSimilarity = (visualSimilarity * 0.3) + (apiSimilarity * 0.2) + 
+                                     (sequenceSimilarity * 0.3) + (semanticSimilarity * 0.2);
+            
+            return WorkflowSimilarityResult.builder()
+                .querySessionId(query.getSessionId())
+                .candidateSessionId(candidate.getSessionId())
+                .visualSimilarity(visualSimilarity)
+                .apiPatternSimilarity(apiSimilarity)
+                .sequenceSimilarity(sequenceSimilarity)
+                .semanticSimilarity(semanticSimilarity)
+                .overallSimilarity(overallSimilarity)
+                .similarityReason(generateSimilarityReason(visualSimilarity, apiSimilarity, sequenceSimilarity, semanticSimilarity))
+                .build();
+            
+        } catch (Exception e) {
+            log.error(\"Error calculating workflow similarity: {}\", e.getMessage());
+            return WorkflowSimilarityResult.builder()
+                .querySessionId(query.getSessionId())
+                .candidateSessionId(candidate.getSessionId())
+                .overallSimilarity(0.0)
+                .build();
+        }
+    }
+    
+    private double calculateVisualSimilarity(List<ScreenshotNode> queryScreenshots, List<ScreenshotNode> candidateScreenshots) {
+        if (queryScreenshots.isEmpty() || candidateScreenshots.isEmpty()) {
+            return 0.0;
+        }
+        
+        try {
+            double totalSimilarity = 0;
+            int comparisons = 0;
+            
+            for (ScreenshotNode query : queryScreenshots) {
+                if (query.getClipEmbedding() == null) continue;
+                
+                double bestSimilarity = 0;
+                for (ScreenshotNode candidate : candidateScreenshots) {
+                    if (candidate.getClipEmbedding() == null) continue;
+                    
+                    double similarity = calculateEmbeddingSimilarity(query.getClipEmbedding(), candidate.getClipEmbedding());
+                    bestSimilarity = Math.max(bestSimilarity, similarity);
+                }
+                
+                totalSimilarity += bestSimilarity;
+                comparisons++;
+            }
+            
+            return comparisons > 0 ? totalSimilarity / comparisons : 0.0;
+            
+        } catch (Exception e) {
+            log.error(\"Error calculating visual similarity: {}\", e.getMessage());
+            return 0.0;
+        }
+    }
+    
+    private double calculateEmbeddingSimilarity(String embedding1, String embedding2) {
+        try {
+            float[] emb1 = decodeBase64ToFloatArray(embedding1);
+            float[] emb2 = decodeBase64ToFloatArray(embedding2);
+            
+            if (emb1.length != emb2.length) {
+                return 0.0;
+            }
+            
+            double dotProduct = 0;
+            double norm1 = 0;
+            double norm2 = 0;
+            
+            for (int i = 0; i < emb1.length; i++) {
+                dotProduct += emb1[i] * emb2[i];
+                norm1 += emb1[i] * emb1[i];
+                norm2 += emb2[i] * emb2[i];
+            }
+            
+            return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
+            
+        } catch (Exception e) {
+            log.error(\"Error calculating embedding similarity: {}\", e.getMessage());
+            return 0.0;
+        }
+    }
+    
+    private APIPatternData extractAPIPatterns(List<NetworkInterceptionService.ApiResponse> apiResponses) {
+        try {
+            Set<String> domains = new HashSet<>();
+            Set<String> endpoints = new HashSet<>();
+            Map<String, Integer> statusCodes = new HashMap<>();
+            Set<String> contentTypes = new HashSet<>();
+            
+            for (var response : apiResponses) {
+                // Extract domain
+                try {
+                    String domain = extractDomain(response.getUrl());
+                    domains.add(domain);
+                } catch (Exception e) {
+                    // Skip invalid URLs
+                }
+                
+                // Extract endpoint pattern
+                String endpoint = extractEndpointPattern(response.getUrl());
+                endpoints.add(endpoint);
+                
+                // Count status codes
+                statusCodes.put(String.valueOf(response.getStatus()), 
+                    statusCodes.getOrDefault(String.valueOf(response.getStatus()), 0) + 1);
+                
+                // Collect content types
+                if (response.getContentType() != null) {
+                    contentTypes.add(response.getContentType());
+                }
+            }
+            
+            return APIPatternData.builder()
+                .domains(domains)
+                .endpoints(endpoints)
+                .statusCodes(statusCodes)
+                .contentTypes(contentTypes)
+                .totalRequests(apiResponses.size())
+                .build();
+            
+        } catch (Exception e) {
+            log.error(\"Error extracting API patterns: {}\", e.getMessage());
+            return APIPatternData.builder()
+                .domains(new HashSet<>())
+                .endpoints(new HashSet<>())
+                .statusCodes(new HashMap<>())
+                .contentTypes(new HashSet<>())
+                .totalRequests(0)
+                .build();
+        }
+    }
+    
+    private double calculateAPIPatternSimilarity(APIPatternData query, APIPatternData candidate) {
+        try {
+            // Calculate domain overlap
+            Set<String> commonDomains = new HashSet<>(query.getDomains());
+            commonDomains.retainAll(candidate.getDomains());
+            double domainSimilarity = (double) commonDomains.size() / 
+                Math.max(query.getDomains().size(), candidate.getDomains().size());
+            
+            // Calculate endpoint pattern overlap
+            Set<String> commonEndpoints = new HashSet<>(query.getEndpoints());
+            commonEndpoints.retainAll(candidate.getEndpoints());
+            double endpointSimilarity = (double) commonEndpoints.size() / 
+                Math.max(query.getEndpoints().size(), candidate.getEndpoints().size());
+            
+            // Calculate status code similarity
+            double statusSimilarity = calculateStatusCodeSimilarity(query.getStatusCodes(), candidate.getStatusCodes());
+            
+            // Calculate content type overlap
+            Set<String> commonContentTypes = new HashSet<>(query.getContentTypes());
+            commonContentTypes.retainAll(candidate.getContentTypes());
+            double contentTypeSimilarity = (double) commonContentTypes.size() / 
+                Math.max(query.getContentTypes().size(), candidate.getContentTypes().size());
+            
+            // Weighted average
+            return (domainSimilarity * 0.3) + (endpointSimilarity * 0.4) + 
+                   (statusSimilarity * 0.2) + (contentTypeSimilarity * 0.1);
+            
+        } catch (Exception e) {
+            log.error(\"Error calculating API pattern similarity: {}\", e.getMessage());
+            return 0.0;
+        }
+    }
+    
+    private double calculateSequenceSimilarity(List<String> querySequence, List<String> candidateSequence) {
+        try {
+            // Use longest common subsequence algorithm
+            int[][] dp = new int[querySequence.size() + 1][candidateSequence.size() + 1];
+            
+            for (int i = 1; i <= querySequence.size(); i++) {
+                for (int j = 1; j <= candidateSequence.size(); j++) {
+                    if (querySequence.get(i - 1).equals(candidateSequence.get(j - 1))) {
+                        dp[i][j] = dp[i - 1][j - 1] + 1;
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+            
+            int lcs = dp[querySequence.size()][candidateSequence.size()];
+            return (double) lcs / Math.max(querySequence.size(), candidateSequence.size());
+            
+        } catch (Exception e) {
+            log.error(\"Error calculating sequence similarity: {}\", e.getMessage());
+            return 0.0;
+        }
+    }
+    
+    private double calculateSemanticSimilarity(WorkflowAnalysisData query, WorkflowAnalysisData candidate) {
+        try {
+            // Compare task descriptions using simple text similarity
+            List<String> queryDescriptions = query.getTasks().stream()
+                .map(TaskNode::getOriginalQuery)
+                .collect(Collectors.toList());
+            
+            List<String> candidateDescriptions = candidate.getTasks().stream()
+                .map(TaskNode::getOriginalQuery)
+                .collect(Collectors.toList());
+            
+            double totalSimilarity = 0;
+            int comparisons = 0;
+            
+            for (String queryDesc : queryDescriptions) {
+                double bestSimilarity = 0;
+                for (String candidateDesc : candidateDescriptions) {
+                    double similarity = calculateTextSimilarity(queryDesc, candidateDesc);
+                    bestSimilarity = Math.max(bestSimilarity, similarity);
+                }
+                totalSimilarity += bestSimilarity;
+                comparisons++;
+            }
+            
+            return comparisons > 0 ? totalSimilarity / comparisons : 0.0;
+            
+        } catch (Exception e) {
+            log.error(\"Error calculating semantic similarity: {}\", e.getMessage());
+            return 0.0;
+        }
+    }
+    
+    private double calculateTextSimilarity(String text1, String text2) {
+        try {
+            // Simple Jaccard similarity based on words
+            Set<String> words1 = new HashSet<>(Arrays.asList(text1.toLowerCase().split(\"\\\\s+\")));
+            Set<String> words2 = new HashSet<>(Arrays.asList(text2.toLowerCase().split(\"\\\\s+\")));
+            
+            Set<String> intersection = new HashSet<>(words1);
+            intersection.retainAll(words2);
+            
+            Set<String> union = new HashSet<>(words1);
+            union.addAll(words2);
+            
+            return union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
+            
+        } catch (Exception e) {
+            log.error(\"Error calculating text similarity: {}\", e.getMessage());
+            return 0.0;
+        }
+    }
+    
+    private String extractStepType(String stepDescription) {
+        if (stepDescription == null) return \"unknown\";
+        
+        String lower = stepDescription.toLowerCase();
+        if (lower.contains(\"navigate\") || lower.contains(\"go to\")) return \"navigation\";
+        if (lower.contains(\"click\")) return \"click\";
+        if (lower.contains(\"type\") || lower.contains(\"fill\")) return \"input\";
+        if (lower.contains(\"search\")) return \"search\";
+        if (lower.contains(\"wait\")) return \"wait\";
+        if (lower.contains(\"screenshot\")) return \"screenshot\";
+        return \"action\";
+    }
+    
+    private String extractDomain(String url) {
+        try {
+            return new java.net.URL(url).getHost();
+        } catch (Exception e) {
+            return \"unknown\";
+        }
+    }
+    
+    private String extractEndpointPattern(String url) {
+        try {
+            String path = new java.net.URL(url).getPath();
+            // Generalize path by replacing numbers with placeholders
+            return path.replaceAll(\"\\\\d+\", \"{id}\");
+        } catch (Exception e) {
+            return \"/unknown\";
+        }
+    }
+    
+    private String extractSessionId(String screenshotPath) {
+        // Extract session ID from screenshot path
+        // This is a simplified implementation
+        if (screenshotPath.contains(\"_\")) {
+            String[] parts = screenshotPath.split(\"_\");
+            if (parts.length > 1) {
+                return parts[1];
+            }
+        }
+        return \"unknown\";
+    }
+    
+    private WorkflowSimilarityResult createVisualSimilarityResult(String querySessionId, String candidateSessionId,
+                                                                 List<ScreenshotNode> queryScreenshots, 
+                                                                 List<ScreenshotNode> candidateScreenshots) {
+        double visualSimilarity = calculateVisualSimilarity(queryScreenshots, candidateScreenshots);
+        
+        return WorkflowSimilarityResult.builder()
+            .querySessionId(querySessionId)
+            .candidateSessionId(candidateSessionId)
+            .visualSimilarity(visualSimilarity)
+            .overallSimilarity(visualSimilarity)
+            .similarityReason(\"Visual similarity based on screenshot embeddings\")
+            .build();
+    }
+    
+    private List<String> getAllSessionsWithAPIData() {
+        // This would need to be implemented based on how network data is stored
+        // For now, return empty list
+        return new ArrayList<>();
+    }
+    
+    private List<String> getAllCompletedWorkflowSessions() {
+        try {
+            return taskRepository.findCompletedWorkflowSessions();
+        } catch (Exception e) {
+            log.error(\"Error getting completed workflow sessions: {}\", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    private double calculateStatusCodeSimilarity(Map<String, Integer> codes1, Map<String, Integer> codes2) {
+        Set<String> allCodes = new HashSet<>(codes1.keySet());
+        allCodes.addAll(codes2.keySet());
+        
+        double similarity = 0;
+        for (String code : allCodes) {
+            int count1 = codes1.getOrDefault(code, 0);
+            int count2 = codes2.getOrDefault(code, 0);
+            similarity += Math.min(count1, count2);
+        }
+        
+        int total1 = codes1.values().stream().mapToInt(Integer::intValue).sum();
+        int total2 = codes2.values().stream().mapToInt(Integer::intValue).sum();
+        
+        return similarity / Math.max(total1, total2);
+    }
+    
+    private String generateSimilarityReason(double visual, double api, double sequence, double semantic) {
+        List<String> reasons = new ArrayList<>();
+        if (visual > 0.7) reasons.add(\"high visual similarity\");
+        if (api > 0.7) reasons.add(\"similar API patterns\");
+        if (sequence > 0.7) reasons.add(\"similar step sequences\");
+        if (semantic > 0.7) reasons.add(\"similar semantic content\");
+        
+        return reasons.isEmpty() ? \"general similarity\" : String.join(\", \", reasons);
+    }
+    
+    private List<String> findMatchingSteps(List<String> sequence1, List<String> sequence2) {
+        List<String> matching = new ArrayList<>();
+        Set<String> steps1 = new HashSet<>(sequence1);
+        
+        for (String step : sequence2) {
+            if (steps1.contains(step)) {
+                matching.add(step);
+            }
+        }
+        
+        return matching;
+    }
+    
+    private double calculateSuccessRate(Set<String> sessionIds) {
+        if (sessionIds.isEmpty()) return 0.0;
+        
+        try {
+            long successfulSessions = sessionIds.stream()
+                .mapToLong(sessionId -> {
+                    try {
+                        List<TaskNode> tasks = taskRepository.findBySessionIdOrderByCreatedAt(sessionId);
+                        return tasks.stream().anyMatch(TaskNode::isSuccessful) ? 1 : 0;
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                })
+                .sum();
+            
+            return (double) successfulSessions / sessionIds.size();
+            
+        } catch (Exception e) {
+            log.error(\"Error calculating success rate: {}\", e.getMessage());
+            return 0.0;
+        }
+    }
+    
+    private float[] decodeBase64ToFloatArray(String base64) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            float[] floats = new float[bytes.length / 4];
+            
+            for (int i = 0; i < floats.length; i++) {
+                int bits = ((bytes[i * 4] & 0xFF) << 24) |
+                          ((bytes[i * 4 + 1] & 0xFF) << 16) |
+                          ((bytes[i * 4 + 2] & 0xFF) << 8) |
+                          (bytes[i * 4 + 3] & 0xFF);
+                floats[i] = Float.intBitsToFloat(bits);
+            }
+            
+            return floats;
+        } catch (Exception e) {
+            log.error(\"Failed to decode base64 to float array: {}\", e.getMessage());
+            return new float[0];
+        }
+    }
+    
+    // Data classes
+    
+    @lombok.Data
+    @lombok.Builder
+    public static class WorkflowAnalysisData {
+        private String sessionId;
+        private List<TaskNode> tasks;
+        private List<ScreenshotNode> screenshots;
+        private List<NetworkInterceptionService.ApiResponse> apiResponses;
+        private List<NetworkInterceptionService.NetworkCapture> networkActivity;
+    }
+    
+    @lombok.Data
+    @lombok.Builder
+    public static class APIPatternData {
+        private Set<String> domains;
+        private Set<String> endpoints;
+        private Map<String, Integer> statusCodes;
+        private Set<String> contentTypes;
+        private int totalRequests;
+    }
+    
+    @lombok.Data
+    @lombok.Builder
+    public static class WorkflowSimilarityResult {
+        private String querySessionId;
+        private String candidateSessionId;
+        private double visualSimilarity;
+        private double apiPatternSimilarity;
+        private double sequenceSimilarity;
+        private double semanticSimilarity;
+        private double overallSimilarity;
+        private String similarityReason;
+        private List<String> matchingSteps;
+    }
+    
+    @lombok.Data
+    @lombok.Builder
+    public static class WorkflowRecommendation {
+        private String sessionId;
+        private List<WorkflowSimilarityResult> visualSimilarWorkflows;
+        private List<WorkflowSimilarityResult> apiPatternSimilarWorkflows;
+        private List<WorkflowSimilarityResult> sequenceSimilarWorkflows;
+        private List<WorkflowSimilarityResult> overallSimilarWorkflows;
+        private List<String> recommendations;
+        private List<String> optimizations;
+        private double successRate;
+        private LocalDateTime analysisTimestamp;
+    }
+}

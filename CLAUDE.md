@@ -61,3 +61,5 @@ Task(
 - **External dependencies**: None - all functionality is internal
 - **Docker**: Preferred deployment method
 - **Testing**: Use sanity_test.sh for health checks
+- **Creating New Files**: If creating a file it has to be the result of a plan and todo after finding and user validates the need for the file, always try and find existing files and only create new files if absolutely necessary. 
+- **Rebuild**: docker-compose up --build -d && docker-compose restart a2awebagent

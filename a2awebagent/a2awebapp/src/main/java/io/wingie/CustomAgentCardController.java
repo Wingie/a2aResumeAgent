@@ -16,16 +16,15 @@ import java.util.Map;
  * The a2ajava dependency has been removed, so this provides a simple replacement
  */
 @RestController
-@RequestMapping("/v1/agent")
+@RequestMapping("/.well-known")
 @Slf4j
-@ConditionalOnProperty(name = "app.agent-card.enabled", havingValue = "true", matchIfMissing = false)
 public class CustomAgentCardController {
 
     public CustomAgentCardController() {
         // Simple constructor - no dependencies needed
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/agent", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> getAgentCardForMyApp() {
         
         Map<String, Object> agentInfo = new HashMap<>();
