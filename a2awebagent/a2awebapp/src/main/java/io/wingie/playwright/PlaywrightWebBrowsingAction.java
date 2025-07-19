@@ -226,6 +226,27 @@ public class PlaywrightWebBrowsingAction {
                 result.addData("Typed: " + textToType);
             }
         } else if (step.contains("screenshot")) {
+            // Handle navigation before screenshot if URL or site keywords are present
+            String url = extractUrl(step);
+            
+            if (url != null) {
+                log.info("Navigating to extracted URL before screenshot: {}", url);
+                page.navigate(url);
+                page.waitForLoadState(LoadState.NETWORKIDLE);
+                result.addData("Navigated to: " + url);
+            } else if (step.contains("google")) {
+                log.info("Navigating to Google before screenshot (keyword detected)");
+                page.navigate("https://www.google.com");
+                page.waitForLoadState(LoadState.NETWORKIDLE);
+                result.addData("Navigated to Google");
+            } else if (step.contains("linkedin")) {
+                log.info("Navigating to LinkedIn before screenshot (keyword detected)");
+                page.navigate("https://www.linkedin.com");
+                page.waitForLoadState(LoadState.NETWORKIDLE);
+                result.addData("Navigated to LinkedIn");
+            }
+            // Note: Don't add else clause with default navigation here - only navigate if explicitly requested
+            
             captureScreenshot(page, result);
         } else {
             log.info("Executing general step: {}", step);
@@ -319,10 +340,34 @@ public class PlaywrightWebBrowsingAction {
                 }
             }
         }
+        
+        // Extract domain names (e.g., "example.com", "google.com")
+        String[] parts = step.split("\\s+");
+        for (String part : parts) {
+            // Remove common punctuation that might be attached
+            part = part.replaceAll("[,.:;!?\"']", "");
+            
+            // Check if it looks like a domain (contains a dot and typical domain pattern)
+            if (part.contains(".") && 
+                (part.endsWith(".com") || part.endsWith(".org") || part.endsWith(".net") || 
+                 part.endsWith(".edu") || part.endsWith(".gov") || part.endsWith(".io") ||
+                 part.endsWith(".co") || part.endsWith(".uk") || part.endsWith(".de") ||
+                 part.matches(".*\\.[a-zA-Z]{2,}$"))) { // Generic TLD pattern
+                
+                // Add https:// if not already present
+                if (!part.startsWith("http")) {
+                    return "https://" + part;
+                } else {
+                    return part;
+                }
+            }
+        }
+        
         // Default URLs for common sites
         if (step.contains("google")) return "https://www.google.com";
         if (step.contains("booking")) return "https://www.booking.com";
         if (step.contains("linkedin")) return "https://www.linkedin.com";
+        if (step.contains("example")) return "https://example.com"; // Handle "example" keyword
         return null;
     }
 

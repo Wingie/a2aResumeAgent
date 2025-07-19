@@ -11,6 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
 
 /**
  * Playwright-based screenshot utility class
@@ -19,8 +22,9 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class PlaywrightScreenshotUtils {
     
-    private static final int DEFAULT_WAIT_TIMEOUT = 15000; // 15 seconds
-    private static final int SCREENSHOT_WAIT_MS = 2000; // 2 seconds for page stability
+    private static final int DEFAULT_WAIT_TIMEOUT = 30000; // 30 seconds
+    private static final int SCREENSHOT_WAIT_MS = 3000; // 3 seconds for page stability
+    private static final int MAX_RETRIES = 3;
     
     /**
      * Capture screenshot with enhanced waiting and error handling
@@ -39,6 +43,15 @@ public class PlaywrightScreenshotUtils {
                     .setType(ScreenshotType.PNG));
             
             log.info("Screenshot captured successfully - size: {} bytes", screenshot.length);
+            
+            // Validate screenshot content
+            ScreenshotValidationResult validation = validateScreenshotContent(screenshot);
+            if (!validation.isValid) {
+                log.warn("Screenshot validation failed: {} - Retrying with fallback", validation.reason);
+                return captureWithFallbacks(page, context);
+            }
+            
+            log.info("Screenshot validation passed: {}", validation.quality);
             return screenshot;
             
         } catch (Exception e) {
@@ -130,19 +143,39 @@ public class PlaywrightScreenshotUtils {
      */
     private static void waitForPageStability(Page page) {
         try {
-            // Wait for network to be idle
-            page.waitForLoadState(LoadState.NETWORKIDLE);
+            log.debug("Starting page stability check...");
             
-            // Additional wait for dynamic content
+            // Wait for DOM content loaded first
+            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            log.debug("DOM content loaded");
+            
+            // Wait for network to be idle (no network activity for 500ms)
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+            log.debug("Network idle state reached");
+            
+            // Wait for any JavaScript frameworks to initialize
+            page.waitForFunction("() => document.readyState === 'complete'");
+            log.debug("Document ready state complete");
+            
+            // Additional wait for dynamic content and animations
             Thread.sleep(SCREENSHOT_WAIT_MS);
             
-            log.debug("Page stability check completed");
+            // Check for common loading indicators and wait for them to disappear
+            try {
+                page.waitForSelector("[class*='loading'], [class*='spinner'], .loader", 
+                    new Page.WaitForSelectorOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.DETACHED).setTimeout(5000));
+                log.debug("Loading indicators disappeared");
+            } catch (Exception e) {
+                log.debug("No loading indicators found or timeout reached");
+            }
+            
+            log.debug("Page stability check completed successfully");
             
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.warn("Page stability wait interrupted");
         } catch (Exception e) {
-            log.warn("Page stability check failed: {}", e.getMessage());
+            log.warn("Page stability check failed: {} - proceeding with screenshot", e.getMessage());
         }
     }
 
@@ -221,6 +254,142 @@ public class PlaywrightScreenshotUtils {
         } catch (Exception e) {
             log.warn("Failed to get page dimensions: {}", e.getMessage());
             return "unknown";
+        }
+    }
+
+    /**
+     * Validates screenshot content to detect blank, white, or low-quality images
+     */
+    private static ScreenshotValidationResult validateScreenshotContent(byte[] screenshotBytes) {
+        if (screenshotBytes == null || screenshotBytes.length == 0) {
+            return new ScreenshotValidationResult(false, "Empty screenshot data", 0.0);
+        }
+        
+        if (screenshotBytes.length < 1000) { // Less than 1KB is probably empty
+            return new ScreenshotValidationResult(false, "Screenshot too small", 0.0);
+        }
+        
+        try {
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(screenshotBytes));
+            if (image == null) {
+                return new ScreenshotValidationResult(false, "Invalid image format", 0.0);
+            }
+            
+            int width = image.getWidth();
+            int height = image.getHeight();
+            
+            if (width < 100 || height < 100) {
+                return new ScreenshotValidationResult(false, "Image dimensions too small", 0.0);
+            }
+            
+            // Sample pixels to detect blank/white images
+            double whitePixelRatio = calculateWhitePixelRatio(image);
+            double colorVariance = calculateColorVariance(image);
+            
+            if (whitePixelRatio > 0.95) {
+                return new ScreenshotValidationResult(false, "Image is mostly white/blank", whitePixelRatio);
+            }
+            
+            if (colorVariance < 10.0) {
+                return new ScreenshotValidationResult(false, "Image lacks content variance", colorVariance);
+            }
+            
+            // Calculate quality score
+            double qualityScore = Math.min(1.0, (1.0 - whitePixelRatio) * (colorVariance / 100.0));
+            
+            return new ScreenshotValidationResult(true, "Valid screenshot", qualityScore);
+            
+        } catch (Exception e) {
+            log.warn("Screenshot validation failed", e);
+            return new ScreenshotValidationResult(false, "Validation error: " + e.getMessage(), 0.0);
+        }
+    }
+
+    /**
+     * Calculate the ratio of white/near-white pixels in the image
+     */
+    private static double calculateWhitePixelRatio(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int totalPixels = 0;
+        int whitePixels = 0;
+        
+        // Sample every 10th pixel for performance
+        for (int x = 0; x < width; x += 10) {
+            for (int y = 0; y < height; y += 10) {
+                int rgb = image.getRGB(x, y);
+                int red = (rgb >> 16) & 0xFF;
+                int green = (rgb >> 8) & 0xFF;
+                int blue = rgb & 0xFF;
+                
+                // Consider pixel white if all RGB values are > 240
+                if (red > 240 && green > 240 && blue > 240) {
+                    whitePixels++;
+                }
+                totalPixels++;
+            }
+        }
+        
+        return totalPixels > 0 ? (double) whitePixels / totalPixels : 1.0;
+    }
+
+    /**
+     * Calculate color variance to detect content richness
+     */
+    private static double calculateColorVariance(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        long totalRed = 0, totalGreen = 0, totalBlue = 0;
+        int pixelCount = 0;
+        
+        // Sample every 20th pixel for performance
+        for (int x = 0; x < width; x += 20) {
+            for (int y = 0; y < height; y += 20) {
+                int rgb = image.getRGB(x, y);
+                totalRed += (rgb >> 16) & 0xFF;
+                totalGreen += (rgb >> 8) & 0xFF;
+                totalBlue += rgb & 0xFF;
+                pixelCount++;
+            }
+        }
+        
+        if (pixelCount == 0) return 0.0;
+        
+        double avgRed = (double) totalRed / pixelCount;
+        double avgGreen = (double) totalGreen / pixelCount;
+        double avgBlue = (double) totalBlue / pixelCount;
+        
+        double variance = 0;
+        pixelCount = 0;
+        
+        // Calculate variance
+        for (int x = 0; x < width; x += 20) {
+            for (int y = 0; y < height; y += 20) {
+                int rgb = image.getRGB(x, y);
+                int red = (rgb >> 16) & 0xFF;
+                int green = (rgb >> 8) & 0xFF;
+                int blue = rgb & 0xFF;
+                
+                variance += Math.pow(red - avgRed, 2) + Math.pow(green - avgGreen, 2) + Math.pow(blue - avgBlue, 2);
+                pixelCount++;
+            }
+        }
+        
+        return pixelCount > 0 ? Math.sqrt(variance / pixelCount) : 0.0;
+    }
+
+    /**
+     * Result of screenshot content validation
+     */
+    private static class ScreenshotValidationResult {
+        final boolean isValid;
+        final String reason;
+        final double quality;
+        
+        ScreenshotValidationResult(boolean isValid, String reason, double quality) {
+            this.isValid = isValid;
+            this.reason = reason;
+            this.quality = quality;
         }
     }
 }
